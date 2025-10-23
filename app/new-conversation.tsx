@@ -67,8 +67,8 @@ export default function NewConversationScreen() {
     setSelectedContacts(selectedContacts.filter(c => c.id !== id));
   };
 
-  const handleSendMessage = () => {
-    if (!messageText.trim() || selectedContacts.length === 0) return;
+  const handleStartChat = () => {
+    if (selectedContacts.length === 0) return;
 
     if (selectedContacts.length === 1) {
       router.push(`/chat/${selectedContacts[0].id}`);
@@ -139,33 +139,31 @@ export default function NewConversationScreen() {
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
         >
-          {selectedContacts.length > 0 && (
-            <View style={styles.messageInputContainer}>
-              <GlassCard style={styles.messageInputCard} intensity={30}>
-                <View style={styles.messageInputWrapper}>
-                  <TextInput
-                    style={styles.messageInput}
-                    placeholder="imessage"
-                    placeholderTextColor={Colors.dark.textSecondary}
-                    value={messageText}
-                    onChangeText={setMessageText}
-                    multiline
-                    maxLength={1000}
-                    autoFocus
-                  />
-                  {messageText.trim().length > 0 && (
-                    <TouchableOpacity
-                      style={styles.sendButton}
-                      onPress={handleSendMessage}
-                      activeOpacity={0.8}
-                    >
-                      <Text style={styles.sendIcon}>↑</Text>
-                    </TouchableOpacity>
-                  )}
-                </View>
-              </GlassCard>
-            </View>
-          )}
+          <View style={styles.messageInputContainer}>
+            <GlassCard style={styles.messageInputCard} intensity={30}>
+              <View style={styles.messageInputWrapper}>
+                <TextInput
+                  style={styles.messageInput}
+                  placeholder={selectedContacts.length > 0 ? "imessage" : "select a contact to start messaging"}
+                  placeholderTextColor={Colors.dark.textSecondary}
+                  value={messageText}
+                  onChangeText={setMessageText}
+                  multiline
+                  maxLength={1000}
+                  editable={selectedContacts.length > 0}
+                />
+                {selectedContacts.length > 0 && (
+                  <TouchableOpacity
+                    style={styles.sendButton}
+                    onPress={handleStartChat}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={styles.sendIcon}>→</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            </GlassCard>
+          </View>
         </KeyboardAvoidingView>
       </SafeAreaView>
     </GradientBackground>
