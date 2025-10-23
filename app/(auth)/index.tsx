@@ -41,18 +41,11 @@ export default function AuthScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.container}
       >
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-        >
+        <View style={styles.scrollContent}>
           <View style={styles.header}>
-            <View style={styles.iconContainer}>
-              <Text style={styles.icon}>💬</Text>
-            </View>
             <Text style={styles.title}>Comm</Text>
             <Text style={styles.heroText}>
-              comms + context at the{'\n'}speed of thought
+              context at the speed of thought
             </Text>
             <Text style={styles.subtitle}>
               {mode === 'signin'
@@ -143,7 +136,7 @@ export default function AuthScreen() {
               </TouchableOpacity>
             </View>
           </GlassCard>
-        </ScrollView>
+        </View>
       </KeyboardAvoidingView>
     </GradientBackground>
   );

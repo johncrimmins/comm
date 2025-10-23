@@ -151,6 +151,7 @@ export default function NewConversationScreen() {
                     onChangeText={setMessageText}
                     multiline
                     maxLength={1000}
+                    autoFocus
                   />
                   {messageText.trim().length > 0 && (
                     <TouchableOpacity

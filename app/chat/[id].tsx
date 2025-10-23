@@ -289,6 +289,7 @@ export default function ChatScreen() {
                   onChangeText={setInputText}
                   multiline
                   maxLength={1000}
+                  autoFocus
                 />
                 <TouchableOpacity
                   style={[
