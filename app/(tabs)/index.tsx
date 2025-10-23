@@ -6,13 +6,13 @@ import {
   FlatList,
   TouchableOpacity,
   SafeAreaView,
-  Platform,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
-import { useColorScheme } from '@/hooks/useColorScheme';
 import { Colors } from '@/constants/Colors';
-import ConversationItem, { Conversation } from '@/components/conversation/ConversationItem';
+import GradientBackground from '@/components/ui/GradientBackground';
+import GlassCard from '@/components/ui/GlassCard';
+import { Conversation } from '@/components/conversation/ConversationItem';
 
 const MOCK_CONVERSATIONS: Conversation[] = [
   {
@@ -20,7 +20,7 @@ const MOCK_CONVERSATIONS: Conversation[] = [
     displayName: 'Sarah Johnson',
     lastMessage: 'Hey! How are you doing?',
     timestamp: '10:30 AM',
-    avatarColor: '#FF6B6B',
+    avatarColor: '#C084FC',
     unread: true,
   },
   {
@@ -28,28 +28,26 @@ const MOCK_CONVERSATIONS: Conversation[] = [
     displayName: 'Mike Chen',
     lastMessage: 'That sounds great! Let me know when you are free.',
     timestamp: 'Yesterday',
-    avatarColor: '#4ECDC4',
+    avatarColor: '#9333EA',
   },
   {
     id: '3',
     displayName: 'Emily Davis',
     lastMessage: 'Thanks for the help earlier 🙏',
     timestamp: 'Tuesday',
-    avatarColor: '#95E1D3',
+    avatarColor: '#A855F7',
   },
   {
     id: '4',
     displayName: 'Alex Rodriguez',
     lastMessage: 'See you tomorrow!',
     timestamp: 'Monday',
-    avatarColor: '#F38181',
+    avatarColor: '#7C3AED',
   },
 ];
 
 export default function ConversationListScreen() {
   const router = useRouter();
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme ?? 'light'];
   const [conversations, setConversations] = useState<Conversation[]>(MOCK_CONVERSATIONS);
 
   const handleConversationPress = (conversation: Conversation) => {
@@ -60,66 +58,93 @@ export default function ConversationListScreen() {
     router.push('/new-conversation');
   };
 
-  const handleLogout = () => {
-    router.push('/(auth)/');
+  const handleNewGroup = () => {
+    router.push('/new-group');
   };
 
   const renderEmptyState = () => (
     <View style={styles.emptyContainer}>
-      <Text style={styles.emptyIcon}>💬</Text>
-      <Text style={[styles.emptyText, { color: colors.icon }]}>
-        No conversations yet. Start a new chat!
+      <Text style={styles.emptyIcon}>✨</Text>
+      <Text style={styles.emptyTitle}>Reply 3x faster</Text>
+      <Text style={styles.emptyText}>
+        Start your first conversation with AI that understands your tone
       </Text>
-      <TouchableOpacity
-        style={[styles.emptyButton, { backgroundColor: colors.tint }]}
-        onPress={handleNewConversation}
-        activeOpacity={0.8}
-      >
-        <Text style={styles.emptyButtonText}>Start Chatting</Text>
-      </TouchableOpacity>
     </View>
   );
 
   const renderConversation = ({ item }: { item: Conversation }) => (
-    <ConversationItem conversation={item} onPress={handleConversationPress} />
+    <TouchableOpacity
+      onPress={() => handleConversationPress(item)}
+      activeOpacity={0.9}
+      style={styles.conversationWrapper}
+    >
+      <GlassCard intensity={20} style={styles.conversationCard}>
+        <View style={styles.conversationContent}>
+          <View style={[styles.avatar, { backgroundColor: item.avatarColor }]}>
+            <Text style={styles.avatarText}>
+              {item.displayName.split(' ').map(n => n[0]).join('')}
+            </Text>
+          </View>
+          
+          <View style={styles.conversationInfo}>
+            <View style={styles.conversationHeader}>
+              <Text style={styles.displayName} numberOfLines={1}>
+                {item.displayName}
+              </Text>
+              <Text style={styles.timestamp}>{item.timestamp}</Text>
+            </View>
+            <View style={styles.messageRow}>
+              <Text style={styles.lastMessage} numberOfLines={1}>
+                {item.lastMessage}
+              </Text>
+              {item.unread && <View style={styles.unreadDot} />}
+            </View>
+          </View>
+        </View>
+      </GlassCard>
+    </TouchableOpacity>
   );
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
-      
-      <View style={[styles.header, { backgroundColor: colors.background, borderBottomColor: colors.border }]}>
-        <Text style={[styles.headerTitle, { color: colors.text }]}>Comm</Text>
-        <View style={styles.headerActions}>
-          <TouchableOpacity
-            style={[styles.iconButton, { backgroundColor: colors.tint }]}
-            onPress={handleNewConversation}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.iconButtonText}>+</Text>
-          </TouchableOpacity>
+    <GradientBackground>
+      <SafeAreaView style={styles.container}>
+        <StatusBar style="light" />
+        
+        <View style={styles.header}>
+          <View>
+            <Text style={styles.headerTitle}>Messages</Text>
+            <Text style={styles.headerSubtitle}>
+              {conversations.length} conversations
+            </Text>
+          </View>
+          <View style={styles.headerActions}>
+            <TouchableOpacity
+              style={styles.iconButton}
+              onPress={handleNewGroup}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.iconButtonText}>👥</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.iconButton}
+              onPress={handleNewConversation}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.iconButtonText}>✨</Text>
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
 
-      <FlatList
-        data={conversations}
-        renderItem={renderConversation}
-        keyExtractor={(item) => item.id}
-        ListEmptyComponent={renderEmptyState}
-        contentContainerStyle={conversations.length === 0 ? styles.emptyListContainer : undefined}
-        style={{ backgroundColor: colors.background }}
-      />
-
-      <View style={[styles.footer, { backgroundColor: colors.background, borderTopColor: colors.border }]}>
-        <TouchableOpacity
-          style={styles.logoutButton}
-          onPress={handleLogout}
-          activeOpacity={0.7}
-        >
-          <Text style={[styles.logoutText, { color: colors.tint }]}>Logout</Text>
-        </TouchableOpacity>
-      </View>
-    </SafeAreaView>
+        <FlatList
+          data={conversations}
+          keyExtractor={(item) => item.id}
+          renderItem={renderConversation}
+          ListEmptyComponent={renderEmptyState}
+          contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
+        />
+      </SafeAreaView>
+    </GradientBackground>
   );
 }
 
@@ -131,85 +156,137 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    ...Platform.select({
-      web: {
-        paddingTop: 12,
-      },
-      default: {
-        paddingTop: 0,
-      },
-    }),
+    paddingHorizontal: 24,
+    paddingTop: 20,
+    paddingBottom: 24,
   },
   headerTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
+    fontSize: 32,
+    fontWeight: '800',
+    color: Colors.dark.text,
+    fontFamily: 'Inter_800ExtraBold',
+    letterSpacing: -1,
+  },
+  headerSubtitle: {
+    fontSize: 14,
+    color: Colors.dark.textSecondary,
+    fontFamily: 'Inter_400Regular',
+    marginTop: 4,
   },
   headerActions: {
     flexDirection: 'row',
     gap: 12,
   },
   iconButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: Colors.dark.glassLight,
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: Colors.dark.border,
   },
   iconButtonText: {
-    color: '#fff',
-    fontSize: 24,
-    fontWeight: '600',
+    fontSize: 20,
   },
-  emptyListContainer: {
-    flexGrow: 1,
+  listContent: {
+    padding: 24,
+    paddingTop: 0,
+    gap: 12,
+  },
+  conversationWrapper: {
+    marginBottom: 4,
+  },
+  conversationCard: {
+    overflow: 'hidden',
+  },
+  conversationContent: {
+    flexDirection: 'row',
+    padding: 16,
+    alignItems: 'center',
+  },
+  avatar: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 14,
+  },
+  avatarText: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: '700',
+    fontFamily: 'Inter_700Bold',
+  },
+  conversationInfo: {
+    flex: 1,
+  },
+  conversationHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  displayName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.dark.text,
+    fontFamily: 'Inter_600SemiBold',
+    flex: 1,
+  },
+  timestamp: {
+    fontSize: 13,
+    color: Colors.dark.textSecondary,
+    fontFamily: 'Inter_400Regular',
+    marginLeft: 8,
+  },
+  messageRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  lastMessage: {
+    fontSize: 14,
+    color: Colors.dark.textSecondary,
+    fontFamily: 'Inter_400Regular',
+    flex: 1,
+  },
+  unreadDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: Colors.dark.accentStart,
+    marginLeft: 8,
+    shadowColor: Colors.dark.accentStart,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.8,
+    shadowRadius: 4,
   },
   emptyContainer: {
     flex: 1,
-    alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 40,
+    alignItems: 'center',
+    paddingHorizontal: 48,
+    paddingVertical: 100,
   },
   emptyIcon: {
     fontSize: 64,
-    marginBottom: 16,
+    marginBottom: 20,
+  },
+  emptyTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: Colors.dark.text,
+    fontFamily: 'Inter_700Bold',
+    marginBottom: 12,
+    textAlign: 'center',
   },
   emptyText: {
-    fontSize: 16,
+    fontSize: 15,
+    color: Colors.dark.textSecondary,
+    fontFamily: 'Inter_400Regular',
     textAlign: 'center',
-    marginBottom: 24,
-  },
-  emptyButton: {
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 20,
-  },
-  emptyButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  footer: {
-    borderTopWidth: 1,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    ...Platform.select({
-      web: {
-        paddingBottom: 12,
-      },
-      default: {
-        paddingBottom: 0,
-      },
-    }),
-  },
-  logoutButton: {
-    paddingVertical: 12,
-    alignItems: 'center',
-  },
-  logoutText: {
-    fontSize: 16,
-    fontWeight: '600',
+    lineHeight: 22,
   },
 });
