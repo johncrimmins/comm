@@ -9,6 +9,7 @@ import {
   Platform,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import { useRouter } from 'expo-router';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { Colors } from '@/constants/Colors';
 import ConversationItem, { Conversation } from '@/components/conversations/ConversationItem';
@@ -46,20 +47,21 @@ const MOCK_CONVERSATIONS: Conversation[] = [
 ];
 
 export default function ConversationListScreen() {
+  const router = useRouter();
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
   const [conversations, setConversations] = useState<Conversation[]>(MOCK_CONVERSATIONS);
 
   const handleConversationPress = (conversation: Conversation) => {
-    console.log('Opening conversation:', conversation.displayName);
+    router.push(`/chat/${conversation.id}`);
   };
 
   const handleNewConversation = () => {
-    console.log('Creating new conversation');
+    router.push('/new-conversation');
   };
 
   const handleLogout = () => {
-    console.log('Logging out');
+    router.push('/(auth)/');
   };
 
   const renderEmptyState = () => (
