@@ -4,6 +4,19 @@
 
 # Recent Changes
 
+**October 23, 2025**: Superhuman-style redesign complete
+- Implemented dark, premium, AI-native aesthetic across all screens
+- Installed Inter font family (400, 500, 600, 700, 800 weights)
+- Updated color palette with deep indigo gradients (#0A0A0F → #1A0F2E)
+- Added violet-pink accent gradient (#C084FC → #9333EA)
+- Created reusable glassmorphic UI components (GradientBackground, GlassCard, GradientButton)
+- Redesigned Auth screen with "comms + context at the speed of thought" hero (all lowercase)
+- Redesigned Conversation List with glassmorphic cards and "new" button
+- Redesigned Chat screen with glassy message bubbles and AI button
+- Redesigned New Conversation screen with multi-select for individual/group chats
+- Removed separate New Group page - now handled by New Conversation multi-select
+- Applied Inter fonts, lowercase copy, and smooth animations throughout
+
 **October 23, 2025**: Directory structure reorganization
 - Reorganized component folders to follow naming conventions
 - Renamed `components/conversations/` to `components/conversation/`

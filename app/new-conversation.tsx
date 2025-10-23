@@ -10,8 +10,10 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useColorScheme } from '@/hooks/useColorScheme';
 import { Colors } from '@/constants/Colors';
+import GradientBackground from '@/components/ui/GradientBackground';
+import GlassCard from '@/components/ui/GlassCard';
+import GradientButton from '@/components/ui/GradientButton';
 
 type User = {
   id: string;
@@ -21,103 +23,149 @@ type User = {
 };
 
 const MOCK_USERS: User[] = [
-  { id: '1', name: 'Sarah Johnson', status: 'online', avatarColor: '#FF6B6B' },
-  { id: '2', name: 'Mike Chen', status: 'Active 2h ago', avatarColor: '#4ECDC4' },
-  { id: '3', name: 'Emily Davis', status: 'online', avatarColor: '#95E1D3' },
-  { id: '4', name: 'Alex Rodriguez', status: 'Active yesterday', avatarColor: '#F38181' },
-  { id: '5', name: 'Jessica Lee', status: 'online', avatarColor: '#A8E6CF' },
-  { id: '6', name: 'David Kim', status: 'Active 5h ago', avatarColor: '#FFD3B6' },
-  { id: '7', name: 'Rachel Martinez', status: 'online', avatarColor: '#FFAAA5' },
-  { id: '8', name: 'Tom Wilson', status: 'Active 1d ago', avatarColor: '#FF8B94' },
+  { id: '1', name: 'sarah johnson', status: 'online', avatarColor: '#C084FC' },
+  { id: '2', name: 'mike chen', status: 'active 2h ago', avatarColor: '#9333EA' },
+  { id: '3', name: 'emily davis', status: 'online', avatarColor: '#A855F7' },
+  { id: '4', name: 'alex rodriguez', status: 'active yesterday', avatarColor: '#7C3AED' },
+  { id: '5', name: 'jessica lee', status: 'online', avatarColor: '#C084FC' },
+  { id: '6', name: 'david kim', status: 'active 5h ago', avatarColor: '#9333EA' },
+  { id: '7', name: 'rachel martinez', status: 'online', avatarColor: '#A855F7' },
+  { id: '8', name: 'tom wilson', status: 'active 1d ago', avatarColor: '#7C3AED' },
 ];
 
 export default function NewConversationScreen() {
   const router = useRouter();
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme ?? 'light'];
-
   const [searchQuery, setSearchQuery] = useState('');
-  const [users, setUsers] = useState<User[]>(MOCK_USERS);
+  const [selectedUsers, setSelectedUsers] = useState<Set<string>>(new Set());
 
-  const filteredUsers = users.filter((user) =>
+  const filteredUsers = MOCK_USERS.filter((user) =>
     user.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const getInitials = (name: string) => {
-    return name
-      .split(' ')
-      .map((n) => n[0])
-      .join('')
-      .toUpperCase()
-      .slice(0, 2);
+  const toggleUserSelection = (userId: string) => {
+    const newSelection = new Set(selectedUsers);
+    if (newSelection.has(userId)) {
+      newSelection.delete(userId);
+    } else {
+      newSelection.add(userId);
+    }
+    setSelectedUsers(newSelection);
   };
 
   const handleUserPress = (user: User) => {
-    router.push(`/chat/${user.id}`);
+    if (selectedUsers.size === 0) {
+      router.push(`/chat/${user.id}`);
+    } else {
+      toggleUserSelection(user.id);
+    }
   };
 
-  const renderUser = ({ item }: { item: User }) => (
-    <TouchableOpacity
-      style={[styles.userItem, { borderBottomColor: colors.border }]}
-      onPress={() => handleUserPress(item)}
-      activeOpacity={0.7}
-    >
-      <View style={[styles.avatar, { backgroundColor: item.avatarColor }]}>
-        <Text style={styles.avatarText}>{getInitials(item.name)}</Text>
-      </View>
-      <View style={styles.userInfo}>
-        <Text style={[styles.userName, { color: colors.text }]}>{item.name}</Text>
-        <Text style={[styles.userStatus, { color: colors.icon }]}>{item.status}</Text>
-      </View>
-    </TouchableOpacity>
-  );
+  const handleCreateChat = () => {
+    if (selectedUsers.size === 0) return;
+    
+    if (selectedUsers.size === 1) {
+      const userId = Array.from(selectedUsers)[0];
+      router.push(`/chat/${userId}`);
+    } else {
+      router.back();
+    }
+  };
+
+  const renderUser = ({ item }: { item: User }) => {
+    const isSelected = selectedUsers.has(item.id);
+    
+    return (
+      <TouchableOpacity
+        onPress={() => handleUserPress(item)}
+        onLongPress={() => toggleUserSelection(item.id)}
+        activeOpacity={0.9}
+        style={styles.userWrapper}
+      >
+        <GlassCard intensity={20} style={[
+          styles.userCard,
+          isSelected && styles.userCardSelected
+        ]}>
+          <View style={styles.userContent}>
+            {selectedUsers.size > 0 && (
+              <View style={styles.checkboxContainer}>
+                <View style={[styles.checkbox, { borderColor: Colors.dark.border }]}>
+                  {isSelected && (
+                    <View style={[styles.checkboxChecked, { backgroundColor: Colors.dark.accentStart }]} />
+                  )}
+                </View>
+              </View>
+            )}
+            
+            <View style={[styles.avatar, { backgroundColor: item.avatarColor }]}>
+              <Text style={styles.avatarText}>
+                {item.name.split(' ').map(n => n[0]).join('')}
+              </Text>
+            </View>
+            <View style={styles.userInfo}>
+              <Text style={styles.userName}>{item.name.toLowerCase()}</Text>
+              <Text style={styles.userStatus}>{item.status.toLowerCase()}</Text>
+            </View>
+          </View>
+        </GlassCard>
+      </TouchableOpacity>
+    );
+  };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
+    <GradientBackground>
+      <SafeAreaView style={styles.container}>
+        <StatusBar style="light" />
 
-      <View style={[styles.header, { backgroundColor: colors.background, borderBottomColor: colors.border }]}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => router.back()}
-          activeOpacity={0.7}
-        >
-          <Text style={[styles.backButtonText, { color: colors.tint }]}>←</Text>
-        </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: colors.text }]}>New Conversation</Text>
-      </View>
-
-      <View style={styles.searchContainer}>
-        <TextInput
-          style={[
-            styles.searchInput,
-            {
-              backgroundColor: colorScheme === 'dark' ? colors.secondary : '#F0F2F5',
-              color: colors.text,
-            },
-          ]}
-          placeholder="Search users..."
-          placeholderTextColor={colors.icon}
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-          autoCorrect={false}
-        />
-      </View>
-
-      <FlatList
-        data={filteredUsers}
-        renderItem={renderUser}
-        keyExtractor={(item) => item.id}
-        style={{ backgroundColor: colors.background }}
-        ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Text style={[styles.emptyText, { color: colors.icon }]}>
-              No users found
-            </Text>
+        <View style={styles.header}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => router.back()}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.backButtonText}>←</Text>
+          </TouchableOpacity>
+          <View style={styles.headerContent}>
+            <Text style={styles.headerTitle}>new message</Text>
+            {selectedUsers.size > 0 && (
+              <Text style={styles.headerSubtitle}>
+                {selectedUsers.size} selected
+              </Text>
+            )}
           </View>
-        }
-      />
-    </SafeAreaView>
+        </View>
+
+        <View style={styles.searchContainer}>
+          <GlassCard intensity={20} style={styles.searchCard}>
+            <TextInput
+              style={styles.searchInput}
+              placeholder="search contacts..."
+              placeholderTextColor={Colors.dark.textSecondary}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              autoCorrect={false}
+            />
+          </GlassCard>
+        </View>
+
+        <FlatList
+          data={filteredUsers}
+          keyExtractor={(item) => item.id}
+          renderItem={renderUser}
+          contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
+        />
+
+        {selectedUsers.size > 0 && (
+          <View style={styles.footer}>
+            <GradientButton
+              onPress={handleCreateChat}
+              title={selectedUsers.size === 1 ? 'start chat' : `create group (${selectedUsers.size})`}
+              style={styles.createButton}
+            />
+          </View>
+        )}
+      </SafeAreaView>
+    </GradientBackground>
   );
 }
 
@@ -128,9 +176,9 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 20,
   },
   backButton: {
     width: 40,
@@ -141,40 +189,88 @@ const styles = StyleSheet.create({
   },
   backButtonText: {
     fontSize: 28,
-    fontWeight: '600',
+    color: Colors.dark.text,
+    fontWeight: '300',
+  },
+  headerContent: {
+    flex: 1,
   },
   headerTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
+    fontSize: 24,
+    fontWeight: '700',
+    color: Colors.dark.text,
+    fontFamily: 'Inter_700Bold',
+    letterSpacing: -0.5,
+  },
+  headerSubtitle: {
+    fontSize: 14,
+    color: Colors.dark.textSecondary,
+    fontFamily: 'Inter_400Regular',
+    marginTop: 2,
   },
   searchContainer: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingHorizontal: 20,
+    paddingBottom: 16,
+  },
+  searchCard: {
+    borderRadius: 16,
   },
   searchInput: {
-    height: 44,
-    borderRadius: 22,
+    fontSize: 15,
+    color: Colors.dark.text,
+    fontFamily: 'Inter_400Regular',
+    paddingVertical: 14,
     paddingHorizontal: 16,
-    fontSize: 16,
   },
-  userItem: {
+  listContent: {
+    padding: 20,
+    paddingTop: 0,
+    gap: 12,
+  },
+  userWrapper: {
+    marginBottom: 4,
+  },
+  userCard: {
+    overflow: 'hidden',
+  },
+  userCardSelected: {
+    borderColor: Colors.dark.accentStart,
+    borderWidth: 1,
+  },
+  userContent: {
     flexDirection: 'row',
     padding: 16,
-    borderBottomWidth: 1,
     alignItems: 'center',
   },
-  avatar: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    alignItems: 'center',
-    justifyContent: 'center',
+  checkboxContainer: {
     marginRight: 12,
   },
+  checkbox: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    borderWidth: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  checkboxChecked: {
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+  },
+  avatar: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 14,
+  },
   avatarText: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: '600',
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '700',
+    fontFamily: 'Inter_700Bold',
   },
   userInfo: {
     flex: 1,
@@ -182,18 +278,22 @@ const styles = StyleSheet.create({
   userName: {
     fontSize: 16,
     fontWeight: '600',
-    marginBottom: 4,
+    color: Colors.dark.text,
+    fontFamily: 'Inter_600SemiBold',
+    marginBottom: 2,
   },
   userStatus: {
-    fontSize: 14,
+    fontSize: 13,
+    color: Colors.dark.textSecondary,
+    fontFamily: 'Inter_400Regular',
   },
-  emptyContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 40,
+  footer: {
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderTopWidth: 1,
+    borderTopColor: Colors.dark.border,
   },
-  emptyText: {
-    fontSize: 16,
+  createButton: {
+    marginBottom: 0,
   },
 });

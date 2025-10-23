@@ -42,22 +42,22 @@ export default function AuthScreen() {
     const newErrors: typeof errors = {};
 
     if (!email.trim()) {
-      newErrors.email = 'Email is required';
+      newErrors.email = 'email is required';
     } else if (!validateEmail(email)) {
-      newErrors.email = 'Please enter a valid email';
+      newErrors.email = 'please enter a valid email';
     }
 
     if (!password.trim()) {
-      newErrors.password = 'Password is required';
+      newErrors.password = 'password is required';
     } else if (password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters';
+      newErrors.password = 'password must be at least 6 characters';
     }
 
     if (mode === 'signup') {
       if (!displayName.trim()) {
-        newErrors.displayName = 'Display name is required';
+        newErrors.displayName = 'display name is required';
       } else if (displayName.length < 2) {
-        newErrors.displayName = 'Display name must be at least 2 characters';
+        newErrors.displayName = 'display name must be at least 2 characters';
       }
     }
 
@@ -104,12 +104,12 @@ export default function AuthScreen() {
             </View>
             <Text style={styles.title}>Comm</Text>
             <Text style={styles.heroText}>
-              Message at the{'\n'}speed of thought
+              comms + context at the{'\n'}speed of thought
             </Text>
             <Text style={styles.subtitle}>
               {mode === 'signin'
-                ? 'Sign in to continue your conversations'
-                : 'Create your account to get started'}
+                ? 'sign in to continue your conversations'
+                : 'create your account to get started'}
             </Text>
           </View>
 
@@ -117,10 +117,10 @@ export default function AuthScreen() {
             <View style={styles.formContainer}>
               {mode === 'signup' && (
                 <View style={styles.inputGroup}>
-                  <Text style={styles.label}>Name</Text>
+                  <Text style={styles.label}>name</Text>
                   <TextInput
                     style={[styles.input, errors.displayName && styles.inputError]}
-                    placeholder="Your name"
+                    placeholder="your name"
                     placeholderTextColor={Colors.dark.textSecondary}
                     value={displayName}
                     onChangeText={(text) => {
@@ -139,7 +139,7 @@ export default function AuthScreen() {
               )}
 
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>Email</Text>
+                <Text style={styles.label}>email</Text>
                 <TextInput
                   style={[styles.input, errors.email && styles.inputError]}
                   placeholder="you@example.com"
@@ -161,10 +161,10 @@ export default function AuthScreen() {
               </View>
 
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>Password</Text>
+                <Text style={styles.label}>password</Text>
                 <TextInput
                   style={[styles.input, errors.password && styles.inputError]}
-                  placeholder="Enter your password"
+                  placeholder="enter your password"
                   placeholderTextColor={Colors.dark.textSecondary}
                   value={password}
                   onChangeText={(text) => {
@@ -185,10 +185,10 @@ export default function AuthScreen() {
                 onPress={handleAuth}
                 title={
                   loading
-                    ? 'Loading...'
+                    ? 'loading...'
                     : mode === 'signin'
-                    ? 'Sign In'
-                    : 'Create Account'
+                    ? 'sign in'
+                    : 'create account'
                 }
                 disabled={loading}
                 style={styles.submitButton}
@@ -201,10 +201,10 @@ export default function AuthScreen() {
               >
                 <Text style={styles.toggleText}>
                   {mode === 'signin'
-                    ? "Don't have an account? "
-                    : 'Already have an account? '}
+                    ? "don't have an account? "
+                    : 'already have an account? '}
                   <Text style={styles.toggleTextAccent}>
-                    {mode === 'signin' ? 'Sign Up' : 'Sign In'}
+                    {mode === 'signin' ? 'sign up' : 'sign in'}
                   </Text>
                 </Text>
               </TouchableOpacity>

@@ -17,31 +17,31 @@ import { Conversation } from '@/components/conversation/ConversationItem';
 const MOCK_CONVERSATIONS: Conversation[] = [
   {
     id: '1',
-    displayName: 'Sarah Johnson',
-    lastMessage: 'Hey! How are you doing?',
-    timestamp: '10:30 AM',
+    displayName: 'sarah johnson',
+    lastMessage: 'hey! how are you doing?',
+    timestamp: '10:30 am',
     avatarColor: '#C084FC',
     unread: true,
   },
   {
     id: '2',
-    displayName: 'Mike Chen',
-    lastMessage: 'That sounds great! Let me know when you are free.',
-    timestamp: 'Yesterday',
+    displayName: 'mike chen',
+    lastMessage: 'that sounds great! let me know when you are free.',
+    timestamp: 'yesterday',
     avatarColor: '#9333EA',
   },
   {
     id: '3',
-    displayName: 'Emily Davis',
-    lastMessage: 'Thanks for the help earlier 🙏',
-    timestamp: 'Tuesday',
+    displayName: 'emily davis',
+    lastMessage: 'thanks for the help earlier 🙏',
+    timestamp: 'tuesday',
     avatarColor: '#A855F7',
   },
   {
     id: '4',
-    displayName: 'Alex Rodriguez',
-    lastMessage: 'See you tomorrow!',
-    timestamp: 'Monday',
+    displayName: 'alex rodriguez',
+    lastMessage: 'see you tomorrow!',
+    timestamp: 'monday',
     avatarColor: '#7C3AED',
   },
 ];
@@ -58,16 +58,12 @@ export default function ConversationListScreen() {
     router.push('/new-conversation');
   };
 
-  const handleNewGroup = () => {
-    router.push('/new-group');
-  };
-
   const renderEmptyState = () => (
     <View style={styles.emptyContainer}>
       <Text style={styles.emptyIcon}>✨</Text>
-      <Text style={styles.emptyTitle}>Reply 3x faster</Text>
+      <Text style={styles.emptyTitle}>reply 3x faster</Text>
       <Text style={styles.emptyText}>
-        Start your first conversation with AI that understands your tone
+        start your first conversation with ai that understands your tone
       </Text>
     </View>
   );
@@ -112,27 +108,19 @@ export default function ConversationListScreen() {
         
         <View style={styles.header}>
           <View>
-            <Text style={styles.headerTitle}>Messages</Text>
+            <Text style={styles.headerTitle}>messages</Text>
             <Text style={styles.headerSubtitle}>
               {conversations.length} conversations
             </Text>
           </View>
-          <View style={styles.headerActions}>
-            <TouchableOpacity
-              style={styles.iconButton}
-              onPress={handleNewGroup}
-              activeOpacity={0.8}
-            >
-              <Text style={styles.iconButtonText}>👥</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.iconButton}
-              onPress={handleNewConversation}
-              activeOpacity={0.8}
-            >
-              <Text style={styles.iconButtonText}>✨</Text>
-            </TouchableOpacity>
-          </View>
+          <TouchableOpacity
+            style={styles.newChatButton}
+            onPress={handleNewConversation}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.newChatIcon}>✨</Text>
+            <Text style={styles.newChatText}>new</Text>
+          </TouchableOpacity>
         </View>
 
         <FlatList
@@ -173,22 +161,29 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter_400Regular',
     marginTop: 4,
   },
-  headerActions: {
+  newChatButton: {
     flexDirection: 'row',
-    gap: 12,
-  },
-  iconButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: Colors.dark.glassLight,
     alignItems: 'center',
-    justifyContent: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+    backgroundColor: Colors.dark.glassLight,
     borderWidth: 1,
-    borderColor: Colors.dark.border,
+    borderColor: Colors.dark.accentStart,
+    gap: 8,
+    shadowColor: Colors.dark.glow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
   },
-  iconButtonText: {
-    fontSize: 20,
+  newChatIcon: {
+    fontSize: 18,
+  },
+  newChatText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: Colors.dark.text,
+    fontFamily: 'Inter_600SemiBold',
   },
   listContent: {
     padding: 24,
@@ -281,6 +276,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter_700Bold',
     marginBottom: 12,
     textAlign: 'center',
+    textTransform: 'lowercase',
   },
   emptyText: {
     fontSize: 15,
@@ -288,5 +284,6 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter_400Regular',
     textAlign: 'center',
     lineHeight: 22,
+    textTransform: 'lowercase',
   },
 });

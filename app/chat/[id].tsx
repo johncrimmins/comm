@@ -12,9 +12,10 @@ import {
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useColorScheme } from '@/hooks/useColorScheme';
 import { Colors } from '@/constants/Colors';
 import Message, { Message as MessageType } from '@/components/chat/Message';
+import GradientBackground from '@/components/ui/GradientBackground';
+import GlassCard from '@/components/ui/GlassCard';
 
 type ConversationData = {
   id: string;
@@ -26,43 +27,43 @@ type ConversationData = {
 const MOCK_CONVERSATIONS_DATA: Record<string, ConversationData> = {
   '1': {
     id: '1',
-    name: 'Sarah Johnson',
+    name: 'sarah johnson',
     status: 'online',
     messages: [
       {
         id: '1',
-        text: 'Hey! How are you doing?',
-        timestamp: '10:30 AM',
+        text: 'hey! how are you doing?',
+        timestamp: '10:30 am',
         senderId: 'other',
-        senderName: 'Sarah Johnson',
+        senderName: 'sarah johnson',
         isCurrentUser: false,
       },
       {
         id: '2',
-        text: 'I am doing great! Thanks for asking.',
-        timestamp: '10:31 AM',
+        text: 'i am doing great! thanks for asking.',
+        timestamp: '10:31 am',
         senderId: 'me',
         isCurrentUser: true,
       },
       {
         id: '3',
-        text: 'How about you?',
-        timestamp: '10:31 AM',
+        text: 'how about you?',
+        timestamp: '10:31 am',
         senderId: 'me',
         isCurrentUser: true,
       },
       {
         id: '4',
-        text: 'Pretty good! Just working on some projects.',
-        timestamp: '10:32 AM',
+        text: 'pretty good! just working on some projects.',
+        timestamp: '10:32 am',
         senderId: 'other',
-        senderName: 'Sarah Johnson',
+        senderName: 'sarah johnson',
         isCurrentUser: false,
       },
       {
         id: '5',
-        text: 'That sounds exciting! What are you working on?',
-        timestamp: '10:33 AM',
+        text: 'that sounds exciting! what are you working on?',
+        timestamp: '10:33 am',
         senderId: 'me',
         isCurrentUser: true,
       },
@@ -70,21 +71,21 @@ const MOCK_CONVERSATIONS_DATA: Record<string, ConversationData> = {
   },
   '2': {
     id: '2',
-    name: 'Mike Chen',
-    status: 'Active 2h ago',
+    name: 'mike chen',
+    status: 'active 2h ago',
     messages: [
       {
         id: '1',
-        text: 'That sounds great! Let me know when you are free.',
-        timestamp: 'Yesterday',
+        text: 'that sounds great! let me know when you are free.',
+        timestamp: 'yesterday',
         senderId: 'other',
-        senderName: 'Mike Chen',
+        senderName: 'mike chen',
         isCurrentUser: false,
       },
       {
         id: '2',
-        text: 'Sure, I will let you know!',
-        timestamp: 'Yesterday',
+        text: 'sure, i will let you know!',
+        timestamp: 'yesterday',
         senderId: 'me',
         isCurrentUser: true,
       },
@@ -92,21 +93,21 @@ const MOCK_CONVERSATIONS_DATA: Record<string, ConversationData> = {
   },
   '3': {
     id: '3',
-    name: 'Emily Davis',
+    name: 'emily davis',
     status: 'online',
     messages: [
       {
         id: '1',
-        text: 'Thanks for the help earlier 🙏',
-        timestamp: 'Tuesday',
+        text: 'thanks for the help earlier 🙏',
+        timestamp: 'tuesday',
         senderId: 'other',
-        senderName: 'Emily Davis',
+        senderName: 'emily davis',
         isCurrentUser: false,
       },
       {
         id: '2',
-        text: 'No problem! Happy to help.',
-        timestamp: 'Tuesday',
+        text: 'no problem! happy to help.',
+        timestamp: 'tuesday',
         senderId: 'me',
         isCurrentUser: true,
       },
@@ -114,21 +115,21 @@ const MOCK_CONVERSATIONS_DATA: Record<string, ConversationData> = {
   },
   '4': {
     id: '4',
-    name: 'Alex Rodriguez',
-    status: 'Active yesterday',
+    name: 'alex rodriguez',
+    status: 'active yesterday',
     messages: [
       {
         id: '1',
-        text: 'See you tomorrow!',
-        timestamp: 'Monday',
+        text: 'see you tomorrow!',
+        timestamp: 'monday',
         senderId: 'other',
-        senderName: 'Alex Rodriguez',
+        senderName: 'alex rodriguez',
         isCurrentUser: false,
       },
       {
         id: '2',
-        text: 'See you!',
-        timestamp: 'Monday',
+        text: 'see you!',
+        timestamp: 'monday',
         senderId: 'me',
         isCurrentUser: true,
       },
@@ -136,60 +137,60 @@ const MOCK_CONVERSATIONS_DATA: Record<string, ConversationData> = {
   },
   '5': {
     id: '5',
-    name: 'Jessica Lee',
+    name: 'jessica lee',
     status: 'online',
     messages: [
       {
         id: '1',
-        text: 'Hi there!',
-        timestamp: 'Just now',
+        text: 'hi there!',
+        timestamp: 'just now',
         senderId: 'other',
-        senderName: 'Jessica Lee',
+        senderName: 'jessica lee',
         isCurrentUser: false,
       },
     ],
   },
   '6': {
     id: '6',
-    name: 'David Kim',
-    status: 'Active 5h ago',
+    name: 'david kim',
+    status: 'active 5h ago',
     messages: [
       {
         id: '1',
-        text: 'Hello!',
-        timestamp: 'Just now',
+        text: 'hello!',
+        timestamp: 'just now',
         senderId: 'other',
-        senderName: 'David Kim',
+        senderName: 'david kim',
         isCurrentUser: false,
       },
     ],
   },
   '7': {
     id: '7',
-    name: 'Rachel Martinez',
+    name: 'rachel martinez',
     status: 'online',
     messages: [
       {
         id: '1',
-        text: 'Hey!',
-        timestamp: 'Just now',
+        text: 'hey!',
+        timestamp: 'just now',
         senderId: 'other',
-        senderName: 'Rachel Martinez',
+        senderName: 'rachel martinez',
         isCurrentUser: false,
       },
     ],
   },
   '8': {
     id: '8',
-    name: 'Tom Wilson',
-    status: 'Active 1d ago',
+    name: 'tom wilson',
+    status: 'active 1d ago',
     messages: [
       {
         id: '1',
-        text: 'Hi!',
-        timestamp: 'Just now',
+        text: 'hi!',
+        timestamp: 'just now',
         senderId: 'other',
-        senderName: 'Tom Wilson',
+        senderName: 'tom wilson',
         isCurrentUser: false,
       },
     ],
@@ -199,8 +200,6 @@ const MOCK_CONVERSATIONS_DATA: Record<string, ConversationData> = {
 export default function ChatScreen() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme ?? 'light'];
   const flatListRef = useRef<FlatList>(null);
 
   const conversationData = useMemo(() => {
@@ -242,69 +241,72 @@ export default function ChatScreen() {
   );
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
+    <GradientBackground>
+      <SafeAreaView style={styles.container}>
+        <StatusBar style="light" />
 
-      <View style={[styles.header, { backgroundColor: colors.background, borderBottomColor: colors.border }]}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => router.back()}
-          activeOpacity={0.7}
-        >
-          <Text style={[styles.backButtonText, { color: colors.tint }]}>←</Text>
-        </TouchableOpacity>
-        <View style={styles.headerContent}>
-          <Text style={[styles.headerTitle, { color: colors.text }]} numberOfLines={1}>
-            {conversationData.name}
-          </Text>
-          <Text style={[styles.headerSubtitle, { color: colors.icon }]}>{conversationData.status}</Text>
-        </View>
-      </View>
-
-      <FlatList
-        ref={flatListRef}
-        data={messages}
-        renderItem={renderMessage}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.messagesList}
-        style={{ backgroundColor: colors.background }}
-        onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
-      />
-
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
-      >
-        <View style={[styles.inputContainer, { backgroundColor: colors.background, borderTopColor: colors.border }]}>
-          <TextInput
-            style={[
-              styles.input,
-              {
-                backgroundColor: colorScheme === 'dark' ? colors.secondary : '#F0F2F5',
-                color: colors.text,
-              },
-            ]}
-            placeholder="Type a message..."
-            placeholderTextColor={colors.icon}
-            value={inputText}
-            onChangeText={setInputText}
-            multiline
-            maxLength={1000}
-          />
+        <View style={styles.header}>
           <TouchableOpacity
-            style={[
-              styles.sendButton,
-              { backgroundColor: inputText.trim() ? colors.tint : colors.icon },
-            ]}
-            onPress={handleSend}
-            disabled={!inputText.trim()}
-            activeOpacity={0.8}
+            style={styles.backButton}
+            onPress={() => router.back()}
+            activeOpacity={0.7}
           >
-            <Text style={styles.sendButtonText}>➤</Text>
+            <Text style={styles.backButtonText}>←</Text>
+          </TouchableOpacity>
+          <View style={styles.headerContent}>
+            <Text style={styles.headerTitle} numberOfLines={1}>
+              {conversationData.name}
+            </Text>
+            <Text style={styles.headerSubtitle}>{conversationData.status}</Text>
+          </View>
+          <TouchableOpacity style={styles.aiButton} activeOpacity={0.8}>
+            <Text style={styles.aiButtonText}>✨</Text>
           </TouchableOpacity>
         </View>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+
+        <FlatList
+          ref={flatListRef}
+          data={messages}
+          keyExtractor={(item) => item.id}
+          renderItem={renderMessage}
+          contentContainerStyle={styles.messageList}
+          showsVerticalScrollIndicator={false}
+          inverted={false}
+        />
+
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+        >
+          <View style={styles.inputContainer}>
+            <GlassCard style={styles.inputCard} intensity={30}>
+              <View style={styles.inputWrapper}>
+                <TextInput
+                  style={styles.input}
+                  placeholder="message..."
+                  placeholderTextColor={Colors.dark.textSecondary}
+                  value={inputText}
+                  onChangeText={setInputText}
+                  multiline
+                  maxLength={1000}
+                />
+                <TouchableOpacity
+                  style={[
+                    styles.sendButton,
+                    !inputText.trim() && styles.sendButtonDisabled,
+                  ]}
+                  onPress={handleSend}
+                  disabled={!inputText.trim()}
+                  activeOpacity={0.8}
+                >
+                  <Text style={styles.sendButtonText}>→</Text>
+                </TouchableOpacity>
+              </View>
+            </GlassCard>
+          </View>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+    </GradientBackground>
   );
 }
 
@@ -315,9 +317,10 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 12,
+    paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
+    borderBottomColor: Colors.dark.border,
   },
   backButton: {
     width: 40,
@@ -328,48 +331,82 @@ const styles = StyleSheet.create({
   },
   backButtonText: {
     fontSize: 28,
-    fontWeight: '600',
+    color: Colors.dark.text,
+    fontWeight: '300',
   },
   headerContent: {
     flex: 1,
   },
   headerTitle: {
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: '700',
+    color: Colors.dark.text,
+    fontFamily: 'Inter_700Bold',
   },
   headerSubtitle: {
-    fontSize: 12,
+    fontSize: 13,
+    color: Colors.dark.textSecondary,
+    fontFamily: 'Inter_400Regular',
     marginTop: 2,
   },
-  messagesList: {
-    paddingVertical: 12,
-  },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderTopWidth: 1,
-  },
-  input: {
-    flex: 1,
-    borderRadius: 20,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    fontSize: 16,
-    maxHeight: 100,
-    marginRight: 8,
-  },
-  sendButton: {
+  aiButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
+    backgroundColor: Colors.dark.glassLight,
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: Colors.dark.border,
+    marginLeft: 8,
+  },
+  aiButtonText: {
+    fontSize: 18,
+  },
+  messageList: {
+    paddingVertical: 16,
+  },
+  inputContainer: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  inputCard: {
+    borderRadius: 24,
+  },
+  inputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    padding: 12,
+  },
+  input: {
+    flex: 1,
+    fontSize: 15,
+    color: Colors.dark.text,
+    fontFamily: 'Inter_400Regular',
+    maxHeight: 100,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  sendButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: Colors.dark.accentStart,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 8,
+    shadowColor: Colors.dark.glow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+  },
+  sendButtonDisabled: {
+    backgroundColor: Colors.dark.border,
+    shadowOpacity: 0,
   },
   sendButtonText: {
-    color: '#fff',
     fontSize: 20,
+    color: '#FFFFFF',
     fontWeight: '600',
   },
 });
