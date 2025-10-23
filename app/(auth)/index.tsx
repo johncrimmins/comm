@@ -41,7 +41,12 @@ export default function AuthScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.container}
       >
-        <View style={styles.scrollContent}>
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+          scrollEnabled={false}
+        >
           <View style={styles.header}>
             <Text style={styles.title}>Comm</Text>
             <Text style={styles.heroText}>
@@ -136,7 +141,7 @@ export default function AuthScreen() {
               </TouchableOpacity>
             </View>
           </GlassCard>
-        </View>
+        </ScrollView>
       </KeyboardAvoidingView>
     </GradientBackground>
   );
