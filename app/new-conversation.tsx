@@ -125,20 +125,20 @@ export default function NewConversationScreen() {
           onRemoveContact={handleRemoveContact}
         />
 
+        <FlatList
+          data={availableUsers}
+          keyExtractor={(item) => item.id}
+          renderItem={renderUser}
+          contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          style={styles.content}
+        />
+
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          style={styles.content}
-          keyboardVerticalOffset={90}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
         >
-          <FlatList
-            data={availableUsers}
-            keyExtractor={(item) => item.id}
-            renderItem={renderUser}
-            contentContainerStyle={styles.listContent}
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-          />
-
           {selectedContacts.length > 0 && (
             <View style={styles.messageInputContainer}>
               <GlassCard style={styles.messageInputCard} intensity={30}>

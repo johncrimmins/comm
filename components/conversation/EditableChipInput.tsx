@@ -66,6 +66,7 @@ export default function EditableChipInput({
           onKeyPress={handleKeyPress}
           autoCorrect={false}
           autoCapitalize="none"
+          autoFocus
         />
       </View>
     </View>
