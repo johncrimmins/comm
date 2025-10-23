@@ -4,6 +4,13 @@
 
 # Recent Changes
 
+**October 23, 2025**: Directory structure reorganization
+- Reorganized component folders to follow naming conventions
+- Renamed `components/conversations/` to `components/conversation/`
+- Renamed `MessageBubble` component to `Message` for clarity
+- Updated all import statements across the application
+- Maintained consistent file-based routing structure in `app/` directory
+
 **October 23, 2025**: New Group screen implementation
 - Created New Group screen at `app/new-group.tsx` with multi-select functionality
 - Implemented checkbox-based user selection with visual feedback

@@ -12,11 +12,11 @@ export type Message = {
   isCurrentUser: boolean;
 };
 
-type MessageBubbleProps = {
+type MessageProps = {
   message: Message;
 };
 
-export default function MessageBubble({ message }: MessageBubbleProps) {
+export default function Message({ message }: MessageProps) {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
 

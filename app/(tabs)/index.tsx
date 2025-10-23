@@ -12,7 +12,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { Colors } from '@/constants/Colors';
-import ConversationItem, { Conversation } from '@/components/conversations/ConversationItem';
+import ConversationItem, { Conversation } from '@/components/conversation/ConversationItem';
 
 const MOCK_CONVERSATIONS: Conversation[] = [
   {

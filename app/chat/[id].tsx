@@ -14,13 +14,13 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { Colors } from '@/constants/Colors';
-import MessageBubble, { Message } from '@/components/chat/MessageBubble';
+import Message, { Message as MessageType } from '@/components/chat/Message';
 
 type ConversationData = {
   id: string;
   name: string;
   status: string;
-  messages: Message[];
+  messages: MessageType[];
 };
 
 const MOCK_CONVERSATIONS_DATA: Record<string, ConversationData> = {
@@ -208,7 +208,7 @@ export default function ChatScreen() {
     return MOCK_CONVERSATIONS_DATA[convId || '1'] || MOCK_CONVERSATIONS_DATA['1'];
   }, [id]);
 
-  const [messages, setMessages] = useState<Message[]>(conversationData.messages);
+  const [messages, setMessages] = useState<MessageType[]>(conversationData.messages);
   const [inputText, setInputText] = useState('');
 
   useEffect(() => {
@@ -217,7 +217,7 @@ export default function ChatScreen() {
 
   const handleSend = () => {
     if (inputText.trim()) {
-      const newMessage: Message = {
+      const newMessage: MessageType = {
         id: Date.now().toString(),
         text: inputText.trim(),
         timestamp: new Date().toLocaleTimeString('en-US', {
@@ -237,8 +237,8 @@ export default function ChatScreen() {
     }
   };
 
-  const renderMessage = ({ item }: { item: Message }) => (
-    <MessageBubble message={item} />
+  const renderMessage = ({ item }: { item: MessageType }) => (
+    <Message message={item} />
   );
 
   return (
