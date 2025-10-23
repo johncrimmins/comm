@@ -1,90 +1,38 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   View,
   Text,
-  TextInput,
   TouchableOpacity,
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  ActivityIndicator,
-  Animated,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
-import { useRouter } from 'expo-router';
 import GradientBackground from '@/components/ui/GradientBackground';
 import GlassCard from '@/components/ui/GlassCard';
 import GradientButton from '@/components/ui/GradientButton';
+import FormInput from '@/components/auth/FormInput';
+import FormLabel from '@/components/auth/FormLabel';
+import ErrorText from '@/components/auth/ErrorText';
+import { useAuthForm } from '@/hooks/useAuthForm';
 import { Colors } from '@/constants/Colors';
 
-type AuthMode = 'signin' | 'signup';
-
 export default function AuthScreen() {
-  const router = useRouter();
-  const [mode, setMode] = useState<AuthMode>('signin');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [displayName, setDisplayName] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [errors, setErrors] = useState<{
-    email?: string;
-    password?: string;
-    displayName?: string;
-  }>({});
-
-  const validateEmail = (email: string): boolean => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-  };
-
-  const validateForm = (): boolean => {
-    const newErrors: typeof errors = {};
-
-    if (!email.trim()) {
-      newErrors.email = 'email is required';
-    } else if (!validateEmail(email)) {
-      newErrors.email = 'please enter a valid email';
-    }
-
-    if (!password.trim()) {
-      newErrors.password = 'password is required';
-    } else if (password.length < 6) {
-      newErrors.password = 'password must be at least 6 characters';
-    }
-
-    if (mode === 'signup') {
-      if (!displayName.trim()) {
-        newErrors.displayName = 'display name is required';
-      } else if (displayName.length < 2) {
-        newErrors.displayName = 'display name must be at least 2 characters';
-      }
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleAuth = async () => {
-    if (!validateForm()) {
-      return;
-    }
-
-    setLoading(true);
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      router.replace('/(tabs)');
-    } catch (error) {
-      console.error('Auth error:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const toggleMode = () => {
-    setMode(mode === 'signin' ? 'signup' : 'signin');
-    setErrors({});
-  };
+  const {
+    mode,
+    email,
+    password,
+    displayName,
+    loading,
+    errors,
+    setEmail,
+    setPassword,
+    setDisplayName,
+    toggleMode,
+    handleAuth,
+    clearError,
+  } = useAuthForm();
 
   return (
     <GradientBackground>
@@ -117,68 +65,53 @@ export default function AuthScreen() {
             <View style={styles.formContainer}>
               {mode === 'signup' && (
                 <View style={styles.inputGroup}>
-                  <Text style={styles.label}>name</Text>
-                  <TextInput
-                    style={[styles.input, errors.displayName && styles.inputError]}
+                  <FormLabel>name</FormLabel>
+                  <FormInput
+                    hasError={!!errors.displayName}
                     placeholder="your name"
-                    placeholderTextColor={Colors.dark.textSecondary}
                     value={displayName}
                     onChangeText={(text) => {
                       setDisplayName(text);
-                      if (errors.displayName) {
-                        setErrors({ ...errors, displayName: undefined });
-                      }
+                      if (errors.displayName) clearError('displayName');
                     }}
                     autoCapitalize="words"
                     editable={!loading}
                   />
-                  {errors.displayName && (
-                    <Text style={styles.errorText}>{errors.displayName}</Text>
-                  )}
+                  <ErrorText>{errors.displayName}</ErrorText>
                 </View>
               )}
 
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>email</Text>
-                <TextInput
-                  style={[styles.input, errors.email && styles.inputError]}
+                <FormLabel>email</FormLabel>
+                <FormInput
+                  hasError={!!errors.email}
                   placeholder="you@example.com"
-                  placeholderTextColor={Colors.dark.textSecondary}
                   value={email}
                   onChangeText={(text) => {
                     setEmail(text);
-                    if (errors.email) {
-                      setErrors({ ...errors, email: undefined });
-                    }
+                    if (errors.email) clearError('email');
                   }}
                   autoCapitalize="none"
                   keyboardType="email-address"
                   editable={!loading}
                 />
-                {errors.email && (
-                  <Text style={styles.errorText}>{errors.email}</Text>
-                )}
+                <ErrorText>{errors.email}</ErrorText>
               </View>
 
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>password</Text>
-                <TextInput
-                  style={[styles.input, errors.password && styles.inputError]}
+                <FormLabel>password</FormLabel>
+                <FormInput
+                  hasError={!!errors.password}
                   placeholder="enter your password"
-                  placeholderTextColor={Colors.dark.textSecondary}
                   value={password}
                   onChangeText={(text) => {
                     setPassword(text);
-                    if (errors.password) {
-                      setErrors({ ...errors, password: undefined });
-                    }
+                    if (errors.password) clearError('password');
                   }}
                   secureTextEntry
                   editable={!loading}
                 />
-                {errors.password && (
-                  <Text style={styles.errorText}>{errors.password}</Text>
-                )}
+                <ErrorText>{errors.password}</ErrorText>
               </View>
 
               <GradientButton
@@ -222,9 +155,9 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
-    padding: 24,
-    justifyContent: 'center',
-    minHeight: '100%',
+    paddingHorizontal: 24,
+    paddingTop: 60,
+    paddingBottom: 40,
   },
   header: {
     alignItems: 'center',
@@ -245,7 +178,7 @@ const styles = StyleSheet.create({
     fontSize: 40,
   },
   title: {
-    fontSize: 32,
+    fontSize: 36,
     fontWeight: '800',
     color: Colors.dark.text,
     marginBottom: 12,
@@ -277,33 +210,6 @@ const styles = StyleSheet.create({
   },
   inputGroup: {
     marginBottom: 24,
-  },
-  label: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: Colors.dark.text,
-    marginBottom: 8,
-    fontFamily: 'Inter_600SemiBold',
-    letterSpacing: 0.5,
-  },
-  input: {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderWidth: 1,
-    borderColor: Colors.dark.border,
-    borderRadius: 12,
-    padding: 16,
-    fontSize: 16,
-    color: Colors.dark.text,
-    fontFamily: 'Inter_400Regular',
-  },
-  inputError: {
-    borderColor: '#EF4444',
-  },
-  errorText: {
-    color: '#EF4444',
-    fontSize: 13,
-    marginTop: 6,
-    fontFamily: 'Inter_400Regular',
   },
   submitButton: {
     marginTop: 8,

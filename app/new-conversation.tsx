@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -7,13 +7,15 @@ import {
   TextInput,
   TouchableOpacity,
   SafeAreaView,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { Colors } from '@/constants/Colors';
 import GradientBackground from '@/components/ui/GradientBackground';
 import GlassCard from '@/components/ui/GlassCard';
-import GradientButton from '@/components/ui/GradientButton';
+import EditableChipInput, { SelectedContact } from '@/components/conversation/EditableChipInput';
 
 type User = {
   id: string;
@@ -33,83 +35,69 @@ const MOCK_USERS: User[] = [
   { id: '8', name: 'tom wilson', status: 'active 1d ago', avatarColor: '#7C3AED' },
 ];
 
+const RECENTLY_CHATTED_IDS = ['1', '2', '3', '4'];
+
 export default function NewConversationScreen() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedUsers, setSelectedUsers] = useState<Set<string>>(new Set());
+  const [selectedContacts, setSelectedContacts] = useState<SelectedContact[]>([]);
+  const [messageText, setMessageText] = useState('');
 
-  const filteredUsers = MOCK_USERS.filter((user) =>
-    user.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  const toggleUserSelection = (userId: string) => {
-    const newSelection = new Set(selectedUsers);
-    if (newSelection.has(userId)) {
-      newSelection.delete(userId);
-    } else {
-      newSelection.add(userId);
+  const displayedUsers = useMemo(() => {
+    if (searchQuery.trim() === '') {
+      return MOCK_USERS.filter(user => RECENTLY_CHATTED_IDS.includes(user.id));
     }
-    setSelectedUsers(newSelection);
-  };
-
-  const handleUserPress = (user: User) => {
-    if (selectedUsers.size === 0) {
-      router.push(`/chat/${user.id}`);
-    } else {
-      toggleUserSelection(user.id);
-    }
-  };
-
-  const handleCreateChat = () => {
-    if (selectedUsers.size === 0) return;
     
-    if (selectedUsers.size === 1) {
-      const userId = Array.from(selectedUsers)[0];
-      router.push(`/chat/${userId}`);
+    return MOCK_USERS.filter((user) =>
+      user.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [searchQuery]);
+
+  const availableUsers = useMemo(() => {
+    const selectedIds = new Set(selectedContacts.map(c => c.id));
+    return displayedUsers.filter(user => !selectedIds.has(user.id));
+  }, [displayedUsers, selectedContacts]);
+
+  const handleSelectContact = (user: User) => {
+    setSelectedContacts([...selectedContacts, { id: user.id, name: user.name }]);
+    setSearchQuery('');
+  };
+
+  const handleRemoveContact = (id: string) => {
+    setSelectedContacts(selectedContacts.filter(c => c.id !== id));
+  };
+
+  const handleSendMessage = () => {
+    if (!messageText.trim() || selectedContacts.length === 0) return;
+
+    if (selectedContacts.length === 1) {
+      router.push(`/chat/${selectedContacts[0].id}`);
     } else {
       router.back();
     }
   };
 
-  const renderUser = ({ item }: { item: User }) => {
-    const isSelected = selectedUsers.has(item.id);
-    
-    return (
-      <TouchableOpacity
-        onPress={() => handleUserPress(item)}
-        onLongPress={() => toggleUserSelection(item.id)}
-        activeOpacity={0.9}
-        style={styles.userWrapper}
-      >
-        <GlassCard intensity={20} style={[
-          styles.userCard,
-          isSelected && styles.userCardSelected
-        ]}>
-          <View style={styles.userContent}>
-            {selectedUsers.size > 0 && (
-              <View style={styles.checkboxContainer}>
-                <View style={[styles.checkbox, { borderColor: Colors.dark.border }]}>
-                  {isSelected && (
-                    <View style={[styles.checkboxChecked, { backgroundColor: Colors.dark.accentStart }]} />
-                  )}
-                </View>
-              </View>
-            )}
-            
-            <View style={[styles.avatar, { backgroundColor: item.avatarColor }]}>
-              <Text style={styles.avatarText}>
-                {item.name.split(' ').map(n => n[0]).join('')}
-              </Text>
-            </View>
-            <View style={styles.userInfo}>
-              <Text style={styles.userName}>{item.name.toLowerCase()}</Text>
-              <Text style={styles.userStatus}>{item.status.toLowerCase()}</Text>
-            </View>
+  const renderUser = ({ item }: { item: User }) => (
+    <TouchableOpacity
+      onPress={() => handleSelectContact(item)}
+      activeOpacity={0.9}
+      style={styles.userWrapper}
+    >
+      <GlassCard intensity={20} style={styles.userCard}>
+        <View style={styles.userContent}>
+          <View style={[styles.avatar, { backgroundColor: item.avatarColor }]}>
+            <Text style={styles.avatarText}>
+              {item.name.split(' ').map(n => n[0]).join('')}
+            </Text>
           </View>
-        </GlassCard>
-      </TouchableOpacity>
-    );
-  };
+          <View style={styles.userInfo}>
+            <Text style={styles.userName}>{item.name}</Text>
+            <Text style={styles.userStatus}>{item.status}</Text>
+          </View>
+        </View>
+      </GlassCard>
+    </TouchableOpacity>
+  );
 
   return (
     <GradientBackground>
@@ -126,44 +114,58 @@ export default function NewConversationScreen() {
           </TouchableOpacity>
           <View style={styles.headerContent}>
             <Text style={styles.headerTitle}>new message</Text>
-            {selectedUsers.size > 0 && (
-              <Text style={styles.headerSubtitle}>
-                {selectedUsers.size} selected
-              </Text>
-            )}
           </View>
+          <View style={styles.backButton} />
         </View>
 
-        <View style={styles.searchContainer}>
-          <GlassCard intensity={20} style={styles.searchCard}>
-            <TextInput
-              style={styles.searchInput}
-              placeholder="search contacts..."
-              placeholderTextColor={Colors.dark.textSecondary}
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-              autoCorrect={false}
-            />
-          </GlassCard>
-        </View>
-
-        <FlatList
-          data={filteredUsers}
-          keyExtractor={(item) => item.id}
-          renderItem={renderUser}
-          contentContainerStyle={styles.listContent}
-          showsVerticalScrollIndicator={false}
+        <EditableChipInput
+          selectedContacts={selectedContacts}
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          onRemoveContact={handleRemoveContact}
         />
 
-        {selectedUsers.size > 0 && (
-          <View style={styles.footer}>
-            <GradientButton
-              onPress={handleCreateChat}
-              title={selectedUsers.size === 1 ? 'start chat' : `create group (${selectedUsers.size})`}
-              style={styles.createButton}
-            />
-          </View>
-        )}
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.content}
+          keyboardVerticalOffset={90}
+        >
+          <FlatList
+            data={availableUsers}
+            keyExtractor={(item) => item.id}
+            renderItem={renderUser}
+            contentContainerStyle={styles.listContent}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+          />
+
+          {selectedContacts.length > 0 && (
+            <View style={styles.messageInputContainer}>
+              <GlassCard style={styles.messageInputCard} intensity={30}>
+                <View style={styles.messageInputWrapper}>
+                  <TextInput
+                    style={styles.messageInput}
+                    placeholder="imessage"
+                    placeholderTextColor={Colors.dark.textSecondary}
+                    value={messageText}
+                    onChangeText={setMessageText}
+                    multiline
+                    maxLength={1000}
+                  />
+                  {messageText.trim().length > 0 && (
+                    <TouchableOpacity
+                      style={styles.sendButton}
+                      onPress={handleSendMessage}
+                      activeOpacity={0.8}
+                    >
+                      <Text style={styles.sendIcon}>↑</Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+              </GlassCard>
+            </View>
+          )}
+        </KeyboardAvoidingView>
       </SafeAreaView>
     </GradientBackground>
   );
@@ -178,14 +180,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingTop: 12,
-    paddingBottom: 20,
+    paddingBottom: 12,
   },
   backButton: {
     width: 40,
     height: 40,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 8,
   },
   backButtonText: {
     fontSize: 28,
@@ -194,37 +195,19 @@ const styles = StyleSheet.create({
   },
   headerContent: {
     flex: 1,
+    alignItems: 'center',
   },
   headerTitle: {
-    fontSize: 24,
-    fontWeight: '700',
+    fontSize: 20,
+    fontWeight: '600',
     color: Colors.dark.text,
-    fontFamily: 'Inter_700Bold',
-    letterSpacing: -0.5,
+    fontFamily: 'Inter_600SemiBold',
   },
-  headerSubtitle: {
-    fontSize: 14,
-    color: Colors.dark.textSecondary,
-    fontFamily: 'Inter_400Regular',
-    marginTop: 2,
-  },
-  searchContainer: {
-    paddingHorizontal: 20,
-    paddingBottom: 16,
-  },
-  searchCard: {
-    borderRadius: 16,
-  },
-  searchInput: {
-    fontSize: 15,
-    color: Colors.dark.text,
-    fontFamily: 'Inter_400Regular',
-    paddingVertical: 14,
-    paddingHorizontal: 16,
+  content: {
+    flex: 1,
   },
   listContent: {
-    padding: 20,
-    paddingTop: 0,
+    padding: 16,
     gap: 12,
   },
   userWrapper: {
@@ -233,30 +216,10 @@ const styles = StyleSheet.create({
   userCard: {
     overflow: 'hidden',
   },
-  userCardSelected: {
-    borderColor: Colors.dark.accentStart,
-    borderWidth: 1,
-  },
   userContent: {
     flexDirection: 'row',
     padding: 16,
     alignItems: 'center',
-  },
-  checkboxContainer: {
-    marginRight: 12,
-  },
-  checkbox: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    borderWidth: 2,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  checkboxChecked: {
-    width: 14,
-    height: 14,
-    borderRadius: 7,
   },
   avatar: {
     width: 48,
@@ -287,13 +250,41 @@ const styles = StyleSheet.create({
     color: Colors.dark.textSecondary,
     fontFamily: 'Inter_400Regular',
   },
-  footer: {
-    paddingHorizontal: 20,
-    paddingVertical: 16,
+  messageInputContainer: {
+    padding: 16,
+    paddingTop: 8,
     borderTopWidth: 1,
     borderTopColor: Colors.dark.border,
   },
-  createButton: {
-    marginBottom: 0,
+  messageInputCard: {
+    borderRadius: 24,
+  },
+  messageInputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    padding: 12,
+    minHeight: 48,
+  },
+  messageInput: {
+    flex: 1,
+    fontSize: 16,
+    color: Colors.dark.text,
+    fontFamily: 'Inter_400Regular',
+    maxHeight: 100,
+    paddingVertical: 8,
+  },
+  sendButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: Colors.dark.accentStart,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 8,
+  },
+  sendIcon: {
+    fontSize: 20,
+    color: '#FFFFFF',
+    fontWeight: '700',
   },
 });

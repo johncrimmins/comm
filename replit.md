@@ -4,6 +4,16 @@
 
 # Recent Changes
 
+**October 23, 2025**: Auth module refactoring and iPhone Messages-style new conversation screen
+- Refactored authentication module with reusable components (FormInput, FormLabel, ErrorText)
+- Created custom hooks for form management (useAuthForm, useFormValidation)
+- Implemented iPhone Messages-style "To:" field with removable contact chips
+- Added real-time contact search with recently chatted users as default
+- Chips removable via X button or backspace key
+- Message input area appears after selecting contacts
+- Navigate to chat only when message is sent (not while typing)
+- All new components stored in proper directory structure (components/auth, components/conversation, hooks/)
+
 **October 23, 2025**: Superhuman-style redesign complete
 - Implemented dark, premium, AI-native aesthetic across all screens
 - Installed Inter font family (400, 500, 600, 700, 800 weights)
