@@ -284,7 +284,6 @@ const styles = StyleSheet.create({
     color: Colors.dark.text,
     marginBottom: 8,
     fontFamily: 'Inter_600SemiBold',
-    textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
   input: {
