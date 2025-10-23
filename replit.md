@@ -4,6 +4,24 @@
 
 # Recent Changes
 
+**October 23, 2025**: New Group screen implementation
+- Created New Group screen at `app/new-group.tsx` with multi-select functionality
+- Implemented checkbox-based user selection with visual feedback
+- Added optional group name input field
+- Built smart "Create Group" button that enables only when users are selected
+- Displayed selected users count in header subtitle
+- Added search functionality to filter contacts
+- Used consistent WhatsApp-inspired design with colored avatars
+
+**October 23, 2025**: Chat and New Conversation screens
+- Built chat screen at `app/chat/[id].tsx` with dynamic conversation loading
+- Created MessageBubble component for left/right aligned messages
+- Implemented message input with send functionality
+- Added mock conversation data for 8 different users
+- Built new conversation screen at `app/new-conversation.tsx` with user list
+- Fixed dynamic routing to properly load different conversations by id
+- Added useEffect to update messages when switching conversations
+
 **October 23, 2025**: Conversation List screen implementation
 - Built conversation list screen at `app/(tabs)/index.tsx` with WhatsApp-inspired design
 - Created reusable `ConversationItem` component with avatars, timestamps, and unread states
