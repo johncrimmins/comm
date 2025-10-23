@@ -4,6 +4,15 @@
 
 # Recent Changes
 
+**October 23, 2025**: Conversation List screen implementation
+- Built conversation list screen at `app/(tabs)/index.tsx` with WhatsApp-inspired design
+- Created reusable `ConversationItem` component with avatars, timestamps, and unread states
+- Implemented FlatList with mock conversation data (4 sample conversations)
+- Added empty state with "Start Chatting" prompt and button
+- Included "+" button in header for new conversations and Logout button in footer
+- Simplified tabs layout to remove icon dependencies (Chats and Settings tabs)
+- Created placeholder Settings screen at `app/(tabs)/explore.tsx`
+
 **October 23, 2025**: Initial authentication screen implementation
 - Created beautiful auth screen at `app/(auth)/index.tsx` with WhatsApp-inspired design
 - Implemented Sign In/Sign Up toggle with conditional form fields
