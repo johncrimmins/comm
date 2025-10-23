@@ -8,6 +8,8 @@
 - Reorganized component folders to follow naming conventions
 - Renamed `components/conversations/` to `components/conversation/`
 - Renamed `MessageBubble` component to `Message` for clarity
+- Moved `/ui` folder into `/components/ui` for better organization
+- Removed Settings/Explore tab - app now has single Chats tab as default
 - Updated all import statements across the application
 - Maintained consistent file-based routing structure in `app/` directory
 
@@ -35,8 +37,7 @@
 - Implemented FlatList with mock conversation data (4 sample conversations)
 - Added empty state with "Start Chatting" prompt and button
 - Included "+" button in header for new conversations and Logout button in footer
-- Simplified tabs layout to remove icon dependencies (Chats and Settings tabs)
-- Created placeholder Settings screen at `app/(tabs)/explore.tsx`
+- Configured as default screen after authentication with single-tab layout
 
 **October 23, 2025**: Initial authentication screen implementation
 - Created beautiful auth screen at `app/(auth)/index.tsx` with WhatsApp-inspired design

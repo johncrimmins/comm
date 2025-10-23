@@ -18,12 +18,6 @@ export default function TabLayout() {
           title: 'Chats',
         }}
       />
-      <Tabs.Screen
-        name="explore"
-        options={{
-          title: 'Settings',
-        }}
-      />
     </Tabs>
   );
 }
