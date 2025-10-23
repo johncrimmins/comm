@@ -10,6 +10,11 @@ export function useAuth() {
   const segments = useSegments();
 
   useEffect(() => {
+    if (!auth) {
+      setLoading(false);
+      return;
+    }
+
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(user);
       setLoading(false);
@@ -31,6 +36,8 @@ export function useAuth() {
   }, [user, loading, segments]);
 
   const logout = async () => {
+    if (!auth) return;
+    
     try {
       await signOut(auth);
       router.replace('/(auth)');

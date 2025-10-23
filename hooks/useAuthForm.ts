@@ -70,6 +70,11 @@ export function useAuthForm() {
       return;
     }
 
+    if (!auth) {
+      setErrors({ email: 'Firebase not configured. Please add your Firebase credentials.' });
+      return;
+    }
+
     setLoading(true);
     try {
       if (mode === 'signup') {
