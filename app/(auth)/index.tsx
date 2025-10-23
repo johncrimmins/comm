@@ -9,12 +9,19 @@ import {
   Platform,
   ScrollView,
   ActivityIndicator,
+  Animated,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import { useRouter } from 'expo-router';
+import GradientBackground from '@/components/ui/GradientBackground';
+import GlassCard from '@/components/ui/GlassCard';
+import GradientButton from '@/components/ui/GradientButton';
+import { Colors } from '@/constants/Colors';
 
 type AuthMode = 'signin' | 'signup';
 
 export default function AuthScreen() {
+  const router = useRouter();
   const [mode, setMode] = useState<AuthMode>('signin');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -65,13 +72,8 @@ export default function AuthScreen() {
 
     setLoading(true);
     try {
-      // TODO: Implement Firebase authentication
       await new Promise((resolve) => setTimeout(resolve, 1500));
-      console.log(mode === 'signin' ? 'Signing in...' : 'Signing up...', {
-        email,
-        password,
-        displayName: mode === 'signup' ? displayName : undefined,
-      });
+      router.replace('/(tabs)');
     } catch (error) {
       console.error('Auth error:', error);
     } finally {
@@ -85,8 +87,8 @@ export default function AuthScreen() {
   };
 
   return (
-    <>
-      <StatusBar style="dark" />
+    <GradientBackground>
+      <StatusBar style="light" />
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.container}
@@ -94,224 +96,232 @@ export default function AuthScreen() {
         <ScrollView
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
         >
           <View style={styles.header}>
             <View style={styles.iconContainer}>
               <Text style={styles.icon}>💬</Text>
             </View>
             <Text style={styles.title}>Comm</Text>
+            <Text style={styles.heroText}>
+              Message at the{'\n'}speed of thought
+            </Text>
             <Text style={styles.subtitle}>
               {mode === 'signin'
-                ? 'Welcome back! Sign in to continue'
+                ? 'Sign in to continue your conversations'
                 : 'Create your account to get started'}
             </Text>
           </View>
 
-          <View style={styles.formContainer}>
-            {mode === 'signup' && (
+          <GlassCard style={styles.formCard} intensity={40}>
+            <View style={styles.formContainer}>
+              {mode === 'signup' && (
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Name</Text>
+                  <TextInput
+                    style={[styles.input, errors.displayName && styles.inputError]}
+                    placeholder="Your name"
+                    placeholderTextColor={Colors.dark.textSecondary}
+                    value={displayName}
+                    onChangeText={(text) => {
+                      setDisplayName(text);
+                      if (errors.displayName) {
+                        setErrors({ ...errors, displayName: undefined });
+                      }
+                    }}
+                    autoCapitalize="words"
+                    editable={!loading}
+                  />
+                  {errors.displayName && (
+                    <Text style={styles.errorText}>{errors.displayName}</Text>
+                  )}
+                </View>
+              )}
+
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>Display Name</Text>
+                <Text style={styles.label}>Email</Text>
                 <TextInput
-                  style={[styles.input, errors.displayName && styles.inputError]}
-                  placeholder="Enter your name"
-                  value={displayName}
+                  style={[styles.input, errors.email && styles.inputError]}
+                  placeholder="you@example.com"
+                  placeholderTextColor={Colors.dark.textSecondary}
+                  value={email}
                   onChangeText={(text) => {
-                    setDisplayName(text);
-                    if (errors.displayName) {
-                      setErrors({ ...errors, displayName: undefined });
+                    setEmail(text);
+                    if (errors.email) {
+                      setErrors({ ...errors, email: undefined });
                     }
                   }}
-                  autoCapitalize="words"
+                  autoCapitalize="none"
+                  keyboardType="email-address"
                   editable={!loading}
                 />
-                {errors.displayName && (
-                  <Text style={styles.errorText}>{errors.displayName}</Text>
+                {errors.email && (
+                  <Text style={styles.errorText}>{errors.email}</Text>
                 )}
               </View>
-            )}
 
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Email</Text>
-              <TextInput
-                style={[styles.input, errors.email && styles.inputError]}
-                placeholder="Enter your email"
-                value={email}
-                onChangeText={(text) => {
-                  setEmail(text);
-                  if (errors.email) {
-                    setErrors({ ...errors, email: undefined });
-                  }
-                }}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                autoCorrect={false}
-                editable={!loading}
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Password</Text>
+                <TextInput
+                  style={[styles.input, errors.password && styles.inputError]}
+                  placeholder="Enter your password"
+                  placeholderTextColor={Colors.dark.textSecondary}
+                  value={password}
+                  onChangeText={(text) => {
+                    setPassword(text);
+                    if (errors.password) {
+                      setErrors({ ...errors, password: undefined });
+                    }
+                  }}
+                  secureTextEntry
+                  editable={!loading}
+                />
+                {errors.password && (
+                  <Text style={styles.errorText}>{errors.password}</Text>
+                )}
+              </View>
+
+              <GradientButton
+                onPress={handleAuth}
+                title={
+                  loading
+                    ? 'Loading...'
+                    : mode === 'signin'
+                    ? 'Sign In'
+                    : 'Create Account'
+                }
+                disabled={loading}
+                style={styles.submitButton}
               />
-              {errors.email && (
-                <Text style={styles.errorText}>{errors.email}</Text>
-              )}
-            </View>
 
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Password</Text>
-              <TextInput
-                style={[styles.input, errors.password && styles.inputError]}
-                placeholder="Enter your password"
-                value={password}
-                onChangeText={(text) => {
-                  setPassword(text);
-                  if (errors.password) {
-                    setErrors({ ...errors, password: undefined });
-                  }
-                }}
-                secureTextEntry
-                autoCapitalize="none"
-                editable={!loading}
-              />
-              {errors.password && (
-                <Text style={styles.errorText}>{errors.password}</Text>
-              )}
-            </View>
-
-            <TouchableOpacity
-              style={[styles.button, loading && styles.buttonDisabled]}
-              onPress={handleAuth}
-              disabled={loading}
-              activeOpacity={0.8}
-            >
-              {loading ? (
-                <ActivityIndicator color="#fff" />
-              ) : (
-                <Text style={styles.buttonText}>
-                  {mode === 'signin' ? 'Sign In' : 'Sign Up'}
-                </Text>
-              )}
-            </TouchableOpacity>
-
-            <View style={styles.toggleContainer}>
-              <Text style={styles.toggleText}>
-                {mode === 'signin'
-                  ? "Don't have an account? "
-                  : 'Already have an account? '}
-              </Text>
-              <TouchableOpacity onPress={toggleMode} disabled={loading}>
-                <Text style={styles.toggleLink}>
-                  {mode === 'signin' ? 'Sign Up' : 'Sign In'}
+              <TouchableOpacity
+                onPress={toggleMode}
+                style={styles.toggleButton}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.toggleText}>
+                  {mode === 'signin'
+                    ? "Don't have an account? "
+                    : 'Already have an account? '}
+                  <Text style={styles.toggleTextAccent}>
+                    {mode === 'signin' ? 'Sign Up' : 'Sign In'}
+                  </Text>
                 </Text>
               </TouchableOpacity>
             </View>
-          </View>
+          </GlassCard>
         </ScrollView>
       </KeyboardAvoidingView>
-    </>
+    </GradientBackground>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
   },
   scrollContent: {
     flexGrow: 1,
-    paddingHorizontal: 24,
-    paddingTop: 60,
-    paddingBottom: 40,
+    padding: 24,
+    justifyContent: 'center',
+    minHeight: '100%',
   },
   header: {
     alignItems: 'center',
-    marginBottom: 48,
+    marginBottom: 40,
   },
   iconContainer: {
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: '#25D366',
+    backgroundColor: Colors.dark.glassLight,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 16,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: Colors.dark.border,
   },
   icon: {
     fontSize: 40,
   },
   title: {
     fontSize: 32,
-    fontWeight: 'bold',
-    color: '#000',
-    marginBottom: 8,
+    fontWeight: '800',
+    color: Colors.dark.text,
+    marginBottom: 12,
+    fontFamily: 'Inter_800ExtraBold',
+    letterSpacing: -1,
+  },
+  heroText: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: Colors.dark.text,
+    textAlign: 'center',
+    marginBottom: 16,
+    fontFamily: 'Inter_700Bold',
+    lineHeight: 36,
+    letterSpacing: -0.5,
   },
   subtitle: {
-    fontSize: 16,
-    color: '#667781',
+    fontSize: 15,
+    color: Colors.dark.textSecondary,
     textAlign: 'center',
-    paddingHorizontal: 20,
+    fontFamily: 'Inter_400Regular',
+    lineHeight: 22,
+  },
+  formCard: {
+    marginTop: 8,
   },
   formContainer: {
-    flex: 1,
+    padding: 24,
   },
   inputGroup: {
-    marginBottom: 20,
+    marginBottom: 24,
   },
   label: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
-    color: '#000',
+    color: Colors.dark.text,
     marginBottom: 8,
+    fontFamily: 'Inter_600SemiBold',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   input: {
-    height: 52,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: Colors.dark.border,
     borderRadius: 12,
-    paddingHorizontal: 16,
+    padding: 16,
     fontSize: 16,
-    backgroundColor: '#F9FAFB',
-    color: '#000',
+    color: Colors.dark.text,
+    fontFamily: 'Inter_400Regular',
   },
   inputError: {
     borderColor: '#EF4444',
-    backgroundColor: '#FEF2F2',
   },
   errorText: {
     color: '#EF4444',
-    fontSize: 12,
-    marginTop: 4,
-    marginLeft: 4,
+    fontSize: 13,
+    marginTop: 6,
+    fontFamily: 'Inter_400Regular',
   },
-  button: {
-    height: 52,
-    backgroundColor: '#25D366',
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
+  submitButton: {
     marginTop: 8,
-    shadowColor: '#25D366',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
+    marginBottom: 16,
   },
-  buttonDisabled: {
-    opacity: 0.6,
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  toggleContainer: {
-    flexDirection: 'row',
+  toggleButton: {
     alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 24,
+    paddingVertical: 12,
   },
   toggleText: {
+    color: Colors.dark.textSecondary,
     fontSize: 14,
-    color: '#667781',
+    fontFamily: 'Inter_400Regular',
   },
-  toggleLink: {
-    fontSize: 14,
-    color: '#25D366',
+  toggleTextAccent: {
+    color: Colors.dark.accentStart,
     fontWeight: '600',
+    fontFamily: 'Inter_600SemiBold',
   },
 });
