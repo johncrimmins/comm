@@ -13,6 +13,7 @@ import { Colors } from '@/constants/Colors';
 import GradientBackground from '@/components/ui/GradientBackground';
 import GlassCard from '@/components/ui/GlassCard';
 import { Conversation } from '@/components/conversation/ConversationItem';
+import { useAuth } from '@/hooks/useAuth';
 
 const MOCK_CONVERSATIONS: Conversation[] = [
   {
@@ -48,6 +49,7 @@ const MOCK_CONVERSATIONS: Conversation[] = [
 
 export default function ConversationListScreen() {
   const router = useRouter();
+  const { logout, user } = useAuth();
   const [conversations, setConversations] = useState<Conversation[]>(MOCK_CONVERSATIONS);
 
   const handleConversationPress = (conversation: Conversation) => {
@@ -56,6 +58,10 @@ export default function ConversationListScreen() {
 
   const handleNewConversation = () => {
     router.push('/new-conversation');
+  };
+
+  const handleLogout = async () => {
+    await logout();
   };
 
   const renderEmptyState = () => (
@@ -110,17 +116,26 @@ export default function ConversationListScreen() {
           <View>
             <Text style={styles.headerTitle}>messages</Text>
             <Text style={styles.headerSubtitle}>
-              {conversations.length} conversations
+              {user?.displayName || user?.email || 'user'}
             </Text>
           </View>
-          <TouchableOpacity
-            style={styles.newChatButton}
-            onPress={handleNewConversation}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.newChatIcon}>✨</Text>
-            <Text style={styles.newChatText}>new</Text>
-          </TouchableOpacity>
+          <View style={styles.headerButtons}>
+            <TouchableOpacity
+              style={styles.newChatButton}
+              onPress={handleNewConversation}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.newChatIcon}>✨</Text>
+              <Text style={styles.newChatText}>new</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.logoutButton}
+              onPress={handleLogout}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.logoutText}>logout</Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         <FlatList
@@ -161,6 +176,10 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter_400Regular',
     marginTop: 4,
   },
+  headerButtons: {
+    flexDirection: 'row',
+    gap: 12,
+  },
   newChatButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -183,6 +202,20 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600',
     color: Colors.dark.text,
+    fontFamily: 'Inter_600SemiBold',
+  },
+  logoutButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(239, 68, 68, 0.3)',
+  },
+  logoutText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#EF4444',
     fontFamily: 'Inter_600SemiBold',
   },
   listContent: {
