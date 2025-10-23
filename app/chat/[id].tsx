@@ -198,14 +198,40 @@ const MOCK_CONVERSATIONS_DATA: Record<string, ConversationData> = {
 };
 
 export default function ChatScreen() {
-  const { id } = useLocalSearchParams();
+  const params = useLocalSearchParams();
+  const { id, groupName, isGroup } = params;
   const router = useRouter();
   const flatListRef = useRef<FlatList>(null);
 
+  const isGroupChat = isGroup === 'true' || (typeof id === 'string' && id.startsWith('group_'));
+
   const conversationData = useMemo(() => {
     const convId = Array.isArray(id) ? id[0] : id;
+    
+    // If it's a new group chat, create default data with welcome messages
+    if (isGroupChat) {
+      const participantNames = (Array.isArray(groupName) ? groupName[0] : groupName)?.split(', ') || [];
+      const welcomeMessages: MessageType[] = participantNames.length > 0 ? [
+        {
+          id: '1',
+          text: `welcome to the group! say hello 👋`,
+          timestamp: 'just now',
+          senderId: 'system',
+          senderName: participantNames[0] || 'member',
+          isCurrentUser: false,
+        },
+      ] : [];
+      
+      return {
+        id: convId || 'new-group',
+        name: (Array.isArray(groupName) ? groupName[0] : groupName) || 'group chat',
+        status: 'active',
+        messages: welcomeMessages,
+      };
+    }
+    
     return MOCK_CONVERSATIONS_DATA[convId || '1'] || MOCK_CONVERSATIONS_DATA['1'];
-  }, [id]);
+  }, [id, groupName, isGroupChat]);
 
   const [messages, setMessages] = useState<MessageType[]>(conversationData.messages);
   const [inputText, setInputText] = useState('');
@@ -236,9 +262,14 @@ export default function ChatScreen() {
     }
   };
 
-  const renderMessage = ({ item }: { item: MessageType }) => (
-    <Message message={item} />
-  );
+  const renderMessage = ({ item }: { item: MessageType }) => {
+    // Show sender name in group chats for non-current-user messages
+    const messageWithName = isGroupChat && !item.isCurrentUser 
+      ? { ...item, senderName: item.senderName || 'member' }
+      : item;
+    
+    return <Message message={messageWithName} />;
+  };
 
   return (
     <GradientBackground>
@@ -257,7 +288,11 @@ export default function ChatScreen() {
             <Text style={styles.headerTitle} numberOfLines={1}>
               {conversationData.name}
             </Text>
-            <Text style={styles.headerSubtitle}>{conversationData.status}</Text>
+            <Text style={styles.headerSubtitle}>
+              {isGroupChat 
+                ? `${conversationData.name.split(', ').length} members` 
+                : conversationData.status}
+            </Text>
           </View>
           <TouchableOpacity style={styles.aiButton} activeOpacity={0.8}>
             <Text style={styles.aiButtonText}>✨</Text>

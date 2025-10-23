@@ -73,7 +73,17 @@ export default function NewConversationScreen() {
     if (selectedContacts.length === 1) {
       router.push(`/chat/${selectedContacts[0].id}`);
     } else {
-      router.back();
+      // Create group chat ID from sorted contact IDs
+      const groupId = 'group_' + selectedContacts.map(c => c.id).sort().join('_');
+      const groupName = selectedContacts.map(c => c.name).join(', ');
+      router.push({
+        pathname: `/chat/[id]`,
+        params: { 
+          id: groupId,
+          groupName: groupName,
+          isGroup: 'true'
+        }
+      });
     }
   };
 
