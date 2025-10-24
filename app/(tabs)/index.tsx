@@ -13,6 +13,7 @@ import { Colors } from '@/constants/Colors';
 import GradientBackground from '@/components/ui/GradientBackground';
 import GlassCard from '@/components/ui/GlassCard';
 import { Conversation } from '@/components/conversation/ConversationItem';
+import { useAuthUser } from '@/hooks/useAuth';
 
 const MOCK_CONVERSATIONS: Conversation[] = [
   {
@@ -49,6 +50,7 @@ const MOCK_CONVERSATIONS: Conversation[] = [
 export default function ConversationListScreen() {
   const router = useRouter();
   const [conversations, setConversations] = useState<Conversation[]>(MOCK_CONVERSATIONS);
+  const user = useAuthUser();
 
   const handleConversationPress = (conversation: Conversation) => {
     router.push(`/chat/${conversation.id}`);
@@ -110,7 +112,7 @@ export default function ConversationListScreen() {
           <View>
             <Text style={styles.headerTitle}>messages</Text>
             <Text style={styles.headerSubtitle}>
-              {conversations.length} conversations
+              {conversations.length} conversations {user ? `· ${user.email ?? user.uid}` : '· Signed out'}
             </Text>
           </View>
           <TouchableOpacity
