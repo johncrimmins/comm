@@ -1,11 +1,5 @@
 import { useState } from 'react';
 import { useRouter } from 'expo-router';
-import { 
-  createUserWithEmailAndPassword, 
-  signInWithEmailAndPassword,
-  updateProfile 
-} from 'firebase/auth';
-import { auth } from '@/config/firebase';
 
 type AuthMode = 'signin' | 'signup';
 
@@ -70,38 +64,12 @@ export function useAuthForm() {
       return;
     }
 
-    if (!auth) {
-      setErrors({ email: 'Firebase not configured. Please add your Firebase credentials.' });
-      return;
-    }
-
     setLoading(true);
     try {
-      if (mode === 'signup') {
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        
-        if (displayName.trim()) {
-          await updateProfile(userCredential.user, {
-            displayName: displayName.trim(),
-          });
-        }
-      } else {
-        await signInWithEmailAndPassword(auth, email, password);
-      }
-      
+      await new Promise((resolve) => setTimeout(resolve, 1500));
       router.replace('/(tabs)');
-    } catch (error: any) {
+    } catch (error) {
       console.error('Auth error:', error);
-      
-      const errorMessage = error?.code?.replace('auth/', '').replace(/-/g, ' ') || 'authentication failed';
-      
-      if (error?.code?.includes('email')) {
-        setErrors({ email: errorMessage });
-      } else if (error?.code?.includes('password')) {
-        setErrors({ password: errorMessage });
-      } else {
-        setErrors({ email: errorMessage });
-      }
     } finally {
       setLoading(false);
     }

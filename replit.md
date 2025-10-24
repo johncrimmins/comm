@@ -4,24 +4,6 @@
 
 # Recent Changes
 
-**October 23, 2025**: Firebase Authentication integration
-- Integrated Firebase Authentication SDK for production-ready auth
-- Created Firebase config in `config/firebase.ts` with environment variable support
-- Updated `useAuthForm` hook to use Firebase auth methods (signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile)
-- Created `useAuth` hook for global auth state management with auto-redirect logic
-- Added logout functionality to conversation list screen
-- Updated header to display user's display name or email
-- Added `.env.example` with required Firebase configuration keys
-- Authentication now persists across app restarts via Firebase Auth state
-
-**October 23, 2025**: Group chat functionality
-- Implemented group chat creation from multi-contact selection
-- Group chat IDs generated from sorted contact IDs (e.g., "group_1_2_3")
-- Group chat header shows participant names and member count
-- Messages in group chats display sender names for non-current-user messages
-- Single contact selection opens 1:1 chat, multiple contacts open group chat
-- Welcome messages appear when new group chats are created
-
 **October 23, 2025**: Auth module refactoring and iPhone Messages-style new conversation screen
 - Refactored authentication module with reusable components (FormInput, FormLabel, ErrorText)
 - Created custom hooks for form management (useAuthForm, useFormValidation)
@@ -129,28 +111,16 @@ Preferred communication style: Simple, everyday language.
 
 ## Authentication Architecture
 
-**Current Implementation**: Firebase Authentication
-- Email/password authentication via Firebase Auth SDK
-- Sign in and sign up modes with real user creation
-- Display name collection for new users (stored in Firebase user profile)
-- Auth state persistence across app restarts
-- Auto-redirect logic based on authentication status
+**Current Implementation**: Local form-based authentication UI
+- Sign in and sign up modes
+- Email/password validation
+- Display name collection for new users
+- No backend integration currently implemented (forms are UI-only)
 
-**Firebase Configuration**:
-- Config file: `config/firebase.ts`
-- Environment variables for Firebase credentials (see `.env.example`)
-- Firebase SDK: `firebase` package (v11+)
-
-**Auth Hooks**:
-- `useAuthForm`: Manages sign in/sign up form state and Firebase auth methods
-- `useAuth`: Global auth state with onAuthStateChanged listener and auto-navigation
-- Logout functionality integrated in conversation list screen
-
-**Auth Flow**:
-1. User enters credentials on auth screen
-2. Firebase handles authentication and creates/verifies user
-3. Auth state listener updates app state
-4. User automatically redirected to conversations or auth screen based on state
+**Future Integration Points**:
+- Backend API calls can be added to handle actual authentication
+- Token storage would need to be implemented
+- Session management hooks could be added
 
 ## Cross-Platform Strategy
 
@@ -197,9 +167,6 @@ Preferred communication style: Simple, everyday language.
 - Expo's new architecture enabled for improved performance
 
 # External Dependencies
-
-## Authentication & Backend
-- **firebase (^11.0.2)**: Firebase SDK for authentication, includes Auth, Firestore, and other Firebase services
 
 ## Core Frameworks
 - **Expo SDK 54**: Complete framework for React Native development, providing native modules and services
