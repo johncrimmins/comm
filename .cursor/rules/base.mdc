@@ -1,0 +1,16 @@
+Description: Memory Bank discipline and enforcement for this project
+Globs: **/*
+
+Content:
+- On every new goal or task, read all Memory Bank core files located in `memory-bank/`:
+  - `projectbrief.md`
+  - `productContext.md`
+  - `activeContext.md`
+  - `systemPatterns.md`
+  - `techContext.md`
+  - `progress.md`
+- Prioritize `activeContext.md` and `progress.md` for current focus and next steps.
+- When implementing or discovering new patterns, update `activeContext.md` and `progress.md` immediately after changes.
+- If user requests "update memory bank", review and update all core files, maintaining consistency.
+- Keep changes reversible and scoped per `projectbrief.md` and `docs/future-state.md`.
+- Avoid duplicating secrets; use Expo `EXPO_PUBLIC_*` variables for Firebase configuration.

@@ -1,0 +1,37 @@
+# VCS
+.git/
+.gitignore
+
+# Dependencies and builds
+node_modules/
+dist/
+build/
+web-build/
+coverage/
+.turbo/
+.next/
+.vercel/
+.cache/
+
+# Expo
+.expo/
+.expo-shared/
+android/
+ios/
+
+# Logs and OS
+*.log
+.DS_Store
+
+# Editor settings
+.vscode/
+.idea/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+.replit
+replit.nix
+replit.md

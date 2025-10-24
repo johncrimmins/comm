@@ -16,220 +16,40 @@ import { Colors } from '@/constants/Colors';
 import Message, { Message as MessageType } from '@/components/chat/Message';
 import GradientBackground from '@/components/ui/GradientBackground';
 import GlassCard from '@/components/ui/GlassCard';
-
-type ConversationData = {
-  id: string;
-  name: string;
-  status: string;
-  messages: MessageType[];
-};
-
-const MOCK_CONVERSATIONS_DATA: Record<string, ConversationData> = {
-  '1': {
-    id: '1',
-    name: 'sarah johnson',
-    status: 'online',
-    messages: [
-      {
-        id: '1',
-        text: 'hey! how are you doing?',
-        timestamp: '10:30 am',
-        senderId: 'other',
-        senderName: 'sarah johnson',
-        isCurrentUser: false,
-      },
-      {
-        id: '2',
-        text: 'i am doing great! thanks for asking.',
-        timestamp: '10:31 am',
-        senderId: 'me',
-        isCurrentUser: true,
-      },
-      {
-        id: '3',
-        text: 'how about you?',
-        timestamp: '10:31 am',
-        senderId: 'me',
-        isCurrentUser: true,
-      },
-      {
-        id: '4',
-        text: 'pretty good! just working on some projects.',
-        timestamp: '10:32 am',
-        senderId: 'other',
-        senderName: 'sarah johnson',
-        isCurrentUser: false,
-      },
-      {
-        id: '5',
-        text: 'that sounds exciting! what are you working on?',
-        timestamp: '10:33 am',
-        senderId: 'me',
-        isCurrentUser: true,
-      },
-    ],
-  },
-  '2': {
-    id: '2',
-    name: 'mike chen',
-    status: 'active 2h ago',
-    messages: [
-      {
-        id: '1',
-        text: 'that sounds great! let me know when you are free.',
-        timestamp: 'yesterday',
-        senderId: 'other',
-        senderName: 'mike chen',
-        isCurrentUser: false,
-      },
-      {
-        id: '2',
-        text: 'sure, i will let you know!',
-        timestamp: 'yesterday',
-        senderId: 'me',
-        isCurrentUser: true,
-      },
-    ],
-  },
-  '3': {
-    id: '3',
-    name: 'emily davis',
-    status: 'online',
-    messages: [
-      {
-        id: '1',
-        text: 'thanks for the help earlier 🙏',
-        timestamp: 'tuesday',
-        senderId: 'other',
-        senderName: 'emily davis',
-        isCurrentUser: false,
-      },
-      {
-        id: '2',
-        text: 'no problem! happy to help.',
-        timestamp: 'tuesday',
-        senderId: 'me',
-        isCurrentUser: true,
-      },
-    ],
-  },
-  '4': {
-    id: '4',
-    name: 'alex rodriguez',
-    status: 'active yesterday',
-    messages: [
-      {
-        id: '1',
-        text: 'see you tomorrow!',
-        timestamp: 'monday',
-        senderId: 'other',
-        senderName: 'alex rodriguez',
-        isCurrentUser: false,
-      },
-      {
-        id: '2',
-        text: 'see you!',
-        timestamp: 'monday',
-        senderId: 'me',
-        isCurrentUser: true,
-      },
-    ],
-  },
-  '5': {
-    id: '5',
-    name: 'jessica lee',
-    status: 'online',
-    messages: [
-      {
-        id: '1',
-        text: 'hi there!',
-        timestamp: 'just now',
-        senderId: 'other',
-        senderName: 'jessica lee',
-        isCurrentUser: false,
-      },
-    ],
-  },
-  '6': {
-    id: '6',
-    name: 'david kim',
-    status: 'active 5h ago',
-    messages: [
-      {
-        id: '1',
-        text: 'hello!',
-        timestamp: 'just now',
-        senderId: 'other',
-        senderName: 'david kim',
-        isCurrentUser: false,
-      },
-    ],
-  },
-  '7': {
-    id: '7',
-    name: 'rachel martinez',
-    status: 'online',
-    messages: [
-      {
-        id: '1',
-        text: 'hey!',
-        timestamp: 'just now',
-        senderId: 'other',
-        senderName: 'rachel martinez',
-        isCurrentUser: false,
-      },
-    ],
-  },
-  '8': {
-    id: '8',
-    name: 'tom wilson',
-    status: 'active 1d ago',
-    messages: [
-      {
-        id: '1',
-        text: 'hi!',
-        timestamp: 'just now',
-        senderId: 'other',
-        senderName: 'tom wilson',
-        isCurrentUser: false,
-      },
-    ],
-  },
-};
+import { onMessages, sendMessage, ServiceMessage } from '@/services/chat';
 
 export default function ChatScreen() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
   const flatListRef = useRef<FlatList>(null);
 
-  const conversationData = useMemo(() => {
-    const convId = Array.isArray(id) ? id[0] : id;
-    return MOCK_CONVERSATIONS_DATA[convId || '1'] || MOCK_CONVERSATIONS_DATA['1'];
-  }, [id]);
-
-  const [messages, setMessages] = useState<MessageType[]>(conversationData.messages);
+  const convId = useMemo(() => (Array.isArray(id) ? id[0] : (id as string) || ''), [id]);
+  const [messages, setMessages] = useState<MessageType[]>([]);
   const [inputText, setInputText] = useState('');
 
   useEffect(() => {
-    setMessages(conversationData.messages);
-  }, [conversationData]);
+    if (!convId) return;
+    const unsub = onMessages(convId, (items: ServiceMessage[]) => {
+      const mapped: MessageType[] = items.map((m) => ({
+        id: (m.id as string) || Math.random().toString(),
+        text: m.text,
+        timestamp: '',
+        senderId: m.senderId,
+        isCurrentUser: m.senderId === 'me',
+      }));
+      setMessages(mapped);
+      setTimeout(() => {
+        flatListRef.current?.scrollToEnd({ animated: true });
+      }, 100);
+    });
+    return () => unsub();
+  }, [convId]);
 
   const handleSend = () => {
+    if (!convId) return;
     if (inputText.trim()) {
-      const newMessage: MessageType = {
-        id: Date.now().toString(),
-        text: inputText.trim(),
-        timestamp: new Date().toLocaleTimeString('en-US', {
-          hour: 'numeric',
-          minute: '2-digit',
-        }),
-        senderId: 'me',
-        isCurrentUser: true,
-      };
-
-      setMessages([...messages, newMessage]);
+      sendMessage(convId, inputText.trim(), 'me');
       setInputText('');
-
       setTimeout(() => {
         flatListRef.current?.scrollToEnd({ animated: true });
       }, 100);
@@ -255,9 +75,9 @@ export default function ChatScreen() {
           </TouchableOpacity>
           <View style={styles.headerContent}>
             <Text style={styles.headerTitle} numberOfLines={1}>
-              {conversationData.name}
+              {convId || 'conversation'}
             </Text>
-            <Text style={styles.headerSubtitle}>{conversationData.status}</Text>
+            <Text style={styles.headerSubtitle}></Text>
           </View>
           <TouchableOpacity style={styles.aiButton} activeOpacity={0.8}>
             <Text style={styles.aiButtonText}>✨</Text>
