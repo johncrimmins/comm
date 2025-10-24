@@ -431,14 +431,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginLeft: 8,
-    shadowColor: Colors.dark.glow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.4,
-    shadowRadius: 8,
+    boxShadow: [{ color: Colors.dark.glow, offset: { width: 0, height: 2 }, opacity: 0.4, radius: 8 }],
   },
   sendButtonDisabled: {
     backgroundColor: Colors.dark.border,
-    shadowOpacity: 0,
   },
   sendButtonText: {
     fontSize: 20,

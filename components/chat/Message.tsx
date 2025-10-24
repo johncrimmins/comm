@@ -89,10 +89,7 @@ const styles = StyleSheet.create({
   },
   currentUserBubble: {
     borderColor: Colors.dark.accentStart,
-    shadowColor: Colors.dark.glow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
+    boxShadow: [{ color: Colors.dark.glow, offset: { width: 0, height: 2 }, opacity: 0.3, radius: 8 }],
   },
   blur: {
     overflow: 'hidden',

@@ -173,10 +173,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.dark.accentStart,
     gap: 8,
-    shadowColor: Colors.dark.glow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
+    boxShadow: [{ color: Colors.dark.glow, offset: { width: 0, height: 2 }, opacity: 0.3, radius: 8 }],
   },
   newChatIcon: {
     fontSize: 18,
@@ -255,10 +252,7 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     backgroundColor: Colors.dark.accentStart,
     marginLeft: 8,
-    shadowColor: Colors.dark.accentStart,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.8,
-    shadowRadius: 4,
+    boxShadow: [{ color: Colors.dark.accentStart, offset: { width: 0, height: 0 }, opacity: 0.8, radius: 4 }],
   },
   emptyContainer: {
     flex: 1,

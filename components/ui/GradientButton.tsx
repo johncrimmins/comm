@@ -41,10 +41,7 @@ const styles = StyleSheet.create({
   container: {
     borderRadius: 12,
     overflow: 'hidden',
-    shadowColor: Colors.dark.glow,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.6,
-    shadowRadius: 12,
+    boxShadow: [{ color: Colors.dark.glow, offset: { width: 0, height: 4 }, opacity: 0.6, radius: 12 }],
     elevation: 8,
   },
   gradient: {
