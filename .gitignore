@@ -1,42 +1,3 @@
-# Node
-node_modules/
-
-# Expo / React Native
-.expo/
-.expo-shared/
-web-build/
-dist/
-build/
-coverage/
-android/
-ios/
-
-# Logs
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-*.log
-
-# Editor settings
-.vscode/
-.idea/
-
-# Operating system files
-.DS_Store
-
-# Environment files
-.env
-.env.local
-.env.*.local
-
-# Caches and misc
-.tmp/
-.temp/
-.cache/
-.turbo/
-.next/
-.vercel/
 # Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
 
 # dependencies
@@ -76,6 +37,3 @@ yarn-error.*
 *.tsbuildinfo
 
 app-example
-.replit
-replit.nix
-replit.md

@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useRouter } from 'expo-router';
-import { signIn, signUp } from '@/lib/firebase/auth';
 
 type AuthMode = 'signin' | 'signup';
 
@@ -67,12 +66,7 @@ export function useAuthForm() {
 
     setLoading(true);
     try {
-      if (mode === 'signin') {
-        await signIn(email, password);
-      } else {
-        await signUp(email, password);
-        // Optional: create user profile document later
-      }
+      await new Promise((resolve) => setTimeout(resolve, 1500));
       router.replace('/(tabs)');
     } catch (error) {
       console.error('Auth error:', error);
