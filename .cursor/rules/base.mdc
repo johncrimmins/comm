@@ -1,0 +1,10 @@
+Description: Core project rules for the Expo/React Native chat app
+
+Content:
+- Always read Memory Bank files before starting a new task: `projectbrief.md`, `productContext.md`, `systemPatterns.md`, `techContext.md`, `activeContext.md`, `progress.md`.
+- Maintain TypeScript strictness; prefer descriptive names and early returns.
+- Favor small, composable components and keep UI logic in components, data in hooks.
+- Keep navigation typed and colocate route concerns in `app/` files.
+- Use themed primitives (`ThemedText`, `ThemedView`) and shared UI components for consistency.
+- Motion: use `react-native-reanimated` and `react-native-gesture-handler` idiomatically; avoid unnecessary try/catch.
+- Document new decisions in Memory Bank; update `activeContext.md` and `progress.md` after meaningful changes.
