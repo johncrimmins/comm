@@ -18,6 +18,7 @@ import { Colors } from '@/constants/Colors';
 import GradientBackground from '@/components/ui/GradientBackground';
 import GlassCard from '@/components/ui/GlassCard';
 import EditableChipInput, { SelectedContact } from '@/components/conversation/EditableChipInput';
+import { useUsers } from '@/hooks/useUsers';
 
 type User = {
   id: string;
@@ -26,35 +27,21 @@ type User = {
   avatarColor: string;
 };
 
-const MOCK_USERS: User[] = [
-  { id: '1', name: 'sarah johnson', status: 'online', avatarColor: '#C084FC' },
-  { id: '2', name: 'mike chen', status: 'active 2h ago', avatarColor: '#9333EA' },
-  { id: '3', name: 'emily davis', status: 'online', avatarColor: '#A855F7' },
-  { id: '4', name: 'alex rodriguez', status: 'active yesterday', avatarColor: '#7C3AED' },
-  { id: '5', name: 'jessica lee', status: 'online', avatarColor: '#C084FC' },
-  { id: '6', name: 'david kim', status: 'active 5h ago', avatarColor: '#9333EA' },
-  { id: '7', name: 'rachel martinez', status: 'online', avatarColor: '#A855F7' },
-  { id: '8', name: 'tom wilson', status: 'active 1d ago', avatarColor: '#7C3AED' },
-];
-
-const RECENTLY_CHATTED_IDS = ['1', '2', '3', '4'];
-
 export default function NewConversationScreen() {
   const router = useRouter();
   const user = useAuthUser();
+  const allUsers = useUsers();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedContacts, setSelectedContacts] = useState<SelectedContact[]>([]);
   const [messageText, setMessageText] = useState('');
 
   const displayedUsers = useMemo(() => {
-    if (searchQuery.trim() === '') {
-      return MOCK_USERS.filter(user => RECENTLY_CHATTED_IDS.includes(user.id));
-    }
-    
-    return MOCK_USERS.filter((user) =>
-      user.name.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-  }, [searchQuery]);
+    const currentUserId = user?.uid;
+    const base = allUsers.filter(u => u.id !== currentUserId);
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return base;
+    return base.filter(u => u.name.toLowerCase().includes(q));
+  }, [searchQuery, allUsers, user]);
 
   const availableUsers = useMemo(() => {
     const selectedIds = new Set(selectedContacts.map(c => c.id));

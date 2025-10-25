@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo } from 'react';
 import {
   View,
   Text,
@@ -14,43 +14,26 @@ import GradientBackground from '@/components/ui/GradientBackground';
 import GlassCard from '@/components/ui/GlassCard';
 import { Conversation } from '@/components/conversation/ConversationItem';
 import { useAuthUser } from '@/hooks/useAuth';
+import { useConversations } from '@/hooks/useConversations';
 
-const MOCK_CONVERSATIONS: Conversation[] = [
-  {
-    id: '1',
-    displayName: 'sarah johnson',
-    lastMessage: 'hey! how are you doing?',
-    timestamp: '10:30 am',
-    avatarColor: '#C084FC',
-    unread: true,
-  },
-  {
-    id: '2',
-    displayName: 'mike chen',
-    lastMessage: 'that sounds great! let me know when you are free.',
-    timestamp: 'yesterday',
-    avatarColor: '#9333EA',
-  },
-  {
-    id: '3',
-    displayName: 'emily davis',
-    lastMessage: 'thanks for the help earlier 🙏',
-    timestamp: 'tuesday',
-    avatarColor: '#A855F7',
-  },
-  {
-    id: '4',
-    displayName: 'alex rodriguez',
-    lastMessage: 'see you tomorrow!',
-    timestamp: 'monday',
-    avatarColor: '#7C3AED',
-  },
-];
+// Removed mock conversations; using SQLite-driven hook instead
 
 export default function ConversationListScreen() {
   const router = useRouter();
-  const [conversations, setConversations] = useState<Conversation[]>(MOCK_CONVERSATIONS);
+  const previews = useConversations();
   const user = useAuthUser();
+
+  // Map hook output to UI's Conversation type
+  const conversations = useMemo((): Conversation[] =>
+    previews.map((p, idx) => ({
+      id: p.id,
+      displayName: p.displayName ?? `conversation ${idx + 1}`,
+      lastMessage: p.lastMessage ?? '',
+      timestamp: p.timestamp ?? '',
+      avatarColor: p.avatarColor ?? '#7C3AED',
+      unread: p.unread,
+    })),
+  [previews]);
 
   const handleConversationPress = (conversation: Conversation) => {
     router.push(`/chat/${conversation.id}`);

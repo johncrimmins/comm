@@ -20,185 +20,7 @@ import { isSomeoneTyping, isAnyParticipantOnline } from '@/lib/sqlite';
 import GradientBackground from '@/components/ui/GradientBackground';
 import GlassCard from '@/components/ui/GlassCard';
 
-type ConversationData = {
-  id: string;
-  name: string;
-  status: string;
-  messages: MessageType[];
-};
-
-const MOCK_CONVERSATIONS_DATA: Record<string, ConversationData> = {
-  '1': {
-    id: '1',
-    name: 'sarah johnson',
-    status: 'online',
-    messages: [
-      {
-        id: '1',
-        text: 'hey! how are you doing?',
-        timestamp: '10:30 am',
-        senderId: 'other',
-        senderName: 'sarah johnson',
-        isCurrentUser: false,
-      },
-      {
-        id: '2',
-        text: 'i am doing great! thanks for asking.',
-        timestamp: '10:31 am',
-        senderId: 'me',
-        isCurrentUser: true,
-      },
-      {
-        id: '3',
-        text: 'how about you?',
-        timestamp: '10:31 am',
-        senderId: 'me',
-        isCurrentUser: true,
-      },
-      {
-        id: '4',
-        text: 'pretty good! just working on some projects.',
-        timestamp: '10:32 am',
-        senderId: 'other',
-        senderName: 'sarah johnson',
-        isCurrentUser: false,
-      },
-      {
-        id: '5',
-        text: 'that sounds exciting! what are you working on?',
-        timestamp: '10:33 am',
-        senderId: 'me',
-        isCurrentUser: true,
-      },
-    ],
-  },
-  '2': {
-    id: '2',
-    name: 'mike chen',
-    status: 'active 2h ago',
-    messages: [
-      {
-        id: '1',
-        text: 'that sounds great! let me know when you are free.',
-        timestamp: 'yesterday',
-        senderId: 'other',
-        senderName: 'mike chen',
-        isCurrentUser: false,
-      },
-      {
-        id: '2',
-        text: 'sure, i will let you know!',
-        timestamp: 'yesterday',
-        senderId: 'me',
-        isCurrentUser: true,
-      },
-    ],
-  },
-  '3': {
-    id: '3',
-    name: 'emily davis',
-    status: 'online',
-    messages: [
-      {
-        id: '1',
-        text: 'thanks for the help earlier 🙏',
-        timestamp: 'tuesday',
-        senderId: 'other',
-        senderName: 'emily davis',
-        isCurrentUser: false,
-      },
-      {
-        id: '2',
-        text: 'no problem! happy to help.',
-        timestamp: 'tuesday',
-        senderId: 'me',
-        isCurrentUser: true,
-      },
-    ],
-  },
-  '4': {
-    id: '4',
-    name: 'alex rodriguez',
-    status: 'active yesterday',
-    messages: [
-      {
-        id: '1',
-        text: 'see you tomorrow!',
-        timestamp: 'monday',
-        senderId: 'other',
-        senderName: 'alex rodriguez',
-        isCurrentUser: false,
-      },
-      {
-        id: '2',
-        text: 'see you!',
-        timestamp: 'monday',
-        senderId: 'me',
-        isCurrentUser: true,
-      },
-    ],
-  },
-  '5': {
-    id: '5',
-    name: 'jessica lee',
-    status: 'online',
-    messages: [
-      {
-        id: '1',
-        text: 'hi there!',
-        timestamp: 'just now',
-        senderId: 'other',
-        senderName: 'jessica lee',
-        isCurrentUser: false,
-      },
-    ],
-  },
-  '6': {
-    id: '6',
-    name: 'david kim',
-    status: 'active 5h ago',
-    messages: [
-      {
-        id: '1',
-        text: 'hello!',
-        timestamp: 'just now',
-        senderId: 'other',
-        senderName: 'david kim',
-        isCurrentUser: false,
-      },
-    ],
-  },
-  '7': {
-    id: '7',
-    name: 'rachel martinez',
-    status: 'online',
-    messages: [
-      {
-        id: '1',
-        text: 'hey!',
-        timestamp: 'just now',
-        senderId: 'other',
-        senderName: 'rachel martinez',
-        isCurrentUser: false,
-      },
-    ],
-  },
-  '8': {
-    id: '8',
-    name: 'tom wilson',
-    status: 'active 1d ago',
-    messages: [
-      {
-        id: '1',
-        text: 'hi!',
-        timestamp: 'just now',
-        senderId: 'other',
-        senderName: 'tom wilson',
-        isCurrentUser: false,
-      },
-    ],
-  },
-};
+// Removed mock conversation data; using SQLite-driven messages via useMessages
 
 export default function ChatScreen() {
   const params = useLocalSearchParams();
@@ -208,41 +30,9 @@ export default function ChatScreen() {
 
   const isGroupChat = isGroup === 'true' || (typeof id === 'string' && id.startsWith('group_'));
 
-  const conversationData = useMemo(() => {
-    const convId = Array.isArray(id) ? id[0] : id;
-    
-    // If it's a new group chat, create default data with welcome messages
-    if (isGroupChat) {
-      const participantNames = (Array.isArray(groupName) ? groupName[0] : groupName)?.split(', ') || [];
-      const welcomeMessages: MessageType[] = participantNames.length > 0 ? [
-        {
-          id: '1',
-          text: `welcome to the group! say hello 👋`,
-          timestamp: 'just now',
-          senderId: 'system',
-          senderName: participantNames[0] || 'member',
-          isCurrentUser: false,
-        },
-      ] : [];
-      
-      return {
-        id: convId || 'new-group',
-        name: (Array.isArray(groupName) ? groupName[0] : groupName) || 'group chat',
-        status: 'active',
-        messages: welcomeMessages,
-      };
-    }
-    
-    return MOCK_CONVERSATIONS_DATA[convId || '1'] || MOCK_CONVERSATIONS_DATA['1'];
-  }, [id, groupName, isGroupChat]);
-
-  const [messages, setMessages] = useState<MessageType[]>(conversationData.messages);
-  const [headerStatus, setHeaderStatus] = useState<string>(conversationData.status);
+  const [messages, setMessages] = useState<MessageType[]>([]);
+  const [headerStatus, setHeaderStatus] = useState<string>('online');
   const [inputText, setInputText] = useState('');
-
-  useEffect(() => {
-    setMessages(conversationData.messages);
-  }, [conversationData]);
 
   // Replace mock messages with SQLite-driven list if id is provided
   const convId = (Array.isArray(id) ? id[0] : (id as string | undefined)) ?? '';
@@ -275,7 +65,7 @@ export default function ChatScreen() {
       }
       const online = await isAnyParticipantOnline(convId, 'me');
       if (cancelled) return;
-      setHeaderStatus(online ? 'online' : conversationData.status);
+      setHeaderStatus(online ? 'online' : 'offline');
     }
     tick();
     timer = setInterval(tick, 1000);
@@ -283,7 +73,7 @@ export default function ChatScreen() {
       cancelled = true;
       if (timer) clearInterval(timer);
     };
-  }, [convId, conversationData.status]);
+  }, [convId]);
 
   const handleSend = async () => {
     if (!convId) return;
@@ -318,11 +108,11 @@ export default function ChatScreen() {
           </TouchableOpacity>
           <View style={styles.headerContent}>
             <Text style={styles.headerTitle} numberOfLines={1}>
-              {conversationData.name}
+              {isGroupChat ? ((Array.isArray(groupName) ? groupName[0] : groupName) || 'group chat') : (convId || 'chat')}
             </Text>
             <Text style={styles.headerSubtitle}>
               {isGroupChat 
-                ? `${conversationData.name.split(', ').length} members` 
+                ? `${((Array.isArray(groupName) ? groupName[0] : groupName) || '').split(', ').filter(Boolean).length || 1} members` 
                 : headerStatus}
             </Text>
           </View>

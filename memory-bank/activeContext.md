@@ -19,9 +19,13 @@
 – Added `metro.config.js` for web (wasm + COEP/COOP) per SDK 54 docs.
 – ESLint/TS config updated so linter parses JSX and respects interop.
 
+– Removed all mock data from conversations, chat thread, and new-conversation screens; UI now reads from SQLite hooks and Firestore-backed users list.
+– Implemented Firestore `/users/{uid}` creation on sign-in/sign-up; new `hooks/useUsers.ts` streams contacts for the new message screen.
+– Wired auth form to call real Firebase Auth; on success navigates to tabs.
+
 ## Next Steps
-- Validate step 6 scenarios and acceptance criteria across two devices; polish UI details.
-- Add Jest tests for DAOs and services with module mocks.
+- Manual validation across two devices (chat is working between users): verify contact discovery, conversation creation, send/receive, statuses.
+- Add Jest tests for hooks/services (including users hook and auth profile creation), plus minimal screen render tests.
 - Decide whether to enable web now (keep Metro config) or defer real web persistence path.
 
 ## Active Decisions
