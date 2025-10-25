@@ -14,10 +14,9 @@ export function useMessages(conversationId: string) {
   );
 
   useEffect(() => {
-    let timer: ReturnType<typeof setInterval> | null = null;
     let cancelled = false;
     setActiveConversationId(conversationId);
-    async function tick() {
+    async function load() {
       const rows = await listMessagesByConversation(conversationId);
       if (cancelled) return;
       setMessages(
@@ -30,11 +29,11 @@ export function useMessages(conversationId: string) {
         }))
       );
     }
-    tick();
-    timer = setInterval(tick, 1000);
+    load();
+    // Note: No polling needed. Firestore listeners via sync engine keep SQLite updated.
+    // For now, we load once. Future: Add reactive updates when SQLite changes.
     return () => {
       cancelled = true;
-      if (timer) clearInterval(timer);
       setActiveConversationId(null);
     };
   }, [conversationId]);

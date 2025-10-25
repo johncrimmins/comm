@@ -59,9 +59,10 @@ export default function NewConversationScreen() {
 
   const handleStartChat = async () => {
     if (selectedContacts.length === 0 || !messageText.trim()) return;
-    const participantIds = selectedContacts.map(c => c.id);
-    const { conversationId } = await createConversationLocal(participantIds);
     const senderId = user?.uid ?? 'me';
+    // Include sender in participantIds so Firebase query can find it for both users
+    const participantIds = [senderId, ...selectedContacts.map(c => c.id)];
+    const { conversationId } = await createConversationLocal(participantIds);
     const { shouldNavigate } = await sendMessageLocal(conversationId, messageText.trim(), senderId);
     setMessageText('');
     if (shouldNavigate) {

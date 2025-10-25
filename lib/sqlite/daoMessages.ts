@@ -66,3 +66,25 @@ export async function markMessageSent(messageId: string): Promise<void> {
 }
 
 
+export async function markLocalAsSentByMatch(
+  conversationId: string,
+  senderId: string,
+  text: string,
+  serverCreatedAtMs: number
+): Promise<void> {
+  await initDatabase();
+  // Update the most recent local message without a serverCreatedAt that matches by text and sender
+  await exec(
+    `UPDATE messages
+     SET status = 'sent', serverCreatedAt = COALESCE(serverCreatedAt, ?)
+     WHERE id = (
+       SELECT id FROM messages
+       WHERE conversationId = ? AND senderId = ? AND text = ? AND serverCreatedAt IS NULL
+       ORDER BY createdAt DESC
+       LIMIT 1
+     )`,
+    [serverCreatedAtMs, conversationId, senderId, text]
+  );
+}
+
+

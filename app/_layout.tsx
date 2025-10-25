@@ -12,9 +12,11 @@ import {
 } from '@expo-google-fonts/inter';
 
 import { useColorScheme } from '@/hooks/useColorScheme';
+import { useSyncLifecycle } from '@/hooks/useSyncLifecycle';
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
+  useSyncLifecycle(); // Start/stop sync engine based on auth state
   const [loaded] = useFonts({
     Inter_400Regular,
     Inter_500Medium,

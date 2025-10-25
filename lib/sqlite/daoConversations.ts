@@ -33,8 +33,9 @@ export async function listConversationsWithPreview(currentUserId: string): Promi
                 AND (r.lastReadAt IS NULL OR mx.createdAt > r.lastReadAt)
             ), 0) AS unreadCount
      FROM conversations c
+     INNER JOIN participants p ON p.conversationId = c.id AND p.userId = ?
      ORDER BY c.updatedAt DESC`,
-    [currentUserId, currentUserId]
+    [currentUserId, currentUserId, currentUserId]
   );
   const rows = Array.from({ length: res.rows.length }, (_, i) => res.rows.item(i));
   return rows.map((r: any) => ({

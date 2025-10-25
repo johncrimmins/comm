@@ -1,4 +1,4 @@
-import { onSnapshot, collection, query, where, Unsubscribe, doc, orderBy, Timestamp, setDoc, updateDoc } from 'firebase/firestore';
+import { onSnapshot, collection, query, where, Unsubscribe, doc, orderBy, Timestamp, setDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase/db';
 import {
   enqueueSyncOp,
@@ -14,6 +14,8 @@ import {
   upsertReceipt,
   upsertUserPresence,
 } from '@/lib/sqlite';
+import { linkRemoteConversationId } from '@/lib/sqlite';
+import { markLocalAsSentByMatch } from '@/lib/sqlite';
 
 // Sync engine scaffolding: lifecycle, active conversation routing, outbox backoff
 
@@ -101,6 +103,10 @@ function attachMessagesListener(conversationId: string) {
           const senderId = String(data.senderId ?? '');
           const createdAtMs = data.createdAt instanceof Timestamp ? data.createdAt.toMillis() : Date.now();
           await upsertMessageFromRemote(d.doc.id, conversationId, senderId, text, createdAtMs);
+          // If this is our own message, ensure local status moves to 'sent' with server timestamp
+          if (currentUserId && senderId === currentUserId) {
+            await markLocalAsSentByMatch(conversationId, senderId, text, createdAtMs);
+          }
         }
       }
     });
@@ -147,10 +153,7 @@ function attachRealtimeStateListener(conversationId: string) {
         : null;
       if (currentUserId) {
         await applyOutgoingStatusMarkers(conversationId, currentUserId, minDeliveredAtMs, minReadAtMs);
-        if (minReadAtMs != null) {
-          // Mirror our own read receipt
-          await upsertReceipt(conversationId, currentUserId, minReadAtMs);
-        }
+      // Do not mirror our own read receipt based on others' markers
       }
     });
   })();
@@ -193,8 +196,33 @@ async function processOutboxOnce(): Promise<boolean> {
   const op = await nextSyncOp();
   if (!op) return false;
   try {
-    // Handle op types in a later step. For now, re-schedule to keep loop alive.
-    await markOpDone(op.id); // placeholder success to avoid stalling the queue
+    const payload = JSON.parse(op.payload || '{}');
+    if (op.type === 'createConversation') {
+      const ref = doc(collection(db, 'conversations'));
+      await setDoc(ref, { participantIds: payload.participantIds ?? [], createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
+      if (payload.conversationId) {
+        await linkRemoteConversationId(payload.conversationId, ref.id);
+      }
+    } else if (op.type === 'sendMessage') {
+      const remoteId = await getRemoteIdForLocalConversation(payload.conversationId);
+      if (!remoteId) throw new Error('Missing remoteId for conversation');
+      const msgRef = doc(collection(db, 'conversations', remoteId, 'messages'));
+      await setDoc(msgRef, { text: payload.text ?? '', senderId: payload.senderId ?? '', createdAt: serverTimestamp() });
+      // Status will update via messages listener on ack
+    } else if (op.type === 'markRead') {
+      const remoteId = await getRemoteIdForLocalConversation(payload.conversationId);
+      if (remoteId && payload.userId) {
+        const stateRef = doc(db, 'conversations', remoteId, 'state', 'state');
+        await updateDoc(stateRef, { [`read.lastReadAt.${payload.userId}`]: Timestamp.fromMillis(payload.at ?? Date.now()) });
+      }
+    } else if (op.type === 'typing') {
+      const remoteId = await getRemoteIdForLocalConversation(payload.conversationId);
+      if (remoteId && currentUserId) {
+        const stateRef = doc(db, 'conversations', remoteId, 'state', 'state');
+        await updateDoc(stateRef, { [`typing.${currentUserId}`]: { isTyping: !!payload.isTyping, updatedAt: serverTimestamp() } });
+      }
+    }
+    await markOpDone(op.id);
     backoffIdx = 0; // reset on success
     return true;
   } catch (err: any) {

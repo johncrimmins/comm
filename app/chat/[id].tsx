@@ -19,6 +19,7 @@ import { sendMessageLocal, markRead } from '@/services/chat';
 import { isSomeoneTyping, isAnyParticipantOnline } from '@/lib/sqlite';
 import GradientBackground from '@/components/ui/GradientBackground';
 import GlassCard from '@/components/ui/GlassCard';
+import { useAuthUser } from '@/hooks/useAuth';
 
 // Removed mock conversation data; using SQLite-driven messages via useMessages
 
@@ -27,6 +28,8 @@ export default function ChatScreen() {
   const { id, groupName, isGroup } = params;
   const router = useRouter();
   const flatListRef = useRef<FlatList>(null);
+  const user = useAuthUser();
+  const uid = user?.uid;
 
   const isGroupChat = isGroup === 'true' || (typeof id === 'string' && id.startsWith('group_'));
 
@@ -45,11 +48,17 @@ export default function ChatScreen() {
         text: m.text,
         timestamp: new Date(m.createdAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }),
         senderId: m.senderId,
-        isCurrentUser: m.senderId === 'me',
+        isCurrentUser: !!uid && m.senderId === uid,
         status: (m.status as any) ?? null,
       }))
     );
-  }, [convId, sqliteMessages]);
+  }, [convId, uid, sqliteMessages]);
+
+  // Mark read on open
+  useEffect(() => {
+    if (!convId || !uid) return;
+    markRead(convId, uid).catch(() => {});
+  }, [convId, uid]);
 
   // Typing + presence indicator
   useEffect(() => {
@@ -63,7 +72,7 @@ export default function ChatScreen() {
         setHeaderStatus('typing…');
         return;
       }
-      const online = await isAnyParticipantOnline(convId, 'me');
+      const online = await isAnyParticipantOnline(convId, uid ?? undefined);
       if (cancelled) return;
       setHeaderStatus(online ? 'online' : 'offline');
     }
@@ -76,9 +85,9 @@ export default function ChatScreen() {
   }, [convId]);
 
   const handleSend = async () => {
-    if (!convId) return;
+    if (!convId || !uid) return;
     if (inputText.trim()) {
-      await sendMessageLocal(convId, inputText.trim(), 'me');
+      await sendMessageLocal(convId, inputText.trim(), uid);
       setInputText('');
       setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
     }

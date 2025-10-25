@@ -24,9 +24,8 @@ export function useConversations(): ConversationPreviewUI[] {
   const userId = user?.uid ?? null;
 
   useEffect(() => {
-    let timer: ReturnType<typeof setInterval> | null = null;
     let cancelled = false;
-    async function tick() {
+    async function load() {
       if (!userId) {
         setItems([]);
         return;
@@ -42,11 +41,11 @@ export function useConversations(): ConversationPreviewUI[] {
       }));
       setItems(mapped);
     }
-    tick();
-    timer = setInterval(tick, 1000);
+    load();
+    // Note: No polling needed. Firestore listeners via sync engine keep SQLite updated.
+    // For now, we load once. Future: Add reactive updates when SQLite changes.
     return () => {
       cancelled = true;
-      if (timer) clearInterval(timer);
     };
   }, [userId]);
 
