@@ -11,6 +11,8 @@ import {
   Platform,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { createConversationLocal, sendMessageLocal } from '@/services/chat';
+import { useAuthUser } from '@/hooks/useAuth';
 import { StatusBar } from 'expo-status-bar';
 import { Colors } from '@/constants/Colors';
 import GradientBackground from '@/components/ui/GradientBackground';
@@ -39,6 +41,7 @@ const RECENTLY_CHATTED_IDS = ['1', '2', '3', '4'];
 
 export default function NewConversationScreen() {
   const router = useRouter();
+  const user = useAuthUser();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedContacts, setSelectedContacts] = useState<SelectedContact[]>([]);
   const [messageText, setMessageText] = useState('');
@@ -67,23 +70,15 @@ export default function NewConversationScreen() {
     setSelectedContacts(selectedContacts.filter(c => c.id !== id));
   };
 
-  const handleStartChat = () => {
-    if (selectedContacts.length === 0) return;
-
-    if (selectedContacts.length === 1) {
-      router.push(`/chat/${selectedContacts[0].id}`);
-    } else {
-      // Create group chat ID from sorted contact IDs
-      const groupId = 'group_' + selectedContacts.map(c => c.id).sort().join('_');
-      const groupName = selectedContacts.map(c => c.name).join(', ');
-      router.push({
-        pathname: `/chat/[id]`,
-        params: { 
-          id: groupId,
-          groupName: groupName,
-          isGroup: 'true'
-        }
-      });
+  const handleStartChat = async () => {
+    if (selectedContacts.length === 0 || !messageText.trim()) return;
+    const participantIds = selectedContacts.map(c => c.id);
+    const { conversationId } = await createConversationLocal(participantIds);
+    const senderId = user?.uid ?? 'me';
+    const { shouldNavigate } = await sendMessageLocal(conversationId, messageText.trim(), senderId);
+    setMessageText('');
+    if (shouldNavigate) {
+      router.push(`/chat/${conversationId}`);
     }
   };
 

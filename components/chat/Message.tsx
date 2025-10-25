@@ -10,6 +10,7 @@ export type Message = {
   senderId: string;
   senderName?: string;
   isCurrentUser: boolean;
+  status?: 'sent' | 'delivered' | 'read' | null;
 };
 
 type MessageProps = {
@@ -53,6 +54,7 @@ export default function Message({ message }: MessageProps) {
               ]}
             >
               {message.timestamp}
+              {message.isCurrentUser && message.status ? ` · ${message.status}` : ''}
             </Text>
           </View>
         </BlurView>
@@ -89,7 +91,7 @@ const styles = StyleSheet.create({
   },
   currentUserBubble: {
     borderColor: Colors.dark.accentStart,
-    boxShadow: [{ color: Colors.dark.glow, offset: { width: 0, height: 2 }, opacity: 0.3, radius: 8 }],
+    boxShadow: [{ color: Colors.dark.glow, offsetX: 0, offsetY: 2, blurRadius: 8 }],
   },
   blur: {
     overflow: 'hidden',

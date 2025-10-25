@@ -14,6 +14,9 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { Colors } from '@/constants/Colors';
 import Message, { Message as MessageType } from '@/components/chat/Message';
+import { useMessages } from '@/hooks/useMessages';
+import { sendMessageLocal, markRead } from '@/services/chat';
+import { isSomeoneTyping, isAnyParticipantOnline } from '@/lib/sqlite';
 import GradientBackground from '@/components/ui/GradientBackground';
 import GlassCard from '@/components/ui/GlassCard';
 
@@ -234,31 +237,60 @@ export default function ChatScreen() {
   }, [id, groupName, isGroupChat]);
 
   const [messages, setMessages] = useState<MessageType[]>(conversationData.messages);
+  const [headerStatus, setHeaderStatus] = useState<string>(conversationData.status);
   const [inputText, setInputText] = useState('');
 
   useEffect(() => {
     setMessages(conversationData.messages);
   }, [conversationData]);
 
-  const handleSend = () => {
+  // Replace mock messages with SQLite-driven list if id is provided
+  const convId = (Array.isArray(id) ? id[0] : (id as string | undefined)) ?? '';
+  const sqliteMessages = convId ? useMessages(convId) : [];
+  useEffect(() => {
+    if (!convId) return;
+    setMessages(
+      sqliteMessages.map((m) => ({
+        id: m.id,
+        text: m.text,
+        timestamp: new Date(m.createdAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }),
+        senderId: m.senderId,
+        isCurrentUser: m.senderId === 'me',
+        status: (m.status as any) ?? null,
+      }))
+    );
+  }, [convId, sqliteMessages]);
+
+  // Typing + presence indicator
+  useEffect(() => {
+    if (!convId) return;
+    let timer: ReturnType<typeof setInterval> | null = null;
+    let cancelled = false;
+    async function tick() {
+      const typing = await isSomeoneTyping(convId);
+      if (cancelled) return;
+      if (typing) {
+        setHeaderStatus('typing…');
+        return;
+      }
+      const online = await isAnyParticipantOnline(convId, 'me');
+      if (cancelled) return;
+      setHeaderStatus(online ? 'online' : conversationData.status);
+    }
+    tick();
+    timer = setInterval(tick, 1000);
+    return () => {
+      cancelled = true;
+      if (timer) clearInterval(timer);
+    };
+  }, [convId, conversationData.status]);
+
+  const handleSend = async () => {
+    if (!convId) return;
     if (inputText.trim()) {
-      const newMessage: MessageType = {
-        id: Date.now().toString(),
-        text: inputText.trim(),
-        timestamp: new Date().toLocaleTimeString('en-US', {
-          hour: 'numeric',
-          minute: '2-digit',
-        }),
-        senderId: 'me',
-        isCurrentUser: true,
-      };
-
-      setMessages([...messages, newMessage]);
+      await sendMessageLocal(convId, inputText.trim(), 'me');
       setInputText('');
-
-      setTimeout(() => {
-        flatListRef.current?.scrollToEnd({ animated: true });
-      }, 100);
+      setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
     }
   };
 
@@ -291,7 +323,7 @@ export default function ChatScreen() {
             <Text style={styles.headerSubtitle}>
               {isGroupChat 
                 ? `${conversationData.name.split(', ').length} members` 
-                : conversationData.status}
+                : headerStatus}
             </Text>
           </View>
           <TouchableOpacity style={styles.aiButton} activeOpacity={0.8}>
@@ -431,7 +463,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginLeft: 8,
-    boxShadow: [{ color: Colors.dark.glow, offset: { width: 0, height: 2 }, opacity: 0.4, radius: 8 }],
+    boxShadow: [{ color: Colors.dark.glow, offsetX: 0, offsetY: 2, blurRadius: 8 }],
   },
   sendButtonDisabled: {
     backgroundColor: Colors.dark.border,

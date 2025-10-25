@@ -1,38 +1,55 @@
-import { db } from '@/lib/firebase/db';
-import { addDoc, collection, doc, onSnapshot, orderBy, query, serverTimestamp } from 'firebase/firestore';
+import {
+  insertConversation,
+  insertMessage,
+  listMessagesByConversation,
+  enqueueSyncOp,
+  upsertReceipt,
+} from '@/lib/sqlite';
 
-export type ServiceMessage = {
-  id?: string;
-  text: string;
-  senderId: string;
-  createdAt: unknown; // Firestore Timestamp | null
-};
+export async function createConversationLocal(participantIds: string[]): Promise<{ conversationId: string }> {
+  const convo = await insertConversation(participantIds);
+  await enqueueSyncOp('createConversation', { conversationId: convo.id, participantIds });
+  return { conversationId: convo.id };
+}
 
-export const onMessages = (
-  conversationId: string,
-  cb: (messages: ServiceMessage[]) => void
-) => {
-  const q = query(
-    collection(db, 'conversations', conversationId, 'messages'),
-    orderBy('createdAt', 'asc')
-  );
-
-  return onSnapshot(q, (snap) => {
-    const data: ServiceMessage[] = snap.docs.map((d) => ({ id: d.id, ...(d.data() as Omit<ServiceMessage, 'id'>) }));
-    cb(data);
-  });
-};
-
-export const sendMessage = (
+export async function sendMessageLocal(
   conversationId: string,
   text: string,
   senderId: string
-) => {
-  return addDoc(collection(db, 'conversations', conversationId, 'messages'), {
+): Promise<{ messageId: string; shouldNavigate: boolean }> {
+  // Determine if this is the first message (before inserting)
+  const existing = await listMessagesByConversation(conversationId);
+  const wasEmpty = existing.length === 0;
+
+  const msg = await insertMessage(conversationId, senderId, text);
+  await enqueueSyncOp('sendMessage', {
+    conversationId,
+    messageId: msg.id,
     text,
     senderId,
-    createdAt: serverTimestamp(),
+    createdAt: msg.createdAt,
   });
-};
+  return { messageId: msg.id, shouldNavigate: wasEmpty };
+}
 
+export async function markRead(
+  conversationId: string,
+  userId: string,
+  atMs: number = Date.now()
+): Promise<void> {
+  await upsertReceipt(conversationId, userId, atMs);
+  await enqueueSyncOp('markRead', { conversationId, userId, at: atMs });
+}
+
+export async function getUnreadCountFor(
+  conversationId: string,
+  currentUserId: string
+): Promise<number> {
+  // Best-effort: count messages newer than user's last read and not sent by user
+  // We could add a dedicated DAO, but this keeps the service self-contained.
+  const messages = await listMessagesByConversation(conversationId);
+  // Last read is not directly available here; a full DAO could fetch it. For MVP, approximate by counting
+  // all messages not from current user (UI generally derives per list view via preview function).
+  return messages.filter((m) => m.senderId !== currentUserId).length;
+}
 

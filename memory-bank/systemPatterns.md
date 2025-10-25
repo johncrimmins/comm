@@ -14,6 +14,7 @@
 - Realtime listener (realtimeListener) per active conversation consolidates read/delivery/typing.
 - Conversations list uses a single user-scoped listener.
 - Hooks remain UI-only and read from SQLite; they may signal active conversation ID.
+– SQLite implementation uses Expo SQLite new API (`openDatabaseAsync`) with a thin exec wrapper to keep DAOs simple. Web requires `metro.config.js` wasm support and COEP/COOP headers.
 
 ## Navigation
 - React Navigation with bottom tabs and screens bridged by Expo Router.
