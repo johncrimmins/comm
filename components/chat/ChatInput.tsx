@@ -11,10 +11,19 @@ export interface ChatInputProps {
 }
 
 export function ChatInput({ inputText, onChangeText, onSend, disabled = false }: ChatInputProps) {
+  console.log('[ChatInput] Component rendered', {
+    platform: Platform.OS,
+    behavior: Platform.OS === 'ios' ? 'padding' : undefined,
+    keyboardVerticalOffset: Platform.OS === 'ios' ? 0 : 0,
+    disabled,
+    inputTextLength: inputText.length,
+  });
+
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+      style={{ flex: 0 }}
     >
       <View style={styles.inputContainer}>
         <GlassCard style={styles.inputCard} intensity={30}>

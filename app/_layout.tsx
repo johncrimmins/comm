@@ -3,6 +3,7 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { Platform } from 'react-native';
 import * as Notifications from 'expo-notifications';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import 'react-native-reanimated';
 import { 
   useFonts,
@@ -38,24 +39,31 @@ export default function RootLayout() {
     Inter_800ExtraBold,
   });
 
+  console.log('[RootLayout] Component rendered', { user: !!user, loaded });
+
   if (!loaded) {
+    console.log('[RootLayout] Fonts not loaded yet, returning null');
     return null;
   }
 
+  console.log('[RootLayout] Wrapping with SafeAreaProvider and rendering screens');
+
   return (
-    <ThemeProvider value={DarkTheme}>
-      <Stack>
-        {!user && <Stack.Screen name="(auth)" options={{ headerShown: false }} />}
-        {user && (
-          <>
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            <Stack.Screen name="chat/[id]" options={{ headerShown: false }} />
-            <Stack.Screen name="new-conversation" options={{ headerShown: false }} />
-          </>
-        )}
-        <Stack.Screen name="+not-found" />
-      </Stack>
-      <StatusBar style="light" />
-    </ThemeProvider>
+    <SafeAreaProvider>
+      <ThemeProvider value={DarkTheme}>
+        <Stack>
+          {!user && <Stack.Screen name="(auth)" options={{ headerShown: false }} />}
+          {user && (
+            <>
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+              <Stack.Screen name="chat/[id]" options={{ headerShown: false }} />
+              <Stack.Screen name="new-conversation" options={{ headerShown: false }} />
+            </>
+          )}
+          <Stack.Screen name="+not-found" />
+        </Stack>
+        <StatusBar style="light" />
+      </ThemeProvider>
+    </SafeAreaProvider>
   );
 }

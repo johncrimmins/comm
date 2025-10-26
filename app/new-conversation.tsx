@@ -35,6 +35,11 @@ export default function NewConversationScreen() {
   const [selectedContacts, setSelectedContacts] = useState<SelectedContact[]>([]);
   const [messageText, setMessageText] = useState('');
 
+  console.log('[NewConversationScreen] Component rendered', {
+    selectedContactsCount: selectedContacts.length,
+    messageTextLength: messageText.length,
+  });
+
   const displayedUsers = useMemo(() => {
     const currentUserId = user?.uid;
     const base = allUsers.filter(u => u.id !== currentUserId);
@@ -102,9 +107,11 @@ export default function NewConversationScreen() {
     </TouchableOpacity>
   );
 
+  console.log('[NewConversationScreen] Rendering with SafeAreaView edges:', ['top', 'left', 'right']);
+
   return (
     <GradientBackground>
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
         <StatusBar style="light" />
 
         <View style={styles.header}>
@@ -139,9 +146,15 @@ export default function NewConversationScreen() {
         />
 
         <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+          style={{ flex: 0 }}
         >
+          {console.log('[NewConversationScreen] KeyboardAvoidingView', {
+            behavior: Platform.OS === 'ios' ? 'padding' : undefined,
+            keyboardVerticalOffset: Platform.OS === 'ios' ? 0 : 0,
+            style: { flex: 0 },
+          })}
           <View style={styles.messageInputContainer}>
             <GlassCard style={styles.messageInputCard} intensity={30}>
               <View style={styles.messageInputWrapper}>
@@ -181,7 +194,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
-    paddingTop: 12,
+    paddingTop: 8,
     paddingBottom: 12,
   },
   backButton: {
