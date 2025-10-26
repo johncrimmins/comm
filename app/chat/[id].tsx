@@ -1,4 +1,4 @@
-import React, { useState, useRef, useMemo, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -20,7 +20,7 @@ import GradientBackground from '@/components/ui/GradientBackground';
 import GlassCard from '@/components/ui/GlassCard';
 import { useAuthUser } from '@/hooks/useAuth';
 
-// Removed mock conversation data; using SQLite-driven messages via useMessages
+// Removed mock conversation data; using Firestore-driven messages via useMessages
 
 export default function ChatScreen() {
   const params = useLocalSearchParams();
@@ -36,13 +36,16 @@ export default function ChatScreen() {
   const [headerStatus, setHeaderStatus] = useState<string>('online');
   const [inputText, setInputText] = useState('');
 
-  // Replace mock messages with SQLite-driven list if id is provided
+  // Replace mock messages with Firestore-driven list if id is provided
   const convId = (Array.isArray(id) ? id[0] : (id as string | undefined)) ?? '';
-  const sqliteMessages = convId ? useMessages(convId) : [];
+  const messagesFromFirestore = useMessages(convId || '');
   useEffect(() => {
-    if (!convId) return;
+    if (!convId) {
+      setMessages([]);
+      return;
+    }
     setMessages(
-      sqliteMessages.map((m) => ({
+      messagesFromFirestore.map((m) => ({
         id: m.id,
         text: m.text,
         timestamp: new Date(m.createdAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }),
@@ -51,7 +54,7 @@ export default function ChatScreen() {
         status: (m.status as any) ?? null,
       }))
     );
-  }, [convId, uid, sqliteMessages]);
+  }, [convId, uid, messagesFromFirestore]);
 
   // Mark read on open
   useEffect(() => {

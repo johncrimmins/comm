@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { collection, query, orderBy, onSnapshot, Timestamp, doc, setDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase/db';
 import { useAuthUser } from '@/hooks/useAuth';
-import { saveMessages } from '@/lib/db/access';
 
 export function useMessages(conversationId: string) {
   const [messages, setMessages] = useState(
@@ -78,14 +77,6 @@ export function useMessages(conversationId: string) {
       
       // Update UI (from Firestore)
       setMessages(msgs.map(({ conversationId, ...rest }) => rest));
-      
-      // Write to SQLite cache (write-through)
-      try {
-        await saveMessages(msgs);
-        console.log(`💾 [useMessages] Cached ${msgs.length} messages to SQLite`);
-      } catch (error) {
-        console.error(`❌ [useMessages] Error caching messages:`, error);
-      }
     });
 
     // Set up real-time listener for state (delivery and read markers)

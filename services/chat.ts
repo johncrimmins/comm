@@ -1,7 +1,5 @@
 import { collection, doc, setDoc, updateDoc, getDocs, query, orderBy, serverTimestamp, Timestamp, where } from 'firebase/firestore';
 import { db } from '@/lib/firebase/db';
-import { savePendingMessage } from '@/lib/db/access';
-import { getNetworkState } from '@/lib/network';
 
 export async function createOrFindConversation(participantIds: string[]): Promise<{ conversationId: string }> {
   // IMPORTANT: Sort participantIds to ensure consistency
@@ -38,8 +36,6 @@ export async function sendMessage(
 ): Promise<{ messageId: string; shouldNavigate: boolean }> {
   console.log(`📤 [sendMessage] Starting send: conversation=${conversationId}, sender=${senderId}`);
   
-  const isOnline = getNetworkState();
-  
   try {
     // Check if this is the first message
     const messagesRef = collection(db, 'conversations', conversationId, 'messages');
@@ -69,25 +65,7 @@ export async function sendMessage(
 
     return { messageId: messageRef.id, shouldNavigate: wasEmpty };
   } catch (error: any) {
-    // Handle offline error
-    if (!isOnline || error?.code === 'unavailable') {
-      console.log(`📱 [sendMessage] Offline - saving to pending messages`);
-      
-      const pendingId = `pending_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
-      await savePendingMessage({
-        id: pendingId,
-        conversationId,
-        senderId,
-        text,
-        createdAt: Date.now(),
-      });
-      
-      console.log(`✓ [sendMessage] Saved to pending messages: id=${pendingId}`);
-      
-      return { messageId: pendingId, shouldNavigate: false };
-    }
-    
-    // Re-throw other errors
+    // Re-throw all errors
     console.error(`❌ [sendMessage] Error sending message:`, error);
     throw error;
   }
