@@ -21,14 +21,12 @@ export async function updatePresence(userId: string): Promise<void> {
  */
 export async function setTyping(userId: string, conversationId: string): Promise<void> {
   try {
-    console.log(`⌨️ [setTyping] User ${userId} typing in conversation ${conversationId}`);
     const userRef = doc(db, 'users', userId);
     await setDoc(userRef, {
       currentlyTypingIn: conversationId,
     }, { merge: true });
-    console.log(`⌨️ [setTyping] Successfully updated user document`);
   } catch (error) {
-    console.error(`⌨️ [setTyping] Error:`, error);
+    // Silent failure for typing updates
   }
 }
 
@@ -37,14 +35,12 @@ export async function setTyping(userId: string, conversationId: string): Promise
  */
 export async function clearTyping(userId: string): Promise<void> {
   try {
-    console.log(`⌨️ [clearTyping] User ${userId} stopped typing`);
     const userRef = doc(db, 'users', userId);
     await setDoc(userRef, {
       currentlyTypingIn: null,
     }, { merge: true });
-    console.log(`⌨️ [clearTyping] Successfully cleared typing status`);
   } catch (error) {
-    console.error(`⌨️ [clearTyping] Error:`, error);
+    // Silent failure for typing updates
   }
 }
 

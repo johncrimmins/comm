@@ -44,9 +44,6 @@ export default function ChatScreen() {
   const convId = (Array.isArray(id) ? id[0] : (id as string | undefined)) ?? '';
   const messagesFromFirestore = useMessages(convId || '');
   const conversation = useConversation(convId);
-  
-  console.log(`📋 [ChatScreen] convId=${convId}, conversation=${JSON.stringify(conversation)}, participantIds=${conversation?.participantIds?.join(',') || 'undefined'}`);
-  
   const presence = usePresence(convId, conversation?.participantIds || []);
   useEffect(() => {
     if (!convId) {
@@ -90,7 +87,6 @@ export default function ChatScreen() {
   const handleSend = async () => {
     if (!convId || !uid) return;
     if (inputText.trim()) {
-      console.log(`⌨️ [handleSend] Sending message, clearing typing`);
       await sendMessage(convId, inputText.trim(), uid);
       setInputText('');
       clearTyping(uid).catch(() => {});
@@ -105,12 +101,7 @@ export default function ChatScreen() {
   const handleInputChange = (text: string) => {
     setInputText(text);
     
-    if (!convId || !uid) {
-      console.log(`⌨️ [handleInputChange] Missing convId or uid`);
-      return;
-    }
-    
-    console.log(`⌨️ [handleInputChange] Text length: ${text.length}, trimmed: ${text.trim().length}`);
+    if (!convId || !uid) return;
     
     // Clear existing timeout
     if (typingTimeoutRef.current) {
@@ -119,17 +110,14 @@ export default function ChatScreen() {
     
     // Set typing status
     if (text.trim()) {
-      console.log(`⌨️ [handleInputChange] Setting typing status`);
       setTyping(uid, convId).catch(() => {});
       
       // Clear typing after 3 seconds of inactivity
       typingTimeoutRef.current = setTimeout(() => {
-        console.log(`⌨️ [handleInputChange] Auto-clearing typing after 3s`);
         clearTyping(uid).catch(() => {});
         typingTimeoutRef.current = null;
       }, 3000);
     } else {
-      console.log(`⌨️ [handleInputChange] Input empty, clearing typing`);
       clearTyping(uid).catch(() => {});
     }
   };
@@ -175,7 +163,6 @@ export default function ChatScreen() {
             <Text style={styles.headerSubtitle}>
               {presence.isTyping ? 'typing...' : presence.status}
             </Text>
-            {presence.isTyping && console.log(`📱 [ChatScreen] Rendering typing indicator`)}
           </View>
           <TouchableOpacity style={styles.aiButton} activeOpacity={0.8}>
             <Text style={styles.aiButtonText}>✨</Text>
