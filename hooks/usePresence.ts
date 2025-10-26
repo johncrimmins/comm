@@ -52,6 +52,7 @@ export function usePresence(conversationId: string, participantIds: string[]): P
         const status = isOnline(lastSeen) ? 'online' : 'offline';
         const isTyping = currentlyTypingIn === conversationId;
         
+        console.log(`👁️ [usePresence] 1-on-1: currentlyTypingIn=${currentlyTypingIn}, conversationId=${conversationId}, isTyping=${isTyping}`);
         setPresence({ status, isTyping });
       });
 
@@ -89,6 +90,7 @@ export function usePresence(conversationId: string, participantIds: string[]): P
         const online = isOnline(lastSeen);
         const isTyping = currentlyTypingIn === conversationId;
         
+        console.log(`👁️ [usePresence] Group chat user ${userId}: currentlyTypingIn=${currentlyTypingIn}, conversationId=${conversationId}, isTyping=${isTyping}`);
         onlineMap.set(userId, online);
         typingMap.set(userId, isTyping);
         updateStatus();
