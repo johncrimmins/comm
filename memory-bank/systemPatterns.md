@@ -29,17 +29,21 @@
 - `components/auth/*` provide labeled inputs and error text.
 
 ## Message Status Flow
-- Sent: Set on Firestore write in `sendMessage` (status: 'sent')
-- Delivered: Auto-updated in `useMessages` when recipient receives message via state document
-- Read: Updated via `markRead` when user opens chat via state document
+- Sent: Set on Firestore write in `sendMessage` with deliveredTo: [senderId]
+- Delivered: Marked via markDelivered() when message arrives or user opens app
+- Read: Marked via markRead() when user opens chat (adds userId to readBy array)
+- Status calculated from array lengths: read if readBy.length > 1, delivered if deliveredTo.length > 1
 - Status displayed only on current user's own messages
-- State document: `conversations/{id}/state/state` with delivery.lastDeliveredAt and read.lastReadAt maps
+- Arrays stored directly in message documents: `conversations/{id}/messages/{msgId}` with deliveredTo and readBy
 
 ## Presence System
 - Presence tracked via `users/{userId}` document with `lastSeen` timestamp
 - Online threshold: within 30 seconds of current time
 - Updated on chat open and app foreground via `updatePresence`
 - Real-time listeners via `usePresence` hook for 1-on-1 and group chats
+- Typing status tracked via `currentlyTypingIn` field in user documents
+- Typing auto-clears after 3 seconds of inactivity
+- Displays "typing..." in chat header when other user is typing
 
 ## Motion & Gestures
 - `react-native-reanimated` v4 and `react-native-gesture-handler` v2 used for interaction and transitions.

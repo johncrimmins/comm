@@ -1,25 +1,27 @@
 # Active Context
 
 ## Current Focus
-- Firestore-first architecture with presence and delivery states
+- Message delivery states and typing indicators
 
 ## Recent Changes
-- Presence system added (commit 1d62e67): lastSeen tracking via Firestore users collection
-- Display names and avatars in messages (commit 8972d5f)
-- Removed iOS/Android native packages; Expo Go only (commit 41239ad)
-- Firestore as single source of truth, removed SQLite (commit 96cffe7)
-- User profiles with deterministic avatar colors and display names
+- Typing indicators implemented (commit 7e791f6): user document approach with setTyping/clearTyping
+- Message delivery states refactored (commit 6002cf4): arrays-based approach with deliveredTo/readBy
+- Presence system: lastSeen tracking, typing status in user documents
+- Display names and avatars in messages
+- Firestore as single source of truth with native offline persistence
 
 ## Next Steps
-- Implement typing indicators
 - Add push notifications support
-- Test presence indicators with multiple users
+- Robust error handling and retry logic
+- Test with multiple concurrent users
 
 ## Active Decisions
 - Firestore is single source of truth with native offline persistence
-- Message statuses: sent (on send), delivered (on receipt), read (on markRead)
+- Message statuses: sent (on send), delivered (on app open + receipt), read (on chat open)
+- Status tracked via deliveredTo and readBy arrays in message documents
+- Typing status tracked via currentlyTypingIn field in user documents
 - Status only shown on current user's own messages
 - Presence via lastSeen timestamp (online if within 30 seconds)
 - Group chat presence shows "X online · Y members" format
-- Typing indicators not yet implemented
+- Typing shows "typing..." when other user is typing in same conversation
 
