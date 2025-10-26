@@ -12,7 +12,6 @@ import { useRouter } from 'expo-router';
 import { Colors } from '@/constants/Colors';
 import GradientBackground from '@/components/ui/GradientBackground';
 import GlassCard from '@/components/ui/GlassCard';
-import { Conversation } from '@/components/conversation/ConversationItem';
 import { useAuthUser } from '@/hooks/useAuth';
 import { useConversations } from '@/hooks/useConversations';
 import { markConversationsDelivered } from '@/services/chat';
@@ -36,8 +35,8 @@ export default function ConversationListScreen() {
   // currentConversationId is null when user is on tabs screen (not in a chat)
   useNotifications(null);
 
-  // Map hook output to UI's Conversation type
-  const conversations = useMemo((): Conversation[] =>
+  // Map hook output to UI conversation format
+  const conversations = useMemo(() =>
     previews.map((p, idx) => ({
       id: p.id,
       displayName: p.displayName ?? `conversation ${idx + 1}`,
@@ -47,7 +46,7 @@ export default function ConversationListScreen() {
     })),
   [previews]);
 
-  const handleConversationPress = (conversation: Conversation) => {
+  const handleConversationPress = (conversation: typeof conversations[0]) => {
     router.push(`/chat/${conversation.id}`);
   };
 
@@ -65,7 +64,7 @@ export default function ConversationListScreen() {
     </View>
   );
 
-  const renderConversation = ({ item }: { item: Conversation }) => (
+  const renderConversation = ({ item }: { item: typeof conversations[0] }) => (
     <TouchableOpacity
       onPress={() => handleConversationPress(item)}
       activeOpacity={0.9}
