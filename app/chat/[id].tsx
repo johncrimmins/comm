@@ -44,6 +44,9 @@ export default function ChatScreen() {
   const convId = (Array.isArray(id) ? id[0] : (id as string | undefined)) ?? '';
   const messagesFromFirestore = useMessages(convId || '');
   const conversation = useConversation(convId);
+  
+  console.log(`📋 [ChatScreen] convId=${convId}, conversation=${JSON.stringify(conversation)}, participantIds=${conversation?.participantIds?.join(',') || 'undefined'}`);
+  
   const presence = usePresence(convId, conversation?.participantIds || []);
   useEffect(() => {
     if (!convId) {
