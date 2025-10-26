@@ -120,7 +120,7 @@ export default function ChatScreen() {
     // Set typing status
     if (text.trim()) {
       console.log(`⌨️ [handleInputChange] Setting typing status`);
-      setTyping(convId, uid).catch(() => {});
+      setTyping(uid, convId).catch(() => {});
       
       // Clear typing after 3 seconds of inactivity
       typingTimeoutRef.current = setTimeout(() => {
