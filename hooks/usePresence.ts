@@ -21,7 +21,10 @@ export function usePresence(conversationId: string, participantIds: string[]): P
   const currentUserId = currentUser?.uid;
 
   useEffect(() => {
+    console.log(`🔍 [usePresence] Initializing: conversationId=${conversationId}, currentUserId=${currentUserId}, participantIds=${participantIds.join(',')}`);
+    
     if (!conversationId || !currentUserId || participantIds.length === 0) {
+      console.log(`🔍 [usePresence] Missing required data, returning`);
       setPresence({ status: 'offline', isTyping: false });
       return;
     }
@@ -29,7 +32,10 @@ export function usePresence(conversationId: string, participantIds: string[]): P
     // Filter out current user from participants
     const otherUserIds = participantIds.filter(id => id !== currentUserId);
     
+    console.log(`🔍 [usePresence] Other user IDs: ${otherUserIds.join(',')}`);
+    
     if (otherUserIds.length === 0) {
+      console.log(`🔍 [usePresence] No other users, returning`);
       setPresence({ status: 'offline', isTyping: false });
       return;
     }
@@ -37,9 +43,11 @@ export function usePresence(conversationId: string, participantIds: string[]): P
     // For 1-on-1 chats, listen to the other user's presence
     if (otherUserIds.length === 1) {
       const otherUserId = otherUserIds[0];
+      console.log(`🔍 [usePresence] Setting up 1-on-1 listener for user: ${otherUserId}`);
       const userRef = doc(db, 'users', otherUserId);
       
       const unsubscribe = onSnapshot(userRef, (snapshot) => {
+        console.log(`🔍 [usePresence] onSnapshot fired for user ${otherUserId}`);
         if (!snapshot.exists()) {
           setPresence({ status: 'offline', isTyping: false });
           return;
