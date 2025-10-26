@@ -1,38 +1,26 @@
 # Active Context
 
 ## Current Focus
-- Implement Epic 1 — Messaging Core (real-time A→B messaging with local-first flow).
+- Firestore-first architecture
 
 ## Recent Changes
-- PRD finalized at `docs/prd.md`:
-  - Hooks are UI-only; sync engine owns Firestore listeners.
-  - Single realtime listener (realtimeListener) per active conversation for read/delivery/typing.
-  - No bootstrap/backfill in MVP; initial listener snapshots populate SQLite.
-  - Navigate to `app/chat/[id]` only after first message send.
-– Completed steps 1–5 of tasks for Epic 1:
-  - 1.0 Firebase init + `useAuthUser` + minimal consumer.
-  - 2.0 SQLite modularized under `lib/sqlite/*`; schema + DAOs + outbox + migrations.
-  - 3.0 Sync engine (`lib/sync.ts`): conversations/messages/state listeners, presence heartbeat, backoff outbox.
-  - 4.0 Services (`services/chat.ts`) SQLite-first: create/send/markRead/unread helpers.
-  - 5.0 Hooks/UI wiring: `useConversations`, `useMessages`, local-first navigation, status display, typing/presence indicators.
-– Migrated to Expo SQLite new API (`openDatabaseAsync`) and added compatibility exec wrapper.
-– Added `metro.config.js` for web (wasm + COEP/COOP) per SDK 54 docs.
-– ESLint/TS config updated so linter parses JSX and respects interop.
-
-– Removed all mock data from conversations, chat thread, and new-conversation screens; UI now reads from SQLite hooks and Firestore-backed users list.
-– Implemented Firestore `/users/{uid}` creation on sign-in/sign-up; new `hooks/useUsers.ts` streams contacts for the new message screen.
-– Wired auth form to call real Firebase Auth; on success navigates to tabs.
+- Added display names and avatars to chat messages (commit 8972d5f).
+- Removed iOS/Android native packages; using Expo Go only (commit 41239ad).
+- Complete refactor to Firestore as source of truth (commit 96cffe7).
+- Implemented sent/delivered/read status tracking via Firestore state documents (commit cdf79b7).
+- User profiles with deterministic avatar colors and display names.
+- Real-time message delivery and status updates working.
 
 ## Next Steps
-- Manual validation across two devices (chat is working between users): verify contact discovery, conversation creation, send/receive, statuses.
-- Add Jest tests for hooks/services (including users hook and auth profile creation), plus minimal screen render tests.
-- Decide whether to enable web now (keep Metro config) or defer real web persistence path.
+- Implement typing indicators.
+- Add push notifications support.
+- Test presence indicators with multiple users.
 
 ## Active Decisions
-- SQLite is the rendering source of truth; Firestore is canonical on conflicts.
-- Statuses limited to sent, delivered, read.
-- Listener strategy: conversations list (user-scoped) + active thread (messages + realtimeListener).
-- Tech context updates only after completing each epic to avoid future-state drift.
-- Maintain root-level `app/` structure; do not introduce a `src/` directory. Keep `@/*` alias mapped to project root.
-– Use Expo SQLite new API (`openDatabaseAsync`) going forward; avoid legacy API. Web requires wasm + COEP/COOP headers.
+- Firestore is the single source of truth and handles offline persistence locally natively.
+- Message statuses: sent, delivered, read.
+- Status only shown on current user's own messages.
+- Presence implemented via lastSeen timestamp (online if within 30 seconds).
+- Group chat presence shows "X online · Y members" format.
+- Typing indicators not yet implemented.
 

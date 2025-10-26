@@ -66,7 +66,7 @@ export function useConversations(): ConversationPreviewUI[] {
               : null;
           }
         } catch (e) {
-          console.error('Error fetching last message:', e);
+          // Silent failure for message fetching
         }
 
         const conversation = {

@@ -5,7 +5,6 @@ import { db } from '@/lib/firebase/db';
 export type ContactUser = {
   id: string;
   name: string;
-  status: string;
   avatarColor: string;
 };
 
@@ -20,7 +19,6 @@ export function useUsers(): ContactUser[] {
         return {
           id: d.id,
           name: data.name ?? 'user',
-          status: data.status ?? '',
           avatarColor: data.avatarColor ?? '#7C3AED',
         };
       });

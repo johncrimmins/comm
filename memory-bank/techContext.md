@@ -72,5 +72,12 @@
 - test: `jest --watchAll`
 - lint: `expo lint`
 
+## Firebase Integration
+- Using Firestore for all data persistence (conversations, messages, users).
+- Authentication via Firebase Auth.
+- Real-time listeners via `onSnapshot` for live updates.
+- Expo Go only (no native iOS/Android builds).
+
 ## Notes
 - Declared versions use a mix of caret (^), tilde (~), and pinned versions. See lockfile for exact resolved versions when installed.
+- SQLite dependencies removed; using Firestore as single source of truth.

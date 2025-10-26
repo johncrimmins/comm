@@ -36,19 +36,16 @@ async function ensureUserProfile(user: User, displayName?: string): Promise<void
     if (!snap.exists()) {
       await setDoc(ref, {
         name,
-        status: 'online',
         avatarColor: getDeterministicColorFor(user.uid),
       }, { merge: true });
     } else {
       // Merge to avoid overwriting any existing fields
       await setDoc(ref, {
         name,
-        status: 'online',
       }, { merge: true });
     }
   } catch (e) {
     // Silent failure for MVP; no UI surfacing
-    console.debug('ensureUserProfile error', e);
   }
 }
 

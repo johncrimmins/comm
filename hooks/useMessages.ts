@@ -44,8 +44,6 @@ export function useMessages(conversationId: string) {
       return;
     }
     
-    console.log(`📨 [useMessages] Setting up listeners for conversation: ${conversationId}`);
-    
     // Query Firestore messages subcollection for this conversation
     const messagesRef = collection(db, 'conversations', conversationId, 'messages');
     const q = query(messagesRef, orderBy('createdAt', 'asc'));
@@ -53,8 +51,6 @@ export function useMessages(conversationId: string) {
     // Set up real-time listener for messages
     const unsubscribeMessages = onSnapshot(q, async (snapshot) => {
       const docChanges = snapshot.docChanges();
-      
-      console.log(`📨 [useMessages] Received ${docChanges.length} message changes for conversation ${conversationId}`);
       
       // Process incoming messages and update delivery status
       for (const change of docChanges) {
@@ -64,7 +60,6 @@ export function useMessages(conversationId: string) {
           
           // If this is not our own message, update delivery status
           if (senderId !== currentUserId) {
-            console.log(`✅ [useMessages] New message received from ${senderId}, updating delivery status`);
             try {
               const stateRef = doc(db, 'conversations', conversationId, 'state', 'state');
               
@@ -72,10 +67,8 @@ export function useMessages(conversationId: string) {
               await setDoc(stateRef, {
                 [`delivery.lastDeliveredAt.${currentUserId}`]: Timestamp.now(),
               }, { merge: true });
-              
-              console.log(`✓ [useMessages] Delivery status updated for user ${currentUserId}`);
             } catch (error) {
-              console.error(`❌ [useMessages] Error updating delivery status:`, error);
+              // Silent failure for delivery status updates
             }
           }
         }
@@ -108,7 +101,6 @@ export function useMessages(conversationId: string) {
     const stateRef = doc(db, 'conversations', conversationId, 'state', 'state');
     const unsubscribeState = onSnapshot(stateRef, async (stateSnap) => {
       if (!stateSnap.exists() || !currentUserId) {
-        console.log(`⚠️ [useMessages] State document doesn't exist or no current user`);
         return;
       }
       
@@ -116,11 +108,8 @@ export function useMessages(conversationId: string) {
       const delivery = stateData?.delivery?.lastDeliveredAt || {};
       const read = stateData?.read?.lastReadAt || {};
       
-      console.log(`📊 [useMessages] State updated - delivery:`, Object.keys(delivery), `read:`, Object.keys(read));
-      
       // Update message statuses based on state markers
       setMessages((prevMessages) => {
-        let statusChanges = 0;
         const updated = prevMessages.map((msg) => {
           // Only update status for messages we sent
           if (msg.senderId !== currentUserId) {
@@ -132,8 +121,6 @@ export function useMessages(conversationId: string) {
           // Get all other user IDs
           const otherUserIds = Object.keys(delivery).filter((uid) => uid !== currentUserId);
           
-          console.log(`🔍 [useMessages] Checking status for message ${msg.id.substring(0, 8)}... (current: ${msg.status}, otherUserIds: ${otherUserIds.length})`);
-          
           if (otherUserIds.length > 0) {
             // Check delivery status - update to delivered if any recipient has delivered
             const deliveredAt = otherUserIds
@@ -142,12 +129,8 @@ export function useMessages(conversationId: string) {
               .map((t) => t.toMillis())
               .sort((a, b) => b - a)[0]; // Get most recent delivery time
             
-            console.log(`📦 [useMessages] Message ${msg.id.substring(0, 8)}... createdAt=${msg.createdAt}, deliveredAt=${deliveredAt}`);
-            
             if (deliveredAt && msg.createdAt <= deliveredAt) {
               newStatus = 'delivered';
-              console.log(`✓ [useMessages] Message ${msg.id.substring(0, 8)}... STATUS CHANGED: ${msg.status} → delivered`);
-              statusChanges++;
             }
             
             // Check read status - update to read if all recipients have read
@@ -157,12 +140,8 @@ export function useMessages(conversationId: string) {
               .map((t) => t.toMillis())
               .sort((a, b) => b - a)[0]; // Get most recent read time
             
-            console.log(`👁️ [useMessages] Message ${msg.id.substring(0, 8)}... createdAt=${msg.createdAt}, readAt=${readAt}`);
-            
             if (readAt && msg.createdAt <= readAt) {
               newStatus = 'read';
-              console.log(`✓ [useMessages] Message ${msg.id.substring(0, 8)}... STATUS CHANGED: ${msg.status} → read`);
-              statusChanges++;
             }
           }
           
@@ -173,10 +152,6 @@ export function useMessages(conversationId: string) {
           
           return msg;
         });
-        
-        if (statusChanges > 0) {
-          console.log(`📊 [useMessages] Updated ${statusChanges} message statuses`);
-        }
         
         return updated;
       });

@@ -9,6 +9,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   SafeAreaView,
+  AppState,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
@@ -16,9 +17,12 @@ import { Colors } from '@/constants/Colors';
 import Message, { Message as MessageType } from '@/components/chat/Message';
 import { useMessages } from '@/hooks/useMessages';
 import { sendMessage, markRead } from '@/services/chat';
+import { updatePresence } from '@/services/presence';
 import GradientBackground from '@/components/ui/GradientBackground';
 import GlassCard from '@/components/ui/GlassCard';
 import { useAuthUser } from '@/hooks/useAuth';
+import { useConversation } from '@/hooks/useConversation';
+import { usePresence } from '@/hooks/usePresence';
 
 // Removed mock conversation data; using Firestore-driven messages via useMessages
 
@@ -33,12 +37,13 @@ export default function ChatScreen() {
   const isGroupChat = isGroup === 'true' || (typeof id === 'string' && id.startsWith('group_'));
 
   const [messages, setMessages] = useState<MessageType[]>([]);
-  const [headerStatus, setHeaderStatus] = useState<string>('online');
   const [inputText, setInputText] = useState('');
 
   // Replace mock messages with Firestore-driven list if id is provided
   const convId = (Array.isArray(id) ? id[0] : (id as string | undefined)) ?? '';
   const messagesFromFirestore = useMessages(convId || '');
+  const conversation = useConversation(convId);
+  const presenceStatus = usePresence(convId, conversation?.participantIds || []);
   useEffect(() => {
     if (!convId) {
       setMessages([]);
@@ -58,19 +63,25 @@ export default function ChatScreen() {
     );
   }, [convId, uid, messagesFromFirestore]);
 
-  // Mark read on open
+  // Mark read on open and update presence
   useEffect(() => {
     if (!convId || !uid) return;
     markRead(convId, uid).catch(() => {});
+    updatePresence(uid).catch(() => {});
   }, [convId, uid]);
 
-  // Set header status based on message activity
+  // Update presence when app comes to foreground
   useEffect(() => {
-    if (!convId) return;
-    // For now, just show online status
-    // TODO: Implement typing and presence indicators with Firestore
-    setHeaderStatus('online');
-  }, [convId]);
+    if (!uid) return;
+
+    const subscription = AppState.addEventListener('change', (nextAppState) => {
+      if (nextAppState === 'active') {
+        updatePresence(uid).catch(() => {});
+      }
+    });
+
+    return () => subscription.remove();
+  }, [uid]);
 
   const handleSend = async () => {
     if (!convId || !uid) return;
@@ -108,9 +119,7 @@ export default function ChatScreen() {
               {isGroupChat ? ((Array.isArray(groupName) ? groupName[0] : groupName) || 'group chat') : (convId || 'chat')}
             </Text>
             <Text style={styles.headerSubtitle}>
-              {isGroupChat 
-                ? `${((Array.isArray(groupName) ? groupName[0] : groupName) || '').split(', ').filter(Boolean).length || 1} members` 
-                : headerStatus}
+              {presenceStatus}
             </Text>
           </View>
           <TouchableOpacity style={styles.aiButton} activeOpacity={0.8}>

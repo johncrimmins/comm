@@ -74,7 +74,7 @@ export function useAuthForm() {
       }
       router.replace('/(tabs)');
     } catch (error) {
-      console.error('Auth error:', error);
+      // Silent failure for auth errors
     } finally {
       setLoading(false);
     }

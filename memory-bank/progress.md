@@ -1,22 +1,29 @@
 # Progress
 
 ## What Works
-- Project compiles with Expo SDK 54 configuration.
-- File‑based routing is scaffolded for auth, tabs, new conversation, and chat.
-- Theming primitives and UI components exist for rapid composition.
-– Local-first messaging implemented end-to-end with SQLite + sync engine; services and hooks wired; typing/presence reflected.
-– Real auth wired to Firebase; users collection populated on sign-in/sign-up; new message screen shows live contacts from Firestore.
-– Chat between signed-in users is working.
+- Firebase authentication and user profiles.
+- Real-time messaging via Firestore listeners.
+- Message delivery states (sent/delivered/read) working.
+- Display names and avatars in chat messages.
+- Group chat support (3+ users).
+- Conversation list with real-time updates.
+- Read receipts when opening chat.
+- Online/offline presence indicators (via lastSeen timestamp).
+- Group chat presence showing online count and total members.
 
-## What’s Left To Build
-- Epic 1: Manual + unit testing to validate completed steps (contacts list, conversation creation, messaging, statuses); refine UI polish.
-- Epic 2: Offline Persistence (restart-safe, pagination, robust outbox).
-- Epic 3: Reconnect Sync (flush queue, idempotent writes, listener reattach).
-- Epic 4: Lifecycle (bg/fg), presence continuity, listener hygiene.
+## What's Left To Build
+- Typing indicators.
+- Push notifications.
+- Presence updates on app background/foreground.
+- Robust error handling and retry logic.
 
 ## Current Status
-- Steps 1–5 of Epic 1 completed; moving to validation and tests.
+- Firestore-first architecture working.
+- MVP messaging core complete.
+- Presence indicators implemented and working.
 
 ## Known Issues
-- Tech context reflects current code; future-state details from PRD are deferred until each epic completes.
+- No offline persistence beyond Firestore's offline cache.
+- Typing indicators not implemented.
+- Presence updates may not work reliably in all app states.
 

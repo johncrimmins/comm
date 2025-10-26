@@ -24,7 +24,6 @@ import { useUsers } from '@/hooks/useUsers';
 type User = {
   id: string;
   name: string;
-  status: string;
   avatarColor: string;
 };
 
@@ -97,7 +96,6 @@ export default function NewConversationScreen() {
           </View>
           <View style={styles.userInfo}>
             <Text style={styles.userName}>{item.name}</Text>
-            <Text style={styles.userStatus}>{item.status}</Text>
           </View>
         </View>
       </GlassCard>

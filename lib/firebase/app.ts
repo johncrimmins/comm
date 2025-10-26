@@ -3,7 +3,6 @@ import { initializeApp, getApps, FirebaseApp } from 'firebase/app';
 const getEnv = (key: string): string => {
   const value = process.env[key as keyof NodeJS.ProcessEnv];
   if (!value) {
-    console.warn(`[firebase] Missing environment variable: ${key}`);
     return '';
   }
   return String(value);
