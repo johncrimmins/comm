@@ -14,18 +14,27 @@
 - Typing indicators showing "typing..." in chat header
 - Auto-clear typing after 3 seconds of inactivity
 - Foreground notifications for new messages in other conversations (expo-notifications)
+- Cross-platform support: iOS, Android, and Web
+- Web keyboard input working properly
+- Safe area handling on iOS with proper edge configuration
+- Reusable ChatInput component used across screens
+- Consistent theming with GlassCard components
 
 ## What's Left To Build
 - Robust error handling and retry logic
 - Improved offline support beyond Firestore cache
+- Fix iPhone input area visibility issues
 
 ## Current Status
 - Firestore-first architecture working
 - MVP messaging core complete with delivery states
 - Presence and typing indicators implemented and working
 - Foreground notifications implemented with logging
+- Cross-platform UI working with Platform-specific optimizations
+- Component refactoring complete with shared ChatInput component
 
 ## Known Issues
 - No offline persistence beyond Firestore's offline cache
 - Presence updates may not work reliably in all app states
-
+- iPhone input area visibility needs investigation
+- Web is fully functional, iOS/Android generally working well

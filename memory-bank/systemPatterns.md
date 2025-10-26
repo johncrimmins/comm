@@ -19,11 +19,30 @@
 ## Navigation
 - React Navigation with bottom tabs and screens bridged by Expo Router.
 - Typed route params enabled (`experiments.typedRoutes: true`).
+- Root layout uses `<SafeAreaProvider>` wrapping entire app.
+- Stack navigator with `screenOptions={{ headerShown: false }}` for consistent header hiding.
+- All screens registered unconditionally in Stack for proper Expo Router integration.
 
 ## UI Composition
 - Theming via `components/ThemedText.tsx` and `components/ThemedView.tsx`.
 - Visual primitives: `ui/GlassCard`, `ui/GradientBackground`, `ui/GradientButton`.
 - iOS‑specific symbols and tab background shims for polish.
+- Safe area handling: Use `SafeAreaView` from `react-native-safe-area-context` with edges prop.
+- Platform checks: Conditional rendering for web vs native (e.g., KeyboardAvoidingView).
+
+## Safe Area Patterns
+- Root: `<SafeAreaProvider>` wraps entire app in `app/_layout.tsx`.
+- Tabs screen: `edges={['top', 'right']}` for status bar and right-side protection.
+- Chat screens: `edges={['top']}` for status bar only.
+- New conversation: `edges={['top']}` for status bar only.
+- Padding strategy: Use `paddingLeft`/`paddingRight` instead of `paddingHorizontal` for asymmetric spacing.
+
+## Reusable Components
+- `ChatInput`: Used in both chat screen and new-conversation screen for consistency.
+- `ChatHeader`: Displays conversation title and presence status.
+- `ChatMessages`: Handles message list rendering with FlatList.
+- `GlassCard`: Themed container with blur effect and dark theme.
+- Components located in `components/` directory organized by feature (auth, chat, conversation, ui).
 
 ## Forms & Validation
 - Local hooks: `hooks/useAuthForm.ts`, `hooks/useFormValidation.ts` manage inputs and errors.
@@ -56,6 +75,12 @@
 - Configured in `app/_layout.tsx` with full alert/sound/badge support
 - Comprehensive logging for debugging notification flow
 
+## Platform-Specific Handling
+- KeyboardAvoidingView: Only used on iOS/Android, not web (web renders input directly)
+- Safe area edges: Configure per screen based on layout needs
+- Platform checks: Use `Platform.OS === 'ios' || Platform.OS === 'android'` for native-only features
+- Web rendering: Avoid components that interfere with browser behavior (like KeyboardAvoidingView)
+
 ## Motion & Gestures
 - `react-native-reanimated` v4 and `react-native-gesture-handler` v2 used for interaction and transitions.
 
@@ -70,7 +95,10 @@
 - Keep components small and composable with descriptive prop names.
 - Prefer early returns and minimal nesting; avoid broad try/catch.
 - Maintain accessible touch areas and safe‑area awareness.
+- Use Platform checks for cross-platform compatibility.
+- Prefer reusable components over duplicate code.
 
 ## Important Notes
 - Tech context should be updated only after each epic completes to reflect actual implemented state.
-
+- Always use SafeAreaView with appropriate edges rather than manual padding for safe areas.
+- Export hooks and components consistently for reusability across screens.
