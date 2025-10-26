@@ -16,7 +16,6 @@ import { Colors } from '@/constants/Colors';
 import Message, { Message as MessageType } from '@/components/chat/Message';
 import { useMessages } from '@/hooks/useMessages';
 import { sendMessage, markRead } from '@/services/chat';
-import { isSomeoneTyping, isAnyParticipantOnline } from '@/lib/sqlite';
 import GradientBackground from '@/components/ui/GradientBackground';
 import GlassCard from '@/components/ui/GlassCard';
 import { useAuthUser } from '@/hooks/useAuth';
@@ -60,28 +59,12 @@ export default function ChatScreen() {
     markRead(convId, uid).catch(() => {});
   }, [convId, uid]);
 
-  // Typing + presence indicator
+  // Set header status based on message activity
   useEffect(() => {
     if (!convId) return;
-    let timer: ReturnType<typeof setInterval> | null = null;
-    let cancelled = false;
-    async function tick() {
-      const typing = await isSomeoneTyping(convId);
-      if (cancelled) return;
-      if (typing) {
-        setHeaderStatus('typing…');
-        return;
-      }
-      const online = await isAnyParticipantOnline(convId, uid ?? undefined);
-      if (cancelled) return;
-      setHeaderStatus(online ? 'online' : 'offline');
-    }
-    tick();
-    timer = setInterval(tick, 1000);
-    return () => {
-      cancelled = true;
-      if (timer) clearInterval(timer);
-    };
+    // For now, just show online status
+    // TODO: Implement typing and presence indicators with Firestore
+    setHeaderStatus('online');
   }, [convId]);
 
   const handleSend = async () => {

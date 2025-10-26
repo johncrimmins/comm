@@ -34,10 +34,14 @@ export async function sendMessage(
   text: string,
   senderId: string
 ): Promise<{ messageId: string; shouldNavigate: boolean }> {
+  console.log(`📤 [sendMessage] Starting send: conversation=${conversationId}, sender=${senderId}`);
+  
   // Check if this is the first message
   const messagesRef = collection(db, 'conversations', conversationId, 'messages');
   const messagesSnapshot = await getDocs(query(messagesRef, orderBy('createdAt', 'asc')));
   const wasEmpty = messagesSnapshot.empty;
+
+  console.log(`📤 [sendMessage] isFirstMessage=${wasEmpty}`);
 
   // Create message document in Firestore
   const messageRef = doc(messagesRef);
@@ -48,13 +52,15 @@ export async function sendMessage(
     status: 'sent',
   });
   
-  console.log(`📤 [sendMessage] Message sent: id=${messageRef.id}, status=sent, conversation=${conversationId}`);
+  console.log(`✓ [sendMessage] Message created in Firestore: id=${messageRef.id}, status=sent, conversation=${conversationId}`);
 
   // Update conversation's updatedAt timestamp
   const conversationRef = doc(db, 'conversations', conversationId);
   await updateDoc(conversationRef, {
     updatedAt: serverTimestamp(),
   });
+
+  console.log(`✓ [sendMessage] Conversation updatedAt timestamp updated`);
 
   return { messageId: messageRef.id, shouldNavigate: wasEmpty };
 }
@@ -64,13 +70,20 @@ export async function markRead(
   userId: string,
   atMs: number = Date.now()
 ): Promise<void> {
-  // Update read receipt in Firestore state document
-  const stateRef = doc(db, 'conversations', conversationId, 'state', 'state');
-  await updateDoc(stateRef, {
-    [`read.lastReadAt.${userId}`]: Timestamp.fromMillis(atMs),
-  });
+  console.log(`👁️ [markRead] Marking read: userId=${userId}, conversation=${conversationId}, timestamp=${atMs}`);
   
-  console.log(`✓ [markRead] Read receipt updated: userId=${userId}, conversation=${conversationId}, timestamp=${atMs}`);
+  // Update read receipt in Firestore state document (use setDoc with merge to handle creation)
+  const stateRef = doc(db, 'conversations', conversationId, 'state', 'state');
+  try {
+    await setDoc(stateRef, {
+      [`read.lastReadAt.${userId}`]: Timestamp.fromMillis(atMs),
+    }, { merge: true });
+    
+    console.log(`✓ [markRead] Read receipt updated successfully: userId=${userId}, conversation=${conversationId}`);
+  } catch (error) {
+    console.error(`❌ [markRead] Error updating read receipt:`, error);
+    throw error;
+  }
 }
 
 export async function getUnreadCountFor(
