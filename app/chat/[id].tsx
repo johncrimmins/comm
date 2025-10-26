@@ -17,7 +17,7 @@ import { Colors } from '@/constants/Colors';
 import Message, { Message as MessageType } from '@/components/chat/Message';
 import { useMessages } from '@/hooks/useMessages';
 import { sendMessage, markRead } from '@/services/chat';
-import { updatePresence } from '@/services/presence';
+import { updatePresence, setTyping, clearTyping } from '@/services/presence';
 import GradientBackground from '@/components/ui/GradientBackground';
 import GlassCard from '@/components/ui/GlassCard';
 import { useAuthUser } from '@/hooks/useAuth';
@@ -38,12 +38,13 @@ export default function ChatScreen() {
 
   const [messages, setMessages] = useState<MessageType[]>([]);
   const [inputText, setInputText] = useState('');
+  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Replace mock messages with Firestore-driven list if id is provided
   const convId = (Array.isArray(id) ? id[0] : (id as string | undefined)) ?? '';
   const messagesFromFirestore = useMessages(convId || '');
   const conversation = useConversation(convId);
-  const presenceStatus = usePresence(convId, conversation?.participantIds || []);
+  const presence = usePresence(convId, conversation?.participantIds || []);
   useEffect(() => {
     if (!convId) {
       setMessages([]);
@@ -88,9 +89,50 @@ export default function ChatScreen() {
     if (inputText.trim()) {
       await sendMessage(convId, inputText.trim(), uid);
       setInputText('');
+      clearTyping(uid).catch(() => {});
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+        typingTimeoutRef.current = null;
+      }
       setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
     }
   };
+
+  const handleInputChange = (text: string) => {
+    setInputText(text);
+    
+    if (!convId || !uid) return;
+    
+    // Clear existing timeout
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+    
+    // Set typing status
+    if (text.trim()) {
+      setTyping(convId, uid).catch(() => {});
+      
+      // Clear typing after 3 seconds of inactivity
+      typingTimeoutRef.current = setTimeout(() => {
+        clearTyping(uid).catch(() => {});
+        typingTimeoutRef.current = null;
+      }, 3000);
+    } else {
+      clearTyping(uid).catch(() => {});
+    }
+  };
+
+  // Cleanup typing status on unmount
+  useEffect(() => {
+    return () => {
+      if (uid) {
+        clearTyping(uid).catch(() => {});
+      }
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+    };
+  }, [uid]);
 
   const renderMessage = ({ item }: { item: MessageType }) => {
     // Show sender name in group chats for non-current-user messages
@@ -119,7 +161,7 @@ export default function ChatScreen() {
               {isGroupChat ? ((Array.isArray(groupName) ? groupName[0] : groupName) || 'group chat') : (convId || 'chat')}
             </Text>
             <Text style={styles.headerSubtitle}>
-              {presenceStatus}
+              {presence.isTyping ? 'typing...' : presence.status}
             </Text>
           </View>
           <TouchableOpacity style={styles.aiButton} activeOpacity={0.8}>
@@ -149,7 +191,7 @@ export default function ChatScreen() {
                   placeholder="message..."
                   placeholderTextColor={Colors.dark.textSecondary}
                   value={inputText}
-                  onChangeText={setInputText}
+                  onChangeText={handleInputChange}
                   multiline
                   maxLength={1000}
                   autoFocus

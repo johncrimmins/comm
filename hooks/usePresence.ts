@@ -4,19 +4,25 @@ import { db } from '@/lib/firebase/db';
 import { useAuthUser } from '@/hooks/useAuth';
 import { isOnline } from '@/services/presence';
 
+export type PresenceState = {
+  status: string;
+  isTyping: boolean;
+};
+
 /**
- * Hook to track presence of other users in a conversation
+ * Hook to track presence and typing status of other users in a conversation
  * Returns "online" or "offline" for 1-on-1 chats
  * Returns "X online · Y members" for group chats
+ * Also returns whether the other user is typing
  */
-export function usePresence(conversationId: string, participantIds: string[]): string {
-  const [status, setStatus] = useState<string>('offline');
+export function usePresence(conversationId: string, participantIds: string[]): PresenceState {
+  const [presence, setPresence] = useState<PresenceState>({ status: 'offline', isTyping: false });
   const currentUser = useAuthUser();
   const currentUserId = currentUser?.uid;
 
   useEffect(() => {
     if (!conversationId || !currentUserId || participantIds.length === 0) {
-      setStatus('offline');
+      setPresence({ status: 'offline', isTyping: false });
       return;
     }
 
@@ -24,7 +30,7 @@ export function usePresence(conversationId: string, participantIds: string[]): s
     const otherUserIds = participantIds.filter(id => id !== currentUserId);
     
     if (otherUserIds.length === 0) {
-      setStatus('offline');
+      setPresence({ status: 'offline', isTyping: false });
       return;
     }
 
@@ -35,14 +41,18 @@ export function usePresence(conversationId: string, participantIds: string[]): s
       
       const unsubscribe = onSnapshot(userRef, (snapshot) => {
         if (!snapshot.exists()) {
-          setStatus('offline');
+          setPresence({ status: 'offline', isTyping: false });
           return;
         }
 
         const data = snapshot.data();
         const lastSeen = data.lastSeen as Timestamp | null | undefined;
+        const currentlyTypingIn = data.currentlyTypingIn as string | null | undefined;
         
-        setStatus(isOnline(lastSeen) ? 'online' : 'offline');
+        const status = isOnline(lastSeen) ? 'online' : 'offline';
+        const isTyping = currentlyTypingIn === conversationId;
+        
+        setPresence({ status, isTyping });
       });
 
       return () => unsubscribe();
@@ -51,11 +61,16 @@ export function usePresence(conversationId: string, participantIds: string[]): s
     // For group chats, listen to all participants' presence
     const totalCount = otherUserIds.length;
     const onlineMap = new Map<string, boolean>();
+    const typingMap = new Map<string, boolean>();
     const unsubscribes: (() => void)[] = [];
 
     const updateStatus = () => {
       const onlineCount = Array.from(onlineMap.values()).filter(v => v).length;
-      setStatus(`${onlineCount} online · ${totalCount} members`);
+      const typingCount = Array.from(typingMap.values()).filter(v => v).length;
+      const status = `${onlineCount} online · ${totalCount} members`;
+      const isTyping = typingCount > 0;
+      
+      setPresence({ status, isTyping });
     };
 
     otherUserIds.forEach((userId) => {
@@ -63,15 +78,19 @@ export function usePresence(conversationId: string, participantIds: string[]): s
       const unsubscribe = onSnapshot(userRef, (snapshot) => {
         if (!snapshot.exists()) {
           onlineMap.set(userId, false);
+          typingMap.set(userId, false);
           updateStatus();
           return;
         }
 
         const data = snapshot.data();
         const lastSeen = data.lastSeen as Timestamp | null | undefined;
+        const currentlyTypingIn = data.currentlyTypingIn as string | null | undefined;
         const online = isOnline(lastSeen);
+        const isTyping = currentlyTypingIn === conversationId;
         
         onlineMap.set(userId, online);
+        typingMap.set(userId, isTyping);
         updateStatus();
       });
       
@@ -83,6 +102,6 @@ export function usePresence(conversationId: string, participantIds: string[]): s
     };
   }, [conversationId, currentUserId, participantIds.join(',')]);
 
-  return status;
+  return presence;
 }
 
