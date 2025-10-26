@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect } from 'react';
 import {
   View,
   Text,
@@ -15,6 +15,7 @@ import GlassCard from '@/components/ui/GlassCard';
 import { Conversation } from '@/components/conversation/ConversationItem';
 import { useAuthUser } from '@/hooks/useAuth';
 import { useConversations } from '@/hooks/useConversations';
+import { markConversationsDelivered } from '@/services/chat';
 
 // Removed mock conversations; using SQLite-driven hook instead
 
@@ -22,6 +23,13 @@ export default function ConversationListScreen() {
   const router = useRouter();
   const previews = useConversations();
   const user = useAuthUser();
+
+  // Mark all conversations as delivered when user opens app (tabs screen)
+  useEffect(() => {
+    if (user?.uid) {
+      markConversationsDelivered(user.uid).catch(() => {});
+    }
+  }, [user?.uid]);
 
   // Map hook output to UI's Conversation type
   const conversations = useMemo((): Conversation[] =>
@@ -31,7 +39,6 @@ export default function ConversationListScreen() {
       lastMessage: p.lastMessage ?? '',
       timestamp: p.timestamp ?? '',
       avatarColor: p.avatarColor ?? '#7C3AED',
-      unread: p.unread,
     })),
   [previews]);
 
@@ -78,7 +85,6 @@ export default function ConversationListScreen() {
               <Text style={styles.lastMessage} numberOfLines={1}>
                 {item.lastMessage}
               </Text>
-              {item.unread && <View style={styles.unreadDot} />}
             </View>
           </View>
         </View>
@@ -228,14 +234,6 @@ const styles = StyleSheet.create({
     color: Colors.dark.textSecondary,
     fontFamily: 'Inter_400Regular',
     flex: 1,
-  },
-  unreadDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: Colors.dark.accentStart,
-    marginLeft: 8,
-    boxShadow: [{ color: Colors.dark.accentStart, offset: { width: 0, height: 0 }, opacity: 0.8, radius: 4 }],
   },
   emptyContainer: {
     flex: 1,

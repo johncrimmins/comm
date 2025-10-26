@@ -8,7 +8,6 @@ export type ConversationPreviewUI = {
   displayName: string; // placeholder; real names come from participants in future epic
   lastMessage: string | null;
   timestamp: string | null;
-  unread: boolean;
   avatarColor?: string;
 };
 
@@ -74,7 +73,6 @@ export function useConversations(): ConversationPreviewUI[] {
           displayName: `conversation ${index + 1}`,
           lastMessage: lastMessageText,
           timestamp: formatTime(lastMessageAt),
-          unread: false, // TODO: Calculate unread count from receipts
           lastMessageAt: lastMessageAt, // Store raw timestamp for sorting
         };
         

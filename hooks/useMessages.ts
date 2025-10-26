@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import { collection, query, orderBy, onSnapshot, Timestamp, doc, setDoc } from 'firebase/firestore';
+import { collection, query, orderBy, onSnapshot, Timestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase/db';
 import { useAuthUser } from '@/hooks/useAuth';
+import { markDelivered, markRead } from '@/services/chat';
 
 export function useMessages(conversationId: string) {
   const [messages, setMessages] = useState(
@@ -13,6 +14,8 @@ export function useMessages(conversationId: string) {
       senderAvatarColor?: string;
       createdAt: number;
       status: 'sent' | 'delivered' | 'read' | null;
+      deliveredTo?: string[];
+      readBy?: string[];
     }>
   );
   
@@ -52,33 +55,58 @@ export function useMessages(conversationId: string) {
     const unsubscribeMessages = onSnapshot(q, async (snapshot) => {
       const docChanges = snapshot.docChanges();
       
-      // Process incoming messages and update delivery status
+      // Process incoming messages and mark them as delivered and read
       for (const change of docChanges) {
         if (change.type === 'added' && currentUserId) {
           const data = change.doc.data();
           const senderId = data.senderId || '';
           
-          // If this is not our own message, update delivery status
+          // If this is someone else's message TO us, mark it as delivered and read
           if (senderId !== currentUserId) {
-            try {
-              const stateRef = doc(db, 'conversations', conversationId, 'state', 'state');
-              
-              // Use setDoc with merge to handle both creation and update
-              await setDoc(stateRef, {
-                [`delivery.lastDeliveredAt.${currentUserId}`]: Timestamp.now(),
-              }, { merge: true });
-            } catch (error) {
-              // Silent failure for delivery status updates
-            }
+            // Mark as delivered (fire and forget)
+            markDelivered(conversationId, change.doc.id, currentUserId).catch(() => {});
+            // Mark as read since user is actively viewing the chat (fire and forget)
+            markRead(conversationId, currentUserId).catch(() => {});
           }
         }
       }
       
-      // Map all messages to state with sender names
+      // Also process existing messages that haven't been marked as delivered yet
+      if (currentUserId) {
+        const existingMsgs = snapshot.docs;
+        for (const msgDoc of existingMsgs) {
+          const data = msgDoc.data();
+          const senderId = data.senderId || '';
+          const deliveredTo = data.deliveredTo || [];
+          
+          // If it's not our own message and we haven't marked it as delivered
+          if (senderId !== currentUserId && !deliveredTo.includes(currentUserId)) {
+            markDelivered(conversationId, msgDoc.id, currentUserId).catch(() => {});
+          }
+        }
+      }
+      
+      // Map all messages to state with sender names and status
       const msgs = snapshot.docs.map((doc) => {
         const data = doc.data();
         const senderId = data.senderId || '';
         const sender = users[senderId];
+        const deliveredTo = data.deliveredTo || [];
+        const readBy = data.readBy || [];
+        
+        // Calculate status for current user's own messages
+        let status: 'sent' | 'delivered' | 'read' | null = null;
+        if (senderId === currentUserId) {
+          // Check if other participants have read it
+          if (readBy.length > 1) { // More than just sender
+            status = 'read';
+          } else if (deliveredTo.length > 1) { // More than just sender
+            status = 'delivered';
+          } else {
+            status = 'sent';
+          }
+        }
+        
         return {
           id: doc.id,
           conversationId,
@@ -89,7 +117,9 @@ export function useMessages(conversationId: string) {
           createdAt: data.createdAt instanceof Timestamp 
             ? data.createdAt.toMillis() 
             : Date.now(),
-          status: (data.status as 'sent' | 'delivered' | 'read' | null) ?? null,
+          status,
+          deliveredTo,
+          readBy,
         };
       });
       
@@ -97,69 +127,8 @@ export function useMessages(conversationId: string) {
       setMessages(msgs.map(({ conversationId, ...rest }) => rest));
     });
 
-    // Set up real-time listener for state (delivery and read markers)
-    const stateRef = doc(db, 'conversations', conversationId, 'state', 'state');
-    const unsubscribeState = onSnapshot(stateRef, async (stateSnap) => {
-      if (!stateSnap.exists() || !currentUserId) {
-        return;
-      }
-      
-      const stateData = stateSnap.data();
-      const delivery = stateData?.delivery?.lastDeliveredAt || {};
-      const read = stateData?.read?.lastReadAt || {};
-      
-      // Update message statuses based on state markers
-      setMessages((prevMessages) => {
-        const updated = prevMessages.map((msg) => {
-          // Only update status for messages we sent
-          if (msg.senderId !== currentUserId) {
-            return msg;
-          }
-          
-          let newStatus: 'sent' | 'delivered' | 'read' | null = msg.status;
-          
-          // Get all other user IDs
-          const otherUserIds = Object.keys(delivery).filter((uid) => uid !== currentUserId);
-          
-          if (otherUserIds.length > 0) {
-            // Check delivery status - update to delivered if any recipient has delivered
-            const deliveredAt = otherUserIds
-              .map((uid) => delivery[uid])
-              .filter((t): t is Timestamp => t instanceof Timestamp)
-              .map((t) => t.toMillis())
-              .sort((a, b) => b - a)[0]; // Get most recent delivery time
-            
-            if (deliveredAt && msg.createdAt <= deliveredAt) {
-              newStatus = 'delivered';
-            }
-            
-            // Check read status - update to read if all recipients have read
-            const readAt = otherUserIds
-              .map((uid) => read[uid])
-              .filter((t): t is Timestamp => t instanceof Timestamp)
-              .map((t) => t.toMillis())
-              .sort((a, b) => b - a)[0]; // Get most recent read time
-            
-            if (readAt && msg.createdAt <= readAt) {
-              newStatus = 'read';
-            }
-          }
-          
-          // Only return new object if status changed
-          if (newStatus !== msg.status) {
-            return { ...msg, status: newStatus };
-          }
-          
-          return msg;
-        });
-        
-        return updated;
-      });
-    });
-
     return () => {
       unsubscribeMessages();
-      unsubscribeState();
     };
   }, [conversationId, currentUserId, users]);
 

@@ -9,7 +9,6 @@ export type Conversation = {
   lastMessage: string;
   timestamp: string;
   avatarColor: string;
-  unread?: boolean;
 };
 
 type ConversationItemProps = {
@@ -46,7 +45,6 @@ export default function ConversationItem({ conversation, onPress }: Conversation
             style={[
               styles.name,
               { color: colors.text },
-              conversation.unread && styles.unreadName,
             ]}
             numberOfLines={1}
           >
@@ -55,8 +53,7 @@ export default function ConversationItem({ conversation, onPress }: Conversation
           <Text
             style={[
               styles.timestamp,
-              { color: conversation.unread ? colors.tint : colors.icon },
-              conversation.unread && styles.unreadTimestamp,
+              { color: colors.icon },
             ]}
           >
             {conversation.timestamp}
@@ -67,7 +64,6 @@ export default function ConversationItem({ conversation, onPress }: Conversation
           style={[
             styles.lastMessage,
             { color: colors.icon },
-            conversation.unread && { color: colors.text, fontWeight: '500' },
           ]}
           numberOfLines={1}
         >
@@ -113,14 +109,8 @@ const styles = StyleSheet.create({
     flex: 1,
     marginRight: 8,
   },
-  unreadName: {
-    fontWeight: '700',
-  },
   timestamp: {
     fontSize: 12,
-  },
-  unreadTimestamp: {
-    fontWeight: '600',
   },
   lastMessage: {
     fontSize: 14,
