@@ -1,5 +1,7 @@
 import { collection, doc, setDoc, updateDoc, getDocs, query, orderBy, serverTimestamp, Timestamp, where } from 'firebase/firestore';
 import { db } from '@/lib/firebase/db';
+import { savePendingMessage } from '@/lib/db/access';
+import { getNetworkState } from '@/lib/network';
 
 export async function createOrFindConversation(participantIds: string[]): Promise<{ conversationId: string }> {
   // IMPORTANT: Sort participantIds to ensure consistency
@@ -36,33 +38,59 @@ export async function sendMessage(
 ): Promise<{ messageId: string; shouldNavigate: boolean }> {
   console.log(`📤 [sendMessage] Starting send: conversation=${conversationId}, sender=${senderId}`);
   
-  // Check if this is the first message
-  const messagesRef = collection(db, 'conversations', conversationId, 'messages');
-  const messagesSnapshot = await getDocs(query(messagesRef, orderBy('createdAt', 'asc')));
-  const wasEmpty = messagesSnapshot.empty;
-
-  console.log(`📤 [sendMessage] isFirstMessage=${wasEmpty}`);
-
-  // Create message document in Firestore
-  const messageRef = doc(messagesRef);
-  await setDoc(messageRef, {
-    text,
-    senderId,
-    createdAt: serverTimestamp(),
-    status: 'sent',
-  });
+  const isOnline = getNetworkState();
   
-  console.log(`✓ [sendMessage] Message created in Firestore: id=${messageRef.id}, status=sent, conversation=${conversationId}`);
+  try {
+    // Check if this is the first message
+    const messagesRef = collection(db, 'conversations', conversationId, 'messages');
+    const messagesSnapshot = await getDocs(query(messagesRef, orderBy('createdAt', 'asc')));
+    const wasEmpty = messagesSnapshot.empty;
 
-  // Update conversation's updatedAt timestamp
-  const conversationRef = doc(db, 'conversations', conversationId);
-  await updateDoc(conversationRef, {
-    updatedAt: serverTimestamp(),
-  });
+    console.log(`📤 [sendMessage] isFirstMessage=${wasEmpty}`);
 
-  console.log(`✓ [sendMessage] Conversation updatedAt timestamp updated`);
+    // Create message document in Firestore
+    const messageRef = doc(messagesRef);
+    await setDoc(messageRef, {
+      text,
+      senderId,
+      createdAt: serverTimestamp(),
+      status: 'sent',
+    });
+    
+    console.log(`✓ [sendMessage] Message created in Firestore: id=${messageRef.id}, status=sent, conversation=${conversationId}`);
 
-  return { messageId: messageRef.id, shouldNavigate: wasEmpty };
+    // Update conversation's updatedAt timestamp
+    const conversationRef = doc(db, 'conversations', conversationId);
+    await updateDoc(conversationRef, {
+      updatedAt: serverTimestamp(),
+    });
+
+    console.log(`✓ [sendMessage] Conversation updatedAt timestamp updated`);
+
+    return { messageId: messageRef.id, shouldNavigate: wasEmpty };
+  } catch (error: any) {
+    // Handle offline error
+    if (!isOnline || error?.code === 'unavailable') {
+      console.log(`📱 [sendMessage] Offline - saving to pending messages`);
+      
+      const pendingId = `pending_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+      await savePendingMessage({
+        id: pendingId,
+        conversationId,
+        senderId,
+        text,
+        createdAt: Date.now(),
+      });
+      
+      console.log(`✓ [sendMessage] Saved to pending messages: id=${pendingId}`);
+      
+      return { messageId: pendingId, shouldNavigate: false };
+    }
+    
+    // Re-throw other errors
+    console.error(`❌ [sendMessage] Error sending message:`, error);
+    throw error;
+  }
 }
 
 export async function markRead(

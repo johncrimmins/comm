@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { collection, query, where, onSnapshot, orderBy, Timestamp, limit } from 'firebase/firestore';
 import { db } from '@/lib/firebase/db';
 import { useAuthUser } from '@/hooks/useAuth';
+import { saveConversation } from '@/lib/db/access';
 
 export type ConversationPreviewUI = {
   id: string;
@@ -93,7 +94,29 @@ export function useConversations(): ConversationPreviewUI[] {
       // Remove lastMessageAt field (not part of ConversationPreviewUI type)
       const finalConversations = sortedConversations.map(({ lastMessageAt, ...rest }) => rest);
       
+      // Update UI (from Firestore)
       setItems(finalConversations);
+      
+      // Write to SQLite cache (write-through)
+      try {
+        const conversations = snapshot.docs.map(doc => ({
+          id: doc.id,
+          participantIds: doc.data().participantIds || [],
+          createdAt: doc.data().createdAt instanceof Timestamp 
+            ? doc.data().createdAt.toMillis() 
+            : Date.now(),
+          updatedAt: doc.data().updatedAt instanceof Timestamp 
+            ? doc.data().updatedAt.toMillis() 
+            : Date.now(),
+        }));
+        
+        for (const conv of conversations) {
+          await saveConversation(conv);
+        }
+        console.log(`💾 [useConversations] Cached ${conversations.length} conversations to SQLite`);
+      } catch (error) {
+        console.error(`❌ [useConversations] Error caching conversations:`, error);
+      }
     });
 
     return () => unsubscribe();

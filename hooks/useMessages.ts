@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { collection, query, orderBy, onSnapshot, Timestamp, doc, setDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase/db';
 import { useAuthUser } from '@/hooks/useAuth';
+import { saveMessages } from '@/lib/db/access';
 
 export function useMessages(conversationId: string) {
   const [messages, setMessages] = useState(
@@ -63,8 +64,9 @@ export function useMessages(conversationId: string) {
       // Map all messages to state
       const msgs = snapshot.docs.map((doc) => {
         const data = doc.data();
-        const message = {
+        return {
           id: doc.id,
+          conversationId,
           text: data.text || '',
           senderId: data.senderId || '',
           createdAt: data.createdAt instanceof Timestamp 
@@ -72,11 +74,18 @@ export function useMessages(conversationId: string) {
             : Date.now(),
           status: (data.status as 'sent' | 'delivered' | 'read' | null) ?? null,
         };
-        
-        return message;
       });
       
-      setMessages(msgs);
+      // Update UI (from Firestore)
+      setMessages(msgs.map(({ conversationId, ...rest }) => rest));
+      
+      // Write to SQLite cache (write-through)
+      try {
+        await saveMessages(msgs);
+        console.log(`💾 [useMessages] Cached ${msgs.length} messages to SQLite`);
+      } catch (error) {
+        console.error(`❌ [useMessages] Error caching messages:`, error);
+      }
     });
 
     // Set up real-time listener for state (delivery and read markers)
@@ -95,7 +104,8 @@ export function useMessages(conversationId: string) {
       
       // Update message statuses based on state markers
       setMessages((prevMessages) => {
-        return prevMessages.map((msg) => {
+        let statusChanges = 0;
+        const updated = prevMessages.map((msg) => {
           // Only update status for messages we sent
           if (msg.senderId !== currentUserId) {
             return msg;
@@ -106,6 +116,8 @@ export function useMessages(conversationId: string) {
           // Get all other user IDs
           const otherUserIds = Object.keys(delivery).filter((uid) => uid !== currentUserId);
           
+          console.log(`🔍 [useMessages] Checking status for message ${msg.id.substring(0, 8)}... (current: ${msg.status}, otherUserIds: ${otherUserIds.length})`);
+          
           if (otherUserIds.length > 0) {
             // Check delivery status - update to delivered if any recipient has delivered
             const deliveredAt = otherUserIds
@@ -114,9 +126,12 @@ export function useMessages(conversationId: string) {
               .map((t) => t.toMillis())
               .sort((a, b) => b - a)[0]; // Get most recent delivery time
             
+            console.log(`📦 [useMessages] Message ${msg.id.substring(0, 8)}... createdAt=${msg.createdAt}, deliveredAt=${deliveredAt}`);
+            
             if (deliveredAt && msg.createdAt <= deliveredAt) {
               newStatus = 'delivered';
-              console.log(`✓ [useMessages] Message ${msg.id} marked as delivered`);
+              console.log(`✓ [useMessages] Message ${msg.id.substring(0, 8)}... STATUS CHANGED: ${msg.status} → delivered`);
+              statusChanges++;
             }
             
             // Check read status - update to read if all recipients have read
@@ -126,9 +141,12 @@ export function useMessages(conversationId: string) {
               .map((t) => t.toMillis())
               .sort((a, b) => b - a)[0]; // Get most recent read time
             
+            console.log(`👁️ [useMessages] Message ${msg.id.substring(0, 8)}... createdAt=${msg.createdAt}, readAt=${readAt}`);
+            
             if (readAt && msg.createdAt <= readAt) {
               newStatus = 'read';
-              console.log(`✓ [useMessages] Message ${msg.id} marked as read`);
+              console.log(`✓ [useMessages] Message ${msg.id.substring(0, 8)}... STATUS CHANGED: ${msg.status} → read`);
+              statusChanges++;
             }
           }
           
@@ -139,6 +157,12 @@ export function useMessages(conversationId: string) {
           
           return msg;
         });
+        
+        if (statusChanges > 0) {
+          console.log(`📊 [useMessages] Updated ${statusChanges} message statuses`);
+        }
+        
+        return updated;
       });
     });
 
