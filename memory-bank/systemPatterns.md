@@ -11,9 +11,10 @@
 ## Data & Sync
 - Firestore is the single source of truth
 - Real-time listeners via Firestore `onSnapshot` for messages and state updates.
-- Message delivery tracking via Firestore state documents (`conversations/{id}/state/state`).
+- Message delivery tracking via arrays in message documents (deliveredTo, readBy).
 - Conversations list uses Firestore real-time listener with in-memory sorting.
-- Hooks read directly from Firestore; firestore handles offline persistence natively.
+- Hooks read directly from Firestore.
+- App lifecycle: AppState listener in chat screen updates presence on foreground.
 
 ## Navigation
 - React Navigation with bottom tabs and screens bridged by Expo Router.
@@ -44,6 +45,13 @@
 - Typing status tracked via `currentlyTypingIn` field in user documents
 - Typing auto-clears after 3 seconds of inactivity
 - Displays "typing..." in chat header when other user is typing
+
+## Notifications
+- Foreground-only notifications via `expo-notifications` (Expo Go compatible)
+- `useNotifications` hook listens to all conversations except current one
+- Tracks last notification time per conversation to avoid duplicates
+- Only notifies for messages from other users (not own messages)
+- Configured in `app/_layout.tsx` with full alert/sound/badge support
 
 ## Motion & Gestures
 - `react-native-reanimated` v4 and `react-native-gesture-handler` v2 used for interaction and transitions.

@@ -16,6 +16,7 @@ import { Conversation } from '@/components/conversation/ConversationItem';
 import { useAuthUser } from '@/hooks/useAuth';
 import { useConversations } from '@/hooks/useConversations';
 import { markConversationsDelivered } from '@/services/chat';
+import { useNotifications } from '@/hooks/useNotifications';
 
 // Removed mock conversations; using SQLite-driven hook instead
 
@@ -30,6 +31,10 @@ export default function ConversationListScreen() {
       markConversationsDelivered(user.uid).catch(() => {});
     }
   }, [user?.uid]);
+
+  // Initialize notifications for conversations OTHER than the current one
+  // currentConversationId is null when user is on tabs screen (not in a chat)
+  useNotifications(null);
 
   // Map hook output to UI's Conversation type
   const conversations = useMemo((): Conversation[] =>
@@ -162,7 +167,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.dark.accentStart,
     gap: 8,
-    boxShadow: [{ color: Colors.dark.glow, offset: { width: 0, height: 2 }, opacity: 0.3, radius: 8 }],
   },
   newChatIcon: {
     fontSize: 18,

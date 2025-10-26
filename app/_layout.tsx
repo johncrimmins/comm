@@ -1,6 +1,8 @@
 import { DarkTheme, ThemeProvider } from '@react-navigation/native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { Platform } from 'react-native';
+import * as Notifications from 'expo-notifications';
 import 'react-native-reanimated';
 import { 
   useFonts,
@@ -12,6 +14,19 @@ import {
 } from '@expo-google-fonts/inter';
 
 import { useAuthUser } from '@/hooks/useAuth';
+
+// Configure notification handler for foreground (iOS/Android only)
+if (Platform.OS !== 'web') {
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowAlert: true,
+      shouldPlaySound: true,
+      shouldSetBadge: true,
+      shouldShowBanner: true,
+      shouldShowList: true,
+    }),
+  });
+}
 
 export default function RootLayout() {
   const user = useAuthUser();

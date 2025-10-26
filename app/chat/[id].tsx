@@ -23,6 +23,7 @@ import GlassCard from '@/components/ui/GlassCard';
 import { useAuthUser } from '@/hooks/useAuth';
 import { useConversation } from '@/hooks/useConversation';
 import { usePresence } from '@/hooks/usePresence';
+import { useNotifications } from '@/hooks/useNotifications';
 
 // Removed mock conversation data; using Firestore-driven messages via useMessages
 
@@ -45,6 +46,9 @@ export default function ChatScreen() {
   const messagesFromFirestore = useMessages(convId || '');
   const conversation = useConversation(convId);
   const presence = usePresence(convId, conversation?.participantIds || []);
+  
+  // Initialize notifications for conversations OTHER than the current one
+  useNotifications(convId || null);
   useEffect(() => {
     if (!convId) {
       setMessages([]);

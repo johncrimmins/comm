@@ -1,7 +1,7 @@
 # Active Context
 
 ## Current Focus
-- Message delivery states and typing indicators
+- Complete foreground notifications implementation
 
 ## Recent Changes
 - Typing indicators implemented (commit 7e791f6): user document approach with setTyping/clearTyping
@@ -11,9 +11,9 @@
 - Firestore as single source of truth with native offline persistence
 
 ## Next Steps
-- Add push notifications support
+- Test foreground notifications in Expo Go
 - Robust error handling and retry logic
-- Test with multiple concurrent users
+- Improved offline support beyond Firestore cache
 
 ## Active Decisions
 - Firestore is single source of truth with native offline persistence

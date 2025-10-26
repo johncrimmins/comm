@@ -13,9 +13,9 @@
 - Presence updates on app foreground/background
 - Typing indicators showing "typing..." in chat header
 - Auto-clear typing after 3 seconds of inactivity
+- Foreground notifications for new messages in other conversations (expo-notifications)
 
 ## What's Left To Build
-- Push notifications
 - Robust error handling and retry logic
 - Improved offline support beyond Firestore cache
 
