@@ -19,20 +19,12 @@ export function useNotifications(currentConversationId: string | null) {
   const messageListenersRef = useRef<Array<() => void>>([]);
 
   useEffect(() => {
-    console.log(`[Notifications] Hook initialized:`, {
-      userId,
-      currentConversationId,
-      platform: Platform.OS,
-    });
-
     if (!userId) {
-      console.log(`[Notifications] No userId, returning`);
       return;
     }
     
     // Skip notifications on web platform
     if (Platform.OS === 'web') {
-      console.log(`[Notifications] Web platform detected, skipping`);
       return;
     }
 
@@ -44,11 +36,6 @@ export function useNotifications(currentConversationId: string | null) {
     const q = query(conversationsRef, where('participantIds', 'array-contains', userId));
 
     const unsubscribeConversations = onSnapshot(q, (snapshot) => {
-      console.log(`[Notifications] Conversations snapshot:`, {
-        totalConversations: snapshot.docs.length,
-        currentConvId: currentConversationId,
-      });
-
       // Clean up existing message listeners
       messageListenersRef.current.forEach(unsub => unsub());
       messageListenersRef.current = [];
@@ -59,27 +46,18 @@ export function useNotifications(currentConversationId: string | null) {
         
         // Skip current conversation - don't notify for messages in the chat user is viewing
         if (conversationId === currentConversationId) {
-          console.log(`[Notifications] Skipping current conversation ${conversationId}`);
           return;
         }
-        
-        console.log(`[Notifications] Setting up listener for conversation ${conversationId}`);
 
         // Listen to messages in this conversation
         const messagesRef = collection(db, 'conversations', conversationId, 'messages');
         const unsubscribeMessages = onSnapshot(messagesRef, (messagesSnapshot) => {
-          console.log(`[Notifications] Messages snapshot for conv ${conversationId}:`, {
-            totalDocs: messagesSnapshot.docs.length,
-            isEmpty: messagesSnapshot.empty,
-          });
-
           if (messagesSnapshot.empty) return;
 
           // Track if this is the first load
           const isFirstLoad = !lastNotificationTimeRef.current[conversationId];
           
           if (isFirstLoad) {
-            console.log(`[Notifications] First load for conv ${conversationId}, initializing timestamp`);
             // On first load, set the timestamp of the most recent message to avoid notifying for old messages
             const lastMessage = messagesSnapshot.docs[messagesSnapshot.docs.length - 1];
             const messageData = lastMessage.data();
@@ -87,13 +65,11 @@ export function useNotifications(currentConversationId: string | null) {
               ? messageData.createdAt.toMillis()
               : Date.now();
             lastNotificationTimeRef.current[conversationId] = messageCreatedAt;
-            console.log(`[Notifications] Set initial timestamp to ${messageCreatedAt}`);
             return;
           }
 
           // Check for NEW messages using docChanges
           const changes = messagesSnapshot.docChanges();
-          console.log(`[Notifications] Processing ${changes.length} doc changes for conv ${conversationId}`);
           
           changes.forEach((change) => {
             if (change.type === 'added') {
@@ -103,21 +79,12 @@ export function useNotifications(currentConversationId: string | null) {
                 : Date.now();
               const senderId = messageData.senderId;
 
-              console.log(`[Notifications] New message detected:`, {
-                convId: conversationId,
-                senderId,
-                createdAt: messageCreatedAt,
-                text: messageData.text?.substring(0, 30),
-              });
-
               // Skip notifications for user's own messages
               if (senderId === userId) {
-                console.log(`[Notifications] Skipping own message`);
                 return;
               }
 
               // Show notification
-              console.log(`[Notifications] Showing notification for message`);
               Notifications.scheduleNotificationAsync({
                 content: {
                   title: 'New message',

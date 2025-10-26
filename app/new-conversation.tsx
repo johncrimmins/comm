@@ -33,11 +33,6 @@ export default function NewConversationScreen() {
   const [selectedContacts, setSelectedContacts] = useState<SelectedContact[]>([]);
   const [messageText, setMessageText] = useState('');
 
-  console.log('[NewConversationScreen] Component rendered', {
-    selectedContactsCount: selectedContacts.length,
-    messageTextLength: messageText.length,
-  });
-
   const displayedUsers = useMemo(() => {
     const currentUserId = user?.uid;
     const base = allUsers.filter(u => u.id !== currentUserId);
@@ -103,8 +98,6 @@ export default function NewConversationScreen() {
       </GlassCard>
     </TouchableOpacity>
   );
-
-  console.log('[NewConversationScreen] Rendering with SafeAreaView edges:', ['top']);
 
   return (
     <GradientBackground>

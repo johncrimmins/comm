@@ -39,14 +39,9 @@ export default function RootLayout() {
     Inter_800ExtraBold,
   });
 
-  console.log('[RootLayout] Component rendered', { user: !!user, loaded });
-
   if (!loaded) {
-    console.log('[RootLayout] Fonts not loaded yet, returning null');
     return null;
   }
-
-  console.log('[RootLayout] Wrapping with SafeAreaProvider and rendering screens');
 
   return (
     <SafeAreaProvider>

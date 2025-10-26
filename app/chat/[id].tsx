@@ -30,8 +30,6 @@ export default function ChatScreen() {
   const user = useAuthUser();
   const uid = user?.uid;
 
-  console.log('[ChatScreen] Component rendered', { id, groupName, isGroup });
-
   const isGroupChat = isGroup === 'true' || (typeof id === 'string' && id.startsWith('group_'));
 
   const [messages, setMessages] = useState<MessageType[]>([]);
@@ -142,11 +140,6 @@ export default function ChatScreen() {
 
   // Get presence subtitle
   const presenceSubtitle = presence.isTyping ? 'typing...' : presence.status;
-
-  console.log('[ChatScreen] Rendering with SafeAreaView edges:', ['top'], {
-    presenceSubtitle,
-    messageCount: messages.length,
-  });
 
   return (
     <GradientBackground>

@@ -96,10 +96,7 @@ export default function ConversationListScreen() {
     </TouchableOpacity>
   );
 
-  console.log('[ConversationListScreen] Component rendered');
-
   const edges: Edge[] = ['top', 'right'];
-  console.log('[ConversationListScreen] Rendering with SafeAreaView edges:', edges);
 
   return (
     <GradientBackground>
