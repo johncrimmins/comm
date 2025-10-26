@@ -38,11 +38,18 @@
 - Padding strategy: Use `paddingLeft`/`paddingRight` instead of `paddingHorizontal` for asymmetric spacing.
 
 ## Reusable Components
-- `ChatInput`: Used in both chat screen and new-conversation screen for consistency.
+- `ChatInput`: Used in both chat screen and new-conversation screen for consistency; includes long-press concise feature.
 - `ChatHeader`: Displays conversation title and presence status.
 - `ChatMessages`: Handles message list rendering with FlatList.
 - `GlassCard`: Themed container with blur effect and dark theme.
 - Components located in `components/` directory organized by feature (auth, chat, conversation, ui).
+
+## External API Services
+- Service layer pattern: Create dedicated service files in `services/` directory (e.g., `services/openai.ts`, `services/chat.ts`).
+- Environment variables: Use `EXPO_PUBLIC_` prefix for client-accessible variables; follow Firebase pattern for consistency.
+- API error handling: Use try/catch with user-friendly Alert messages for errors.
+- OpenAI integration: GPT-4o-mini model with system prompts and temperature 0.3 for consistent results.
+- Service organization: One service file per external API integration.
 
 ## Forms & Validation
 - Local hooks: `hooks/useAuthForm.ts`, `hooks/useFormValidation.ts` manage inputs and errors.
@@ -83,6 +90,10 @@
 
 ## Motion & Gestures
 - `react-native-reanimated` v4 and `react-native-gesture-handler` v2 used for interaction and transitions.
+- Long press gestures: Use `LongPressGestureHandler` with `minDurationMs` for customizable hold duration.
+- Gesture state management: Wrap `TouchableOpacity` with gesture handlers; use state flags to prevent unintended actions on release.
+- Popover animations: Use `useAnimatedStyle` with `withSpring` and `withTiming` for smooth entry/exit animations.
+- Tap-outside-to-dismiss: Use invisible overlay TouchableOpacity positioned absolutely with high zIndex to capture outside taps.
 
 ## Testing & Linting
 - Tests via Jest‑Expo preset.

@@ -78,6 +78,14 @@
 - Real-time listeners via `onSnapshot` for live updates.
 - Expo Go only (no native iOS/Android builds).
 
+## External API Integrations
+- OpenAI API integration for message conciseness feature.
+- Service layer: `services/openai.ts` handles GPT-4o-mini API calls.
+- Environment variable: `EXPO_PUBLIC_OPENAI_API_KEY` required for concise feature.
+- Model: GPT-4o-mini with temperature 0.3 for consistent results.
+- Error handling: Try/catch with user-friendly Alert messages.
+
 ## Notes
 - Declared versions use a mix of caret (^), tilde (~), and pinned versions. See lockfile for exact resolved versions when installed.
 - SQLite dependencies removed; using Firestore as single source of truth.
+- Environment variables follow Expo convention: `EXPO_PUBLIC_` prefix for client-accessible variables.

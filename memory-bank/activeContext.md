@@ -3,8 +3,15 @@
 ## Current Focus
 - Cross-platform UI consistency and safe area handling
 - Web platform support optimization
+- Enhanced message editing features
 
 ## Recent Changes
+- Long-press concise feature (commit 4788c8d): OpenAI integration with GPT-4o-mini for message conciseness
+- Gesture handler implementation: LongPressGestureHandler on send button with state flag to prevent accidental sends
+- Popover UI with Reanimated animations: iMessage-style spring animations for concise option
+- OpenAI service layer: Created services/openai.ts following Firebase environment variable pattern
+- Tap-outside-to-dismiss: Overlay-based dismiss functionality for popover
+- Code cleanup: Removed all console.log statements across app
 - UI overflow fixes (commit c4b9410): Fixed tabs screen safe area edges and padding
 - Component refactoring (commit f3b230b): Replaced custom input in new-conversation with reusable ChatInput component
 - Web keyboard input fixed (commit f3b230b): Added Platform check to ChatInput for web support
@@ -23,6 +30,7 @@
 - Add Platform-specific KeyboardAvoidingView handling to more components if needed
 - Robust error handling and retry logic
 - Improved offline support beyond Firestore cache
+- Add OpenAI API key to environment variables for concise feature
 
 ## Active Decisions
 - Firestore is single source of truth with native offline persistence
@@ -37,3 +45,6 @@
 - Safe area handling: Use edges=['top', 'right'] for tabs screen, ['top'] for other screens
 - Platform checks: KeyboardAvoidingView only on iOS/Android, not web
 - Reusable components: ChatInput used across chat and new-conversation screens for consistency
+- Gesture patterns: Use LongPressGestureHandler wrapped around TouchableOpacity with state flag to prevent unintended actions
+- Environment variables: Use EXPO_PUBLIC_ prefix for client-accessible variables (Firebase, OpenAI)
+- OpenAI integration: GPT-4o-mini model with 0.3 temperature for consistent concise results

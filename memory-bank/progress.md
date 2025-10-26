@@ -19,6 +19,10 @@
 - Safe area handling on iOS with proper edge configuration
 - Reusable ChatInput component used across screens
 - Consistent theming with GlassCard components
+- Long-press concise feature: OpenAI GPT-4o-mini integration for making messages more concise
+- Gesture handler patterns: LongPressGestureHandler with state management to prevent unintended actions
+- Popover UI with smooth animations (Reanimated spring animations)
+- Tap-outside-to-dismiss functionality for popovers
 
 ## What's Left To Build
 - Robust error handling and retry logic
@@ -32,6 +36,8 @@
 - Foreground notifications implemented with logging
 - Cross-platform UI working with Platform-specific optimizations
 - Component refactoring complete with shared ChatInput component
+- OpenAI integration added for enhanced message editing features
+- Gesture handling patterns established for future enhancements
 
 ## Known Issues
 - No offline persistence beyond Firestore's offline cache
