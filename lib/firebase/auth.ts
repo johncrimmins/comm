@@ -13,9 +13,9 @@ export const signIn = async (email: string, password: string) => {
   return cred;
 };
 
-export const signUp = async (email: string, password: string) => {
+export const signUp = async (email: string, password: string, displayName?: string) => {
   const cred = await createUserWithEmailAndPassword(auth, email, password);
-  await ensureUserProfile(cred.user);
+  await ensureUserProfile(cred.user, displayName);
   return cred;
 };
 
@@ -28,11 +28,11 @@ function getDeterministicColorFor(uid: string): string {
   return palette[sum % palette.length];
 }
 
-async function ensureUserProfile(user: User): Promise<void> {
+async function ensureUserProfile(user: User, displayName?: string): Promise<void> {
   try {
     const ref = doc(db, 'users', user.uid);
     const snap = await getDoc(ref);
-    const name = (user.email?.split('@')[0] || 'user').toLowerCase();
+    const name = displayName || (user.email?.split('@')[0] || 'user').toLowerCase();
     if (!snap.exists()) {
       await setDoc(ref, {
         name,

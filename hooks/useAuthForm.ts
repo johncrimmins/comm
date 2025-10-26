@@ -70,7 +70,7 @@ export function useAuthForm() {
       if (mode === 'signin') {
         await signIn(email.trim(), password);
       } else {
-        await signUp(email.trim(), password);
+        await signUp(email.trim(), password, displayName.trim());
       }
       router.replace('/(tabs)');
     } catch (error) {

@@ -9,13 +9,34 @@ export function useMessages(conversationId: string) {
       id: string;
       text: string;
       senderId: string;
+      senderName?: string;
+      senderAvatarColor?: string;
       createdAt: number;
       status: 'sent' | 'delivered' | 'read' | null;
     }>
   );
   
+  const [users, setUsers] = useState<Record<string, { name: string; avatarColor: string }>>({});
+  
   const currentUser = useAuthUser();
   const currentUserId = currentUser?.uid;
+
+  // Fetch all users for name lookup
+  useEffect(() => {
+    const usersRef = collection(db, 'users');
+    const unsubscribeUsers = onSnapshot(usersRef, (snapshot) => {
+      const usersMap: Record<string, { name: string; avatarColor: string }> = {};
+      snapshot.docs.forEach((doc) => {
+        const data = doc.data();
+        usersMap[doc.id] = { 
+          name: data.name || 'user',
+          avatarColor: data.avatarColor || '#7C3AED'
+        };
+      });
+      setUsers(usersMap);
+    });
+    return () => unsubscribeUsers();
+  }, []);
 
   useEffect(() => {
     if (!conversationId) {
@@ -60,14 +81,18 @@ export function useMessages(conversationId: string) {
         }
       }
       
-      // Map all messages to state
+      // Map all messages to state with sender names
       const msgs = snapshot.docs.map((doc) => {
         const data = doc.data();
+        const senderId = data.senderId || '';
+        const sender = users[senderId];
         return {
           id: doc.id,
           conversationId,
           text: data.text || '',
-          senderId: data.senderId || '',
+          senderId,
+          senderName: sender?.name,
+          senderAvatarColor: sender?.avatarColor,
           createdAt: data.createdAt instanceof Timestamp 
             ? data.createdAt.toMillis() 
             : Date.now(),
@@ -161,7 +186,7 @@ export function useMessages(conversationId: string) {
       unsubscribeMessages();
       unsubscribeState();
     };
-  }, [conversationId, currentUserId]);
+  }, [conversationId, currentUserId, users]);
 
   return messages;
 }

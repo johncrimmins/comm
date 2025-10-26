@@ -9,6 +9,7 @@ export type Message = {
   timestamp: string;
   senderId: string;
   senderName?: string;
+  senderAvatarColor?: string;
   isCurrentUser: boolean;
   status?: 'sent' | 'delivered' | 'read' | null;
 };
@@ -18,6 +19,15 @@ type MessageProps = {
 };
 
 export default function Message({ message }: MessageProps) {
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(n => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
   return (
     <View
       style={[
@@ -29,35 +39,55 @@ export default function Message({ message }: MessageProps) {
         <Text style={styles.senderName}>{message.senderName}</Text>
       )}
       
-      <View style={[
-        styles.bubbleWrapper,
-        message.isCurrentUser && styles.currentUserBubble,
-      ]}>
-        <BlurView
-          intensity={message.isCurrentUser ? 60 : 40}
-          style={styles.blur}
-          tint="dark"
-        >
-          <View
-            style={[
-              styles.bubble,
-              message.isCurrentUser
-                ? styles.currentUserBubbleContent
-                : styles.otherUserBubbleContent,
-            ]}
+      <View style={styles.contentRow}>
+        {!message.isCurrentUser && message.senderName && (
+          <View style={[
+            styles.avatar,
+            { backgroundColor: message.senderAvatarColor || '#7C3AED' }
+          ]}>
+            <Text style={styles.avatarText}>{getInitials(message.senderName)}</Text>
+          </View>
+        )}
+        
+        <View style={[
+          styles.bubbleWrapper,
+          message.isCurrentUser && styles.currentUserBubble,
+        ]}>
+          <BlurView
+            intensity={message.isCurrentUser ? 60 : 40}
+            style={styles.blur}
+            tint="dark"
           >
-            <Text style={styles.messageText}>{message.text}</Text>
-            <Text
+            <View
               style={[
-                styles.timestamp,
-                message.isCurrentUser && styles.currentUserTimestamp,
+                styles.bubble,
+                message.isCurrentUser
+                  ? styles.currentUserBubbleContent
+                  : styles.otherUserBubbleContent,
               ]}
             >
-              {message.timestamp}
-              {message.isCurrentUser && message.status ? ` · ${message.status}` : ''}
-            </Text>
+              <Text style={styles.messageText}>{message.text}</Text>
+              <Text
+                style={[
+                  styles.timestamp,
+                  message.isCurrentUser && styles.currentUserTimestamp,
+                ]}
+              >
+                {message.timestamp}
+                {message.isCurrentUser && message.status ? ` · ${message.status}` : ''}
+              </Text>
+            </View>
+          </BlurView>
+        </View>
+
+        {message.isCurrentUser && message.senderName && (
+          <View style={[
+            styles.avatar,
+            { backgroundColor: message.senderAvatarColor || '#7C3AED' }
+          ]}>
+            <Text style={styles.avatarText}>{getInitials(message.senderName)}</Text>
           </View>
-        </BlurView>
+        )}
       </View>
     </View>
   );
@@ -77,10 +107,28 @@ const styles = StyleSheet.create({
   senderName: {
     fontSize: 12,
     fontWeight: '600',
-    color: Colors.dark.accentStart,
+    color: Colors.dark.textSecondary,
     marginBottom: 4,
-    marginLeft: 12,
+    marginLeft: 2,
     fontFamily: 'Inter_600SemiBold',
+  },
+  contentRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+  },
+  avatar: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginHorizontal: 8,
+  },
+  avatarText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '700',
+    fontFamily: 'Inter_700Bold',
   },
   bubbleWrapper: {
     maxWidth: '75%',

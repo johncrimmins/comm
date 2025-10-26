@@ -50,6 +50,8 @@ export default function ChatScreen() {
         text: m.text,
         timestamp: new Date(m.createdAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }),
         senderId: m.senderId,
+        senderName: m.senderName,
+        senderAvatarColor: m.senderAvatarColor,
         isCurrentUser: !!uid && m.senderId === uid,
         status: (m.status as any) ?? null,
       }))
