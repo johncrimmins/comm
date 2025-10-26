@@ -6,9 +6,14 @@
 - Enhanced message editing features
 
 ## Recent Changes
+- Text transformations refactored (commit 25e1f8c): Dynamic popover supporting multiple transformations (Concise, Professionalize, Technicalize)
+- Transformation service pattern: Created services/messageTransformations.ts for centralized transformation definitions
+- Generic OpenAI API: Refactored services/openai.ts to accept any system prompt via transformText function
+- Dynamic button rendering: ChatInput maps over transformations array for scalable UI
+- Stacked button styling: Multiple transformation buttons with proper border radius (rounded top/bottom)
 - Long-press concise feature (commit 4788c8d): OpenAI integration with GPT-4o-mini for message conciseness
 - Gesture handler implementation: LongPressGestureHandler on send button with state flag to prevent accidental sends
-- Popover UI with Reanimated animations: iMessage-style spring animations for concise option
+- Popover UI with Reanimated animations: iMessage-style spring animations for transformation options
 - OpenAI service layer: Created services/openai.ts following Firebase environment variable pattern
 - Tap-outside-to-dismiss: Overlay-based dismiss functionality for popover
 - Code cleanup: Removed all console.log statements across app
@@ -47,4 +52,7 @@
 - Reusable components: ChatInput used across chat and new-conversation screens for consistency
 - Gesture patterns: Use LongPressGestureHandler wrapped around TouchableOpacity with state flag to prevent unintended actions
 - Environment variables: Use EXPO_PUBLIC_ prefix for client-accessible variables (Firebase, OpenAI)
-- OpenAI integration: GPT-4o-mini model with 0.3 temperature for consistent concise results
+- OpenAI integration: GPT-4o-mini model with 0.3 temperature for consistent transformation results
+- Transformation architecture: Centralized transformation definitions in services/messageTransformations.ts, generic API wrapper in services/openai.ts
+- Dynamic UI patterns: Map over configuration arrays to render reusable UI components (transformations, buttons, etc.)
+- Service layer separation: Keep transformation definitions separate from API implementation for maintainability

@@ -38,18 +38,23 @@
 - Padding strategy: Use `paddingLeft`/`paddingRight` instead of `paddingHorizontal` for asymmetric spacing.
 
 ## Reusable Components
-- `ChatInput`: Used in both chat screen and new-conversation screen for consistency; includes long-press concise feature.
+- `ChatInput`: Used in both chat screen and new-conversation screen for consistency; includes long-press transformation feature with dynamic popover.
 - `ChatHeader`: Displays conversation title and presence status.
 - `ChatMessages`: Handles message list rendering with FlatList.
 - `GlassCard`: Themed container with blur effect and dark theme.
 - Components located in `components/` directory organized by feature (auth, chat, conversation, ui).
+- Dynamic rendering: Use `.map()` over configuration arrays to render reusable UI elements (buttons, cards, etc.).
+- Conditional styling: Apply styles conditionally based on array index (e.g., `index === 0 && styles.first`, `index === last && styles.last`).
 
 ## External API Services
 - Service layer pattern: Create dedicated service files in `services/` directory (e.g., `services/openai.ts`, `services/chat.ts`).
+- Transformation configuration: Define transformation options in dedicated config file (e.g., `services/messageTransformations.ts`).
+- Generic API wrappers: Create reusable API functions that accept configuration parameters (e.g., `transformText(text, systemPrompt)`).
 - Environment variables: Use `EXPO_PUBLIC_` prefix for client-accessible variables; follow Firebase pattern for consistency.
 - API error handling: Use try/catch with user-friendly Alert messages for errors.
 - OpenAI integration: GPT-4o-mini model with system prompts and temperature 0.3 for consistent results.
-- Service organization: One service file per external API integration.
+- Service organization: One service file per external API integration; separate configuration from implementation.
+- Dynamic transformations: Define transformations as data (objects with id, label, systemPrompt) rather than separate functions.
 
 ## Forms & Validation
 - Local hooks: `hooks/useAuthForm.ts`, `hooks/useFormValidation.ts` manage inputs and errors.

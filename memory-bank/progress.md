@@ -19,7 +19,10 @@
 - Safe area handling on iOS with proper edge configuration
 - Reusable ChatInput component used across screens
 - Consistent theming with GlassCard components
-- Long-press concise feature: OpenAI GPT-4o-mini integration for making messages more concise
+- Long-press text transformations: Multiple options (Concise, Professionalize, Technicalize) via dynamic popover
+- Transformation service pattern: Centralized configuration in services/messageTransformations.ts
+- Generic OpenAI API: Refactored to accept any system prompt for scalable transformations
+- Dynamic button rendering: Stacked transformation buttons with proper styling
 - Gesture handler patterns: LongPressGestureHandler with state management to prevent unintended actions
 - Popover UI with smooth animations (Reanimated spring animations)
 - Tap-outside-to-dismiss functionality for popovers
@@ -38,6 +41,8 @@
 - Component refactoring complete with shared ChatInput component
 - OpenAI integration added for enhanced message editing features
 - Gesture handling patterns established for future enhancements
+- Transformation architecture established with scalable design pattern
+- Dynamic UI rendering patterns implemented for reusable components
 
 ## Known Issues
 - No offline persistence beyond Firestore's offline cache
