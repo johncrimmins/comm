@@ -1,9 +1,10 @@
 # Active Context
 
 ## Current Focus
-- Complete foreground notifications implementation
+- Test foreground notifications in Expo Go
 
 ## Recent Changes
+- Foreground notifications implemented (commit efdf0d6): expo-notifications with useNotifications hook
 - Typing indicators implemented (commit 7e791f6): user document approach with setTyping/clearTyping
 - Message delivery states refactored (commit 6002cf4): arrays-based approach with deliveredTo/readBy
 - Presence system: lastSeen tracking, typing status in user documents
@@ -11,7 +12,7 @@
 - Firestore as single source of truth with native offline persistence
 
 ## Next Steps
-- Test foreground notifications in Expo Go
+- Test notification delivery for new messages on tabs screen
 - Robust error handling and retry logic
 - Improved offline support beyond Firestore cache
 
@@ -24,4 +25,5 @@
 - Presence via lastSeen timestamp (online if within 30 seconds)
 - Group chat presence shows "X online · Y members" format
 - Typing shows "typing..." when other user is typing in same conversation
+- Notifications: foreground-only, skip web platform, skip current conversation, only new messages via docChanges
 

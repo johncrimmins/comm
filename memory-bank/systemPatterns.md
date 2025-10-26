@@ -49,9 +49,12 @@
 ## Notifications
 - Foreground-only notifications via `expo-notifications` (Expo Go compatible)
 - `useNotifications` hook listens to all conversations except current one
-- Tracks last notification time per conversation to avoid duplicates
+- Uses `docChanges()` to detect truly new messages vs initial load
+- First load initializes timestamp, subsequent loads only notify on new additions
+- Platform check: skips web (notifications not supported), works on iOS/Android
 - Only notifies for messages from other users (not own messages)
 - Configured in `app/_layout.tsx` with full alert/sound/badge support
+- Comprehensive logging for debugging notification flow
 
 ## Motion & Gestures
 - `react-native-reanimated` v4 and `react-native-gesture-handler` v2 used for interaction and transitions.

@@ -23,6 +23,7 @@
 - Firestore-first architecture working
 - MVP messaging core complete with delivery states
 - Presence and typing indicators implemented and working
+- Foreground notifications implemented with logging
 
 ## Known Issues
 - No offline persistence beyond Firestore's offline cache
