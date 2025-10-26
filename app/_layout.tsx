@@ -12,11 +12,12 @@ import {
 } from '@expo-google-fonts/inter';
 
 import { useColorScheme } from '@/hooks/useColorScheme';
-import { useSyncLifecycle } from '@/hooks/useSyncLifecycle';
+import { useAuthUser } from '@/hooks/useAuth';
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
-  useSyncLifecycle(); // Start/stop sync engine based on auth state
+  const user = useAuthUser();
+  // Sync engine removed - Firestore hooks handle everything directly
   const [loaded] = useFonts({
     Inter_400Regular,
     Inter_500Medium,
@@ -32,10 +33,14 @@ export default function RootLayout() {
   return (
     <ThemeProvider value={DarkTheme}>
       <Stack>
-        <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="chat/[id]" options={{ headerShown: false }} />
-        <Stack.Screen name="new-conversation" options={{ headerShown: false }} />
+        {!user && <Stack.Screen name="(auth)" options={{ headerShown: false }} />}
+        {user && (
+          <>
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen name="chat/[id]" options={{ headerShown: false }} />
+            <Stack.Screen name="new-conversation" options={{ headerShown: false }} />
+          </>
+        )}
         <Stack.Screen name="+not-found" />
       </Stack>
       <StatusBar style="light" />

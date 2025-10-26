@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { listMessagesByConversation } from '@/lib/sqlite';
-import { setActiveConversationId } from '@/lib/sync';
+import { collection, query, orderBy, onSnapshot, Timestamp } from 'firebase/firestore';
+import { db } from '@/lib/firebase/db';
 
 export function useMessages(conversationId: string) {
   const [messages, setMessages] = useState(
@@ -14,28 +14,41 @@ export function useMessages(conversationId: string) {
   );
 
   useEffect(() => {
-    let cancelled = false;
-    setActiveConversationId(conversationId);
-    async function load() {
-      const rows = await listMessagesByConversation(conversationId);
-      if (cancelled) return;
-      setMessages(
-        rows.map((m) => ({
-          id: m.id,
-          text: m.text,
-          senderId: m.senderId,
-          createdAt: m.createdAt,
-          status: (m.status as any) ?? null,
-        }))
-      );
+    if (!conversationId) {
+      setMessages([]);
+      return;
     }
-    load();
-    // Note: No polling needed. Firestore listeners via sync engine keep SQLite updated.
-    // For now, we load once. Future: Add reactive updates when SQLite changes.
-    return () => {
-      cancelled = true;
-      setActiveConversationId(null);
-    };
+    
+    // Query Firestore messages subcollection for this conversation
+    const messagesRef = collection(db, 'conversations', conversationId, 'messages');
+    const q = query(messagesRef, orderBy('createdAt', 'asc'));
+
+    // Set up real-time listener
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const msgs = snapshot.docs.map((doc) => {
+        const data = doc.data();
+        const message = {
+          id: doc.id,
+          text: data.text || '',
+          senderId: data.senderId || '',
+          createdAt: data.createdAt instanceof Timestamp 
+            ? data.createdAt.toMillis() 
+            : Date.now(),
+          status: (data.status as 'sent' | 'delivered' | 'read' | null) ?? null,
+        };
+        
+        // Log status changes
+        if (message.status) {
+          console.log(`📬 [useMessages] Message status: id=${message.id}, status=${message.status}, text="${message.text.substring(0, 20)}..."`);
+        }
+        
+        return message;
+      });
+      
+      setMessages(msgs);
+    });
+
+    return () => unsubscribe();
   }, [conversationId]);
 
   return messages;

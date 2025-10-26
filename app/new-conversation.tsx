@@ -9,9 +9,10 @@ import {
   SafeAreaView,
   KeyboardAvoidingView,
   Platform,
+  Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { createConversationLocal, sendMessageLocal } from '@/services/chat';
+import { createOrFindConversation, sendMessage } from '@/services/chat';
 import { useAuthUser } from '@/hooks/useAuth';
 import { StatusBar } from 'expo-status-bar';
 import { Colors } from '@/constants/Colors';
@@ -59,11 +60,22 @@ export default function NewConversationScreen() {
 
   const handleStartChat = async () => {
     if (selectedContacts.length === 0 || !messageText.trim()) return;
-    const senderId = user?.uid ?? 'me';
+    
+    // Guard: Fail fast if user is not authenticated
+    if (!user?.uid) {
+      Alert.alert(
+        'Authentication Required',
+        'You must be signed in to create conversations.',
+        [{ text: 'OK', onPress: () => router.push('/(auth)') }]
+      );
+      return;
+    }
+    
+    const senderId = user.uid;
     // Include sender in participantIds so Firebase query can find it for both users
     const participantIds = [senderId, ...selectedContacts.map(c => c.id)];
-    const { conversationId } = await createConversationLocal(participantIds);
-    const { shouldNavigate } = await sendMessageLocal(conversationId, messageText.trim(), senderId);
+    const { conversationId } = await createOrFindConversation(participantIds);
+    const { shouldNavigate } = await sendMessage(conversationId, messageText.trim(), senderId);
     setMessageText('');
     if (shouldNavigate) {
       router.push(`/chat/${conversationId}`);

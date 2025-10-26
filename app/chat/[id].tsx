@@ -15,7 +15,7 @@ import { StatusBar } from 'expo-status-bar';
 import { Colors } from '@/constants/Colors';
 import Message, { Message as MessageType } from '@/components/chat/Message';
 import { useMessages } from '@/hooks/useMessages';
-import { sendMessageLocal, markRead } from '@/services/chat';
+import { sendMessage, markRead } from '@/services/chat';
 import { isSomeoneTyping, isAnyParticipantOnline } from '@/lib/sqlite';
 import GradientBackground from '@/components/ui/GradientBackground';
 import GlassCard from '@/components/ui/GlassCard';
@@ -87,7 +87,7 @@ export default function ChatScreen() {
   const handleSend = async () => {
     if (!convId || !uid) return;
     if (inputText.trim()) {
-      await sendMessageLocal(convId, inputText.trim(), uid);
+      await sendMessage(convId, inputText.trim(), uid);
       setInputText('');
       setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
     }

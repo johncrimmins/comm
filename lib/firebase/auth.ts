@@ -48,7 +48,7 @@ async function ensureUserProfile(user: User): Promise<void> {
     }
   } catch (e) {
     // Silent failure for MVP; no UI surfacing
-    // console.debug('ensureUserProfile error', e);
+    console.debug('ensureUserProfile error', e);
   }
 }
 
