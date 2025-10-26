@@ -1,5 +1,5 @@
 /**
- * OpenAI API integration for making messages more concise
+ * OpenAI API integration for text transformations
  */
 
 const getEnv = (key: string): string => {
@@ -14,24 +14,25 @@ const getEnv = (key: string): string => {
 const OPENAI_API_KEY = getEnv('EXPO_PUBLIC_OPENAI_API_KEY');
 const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
 
-export interface ConciseOptions {
+export interface TransformOptions {
   text: string;
-}
-
-export interface ConciseResponse {
-  conciseText: string;
+  systemPrompt: string;
 }
 
 /**
- * Makes the provided text more concise while preserving intent and references
+ * Generic function to transform text using OpenAI API with a custom system prompt
  */
-export async function makeConcise(options: ConciseOptions): Promise<ConciseResponse> {
+export async function transformText(options: TransformOptions): Promise<string> {
   if (!OPENAI_API_KEY) {
     throw new Error('OpenAI API key not configured. Please add EXPO_PUBLIC_OPENAI_API_KEY to your environment variables.');
   }
 
   if (!options.text.trim()) {
     throw new Error('Text cannot be empty');
+  }
+
+  if (!options.systemPrompt.trim()) {
+    throw new Error('System prompt cannot be empty');
   }
 
   try {
@@ -46,11 +47,11 @@ export async function makeConcise(options: ConciseOptions): Promise<ConciseRespo
         messages: [
           {
             role: 'system',
-            content: 'You are a helpful assistant that makes messages more concise while preserving the original intent and any references (names, dates, places, etc.). Return only the concise version without any additional explanation.'
+            content: options.systemPrompt
           },
           {
             role: 'user',
-            content: `Make this message more concise while keeping all important information and references:\n\n${options.text}`
+            content: `Transform this message:\n\n${options.text}`
           }
         ],
         temperature: 0.3,
@@ -64,15 +65,15 @@ export async function makeConcise(options: ConciseOptions): Promise<ConciseRespo
     }
 
     const data = await response.json();
-    const conciseText = data.choices?.[0]?.message?.content?.trim();
+    const transformedText = data.choices?.[0]?.message?.content?.trim();
 
-    if (!conciseText) {
-      throw new Error('No concise text returned from OpenAI');
+    if (!transformedText) {
+      throw new Error('No transformed text returned from OpenAI');
     }
 
-    return { conciseText };
+    return transformedText;
   } catch (error: any) {
-    console.error('[OpenAI] Error making text concise:', error);
+    console.error('[OpenAI] Error transforming text:', error);
     throw error;
   }
 }

@@ -4,7 +4,8 @@ import { LongPressGestureHandler, State } from 'react-native-gesture-handler';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
 import { Colors } from '@/constants/Colors';
 import GlassCard from '@/components/ui/GlassCard';
-import { makeConcise } from '@/services/openai';
+import { transformText } from '@/services/openai';
+import { transformations } from '@/services/messageTransformations';
 
 export interface ChatInputProps {
   inputText: string;
@@ -14,8 +15,8 @@ export interface ChatInputProps {
 }
 
 export function ChatInput({ inputText, onChangeText, onSend, disabled = false }: ChatInputProps) {
-  const [showConciseMenu, setShowConciseMenu] = useState(false);
-  const [isProcessingConcise, setIsProcessingConcise] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   const [hasLongPressed, setHasLongPressed] = useState(false);
   
   // Animated values for popover
@@ -27,7 +28,7 @@ export function ChatInput({ inputText, onChangeText, onSend, disabled = false }:
   const handleLongPress = (event: any) => {
     if (event.nativeEvent.state === State.ACTIVE && inputText.trim()) {
       setHasLongPressed(true); // Mark that long press occurred
-      setShowConciseMenu(true);
+      setShowMenu(true);
       // Animate popover in
       popoverOpacity.value = withTiming(1, { duration: 200 });
       popoverScale.value = withSpring(1, { damping: 15 });
@@ -37,45 +38,48 @@ export function ChatInput({ inputText, onChangeText, onSend, disabled = false }:
 
   // Dismiss popover when clicking outside
   const handleDismissPopover = () => {
-    if (showConciseMenu) {
+    if (showMenu) {
       popoverOpacity.value = withTiming(0, { duration: 150 });
       popoverScale.value = withTiming(0.8, { duration: 150 });
       setTimeout(() => {
-        setShowConciseMenu(false);
+        setShowMenu(false);
         setHasLongPressed(false); // Reset flag when popover closes
       }, 150);
     }
   };
 
-  // Handle concise button press
-  const handleConcise = async () => {
-    if (!inputText.trim() || isProcessingConcise) return;
+  // Handle transformation button press
+  const handleTransform = async (transformation: typeof transformations[0]) => {
+    if (!inputText.trim() || isProcessing) return;
     
-    setIsProcessingConcise(true);
-    setShowConciseMenu(false);
+    setIsProcessing(true);
+    setShowMenu(false);
     
     // Animate popover out
     popoverOpacity.value = withTiming(0, { duration: 150 });
     popoverScale.value = withTiming(0.8, { duration: 150 });
     
     try {
-      const { conciseText } = await makeConcise({ text: inputText });
-      onChangeText(conciseText);
+      const transformedText = await transformText({
+        text: inputText,
+        systemPrompt: transformation.systemPrompt
+      });
+      onChangeText(transformedText);
     } catch (error: any) {
       Alert.alert(
         'Error',
-        error.message || 'Failed to make message concise. Please try again.',
+        error.message || `Failed to ${transformation.label.toLowerCase()} message. Please try again.`,
         [{ text: 'OK' }]
       );
     } finally {
-      setIsProcessingConcise(false);
-      setHasLongPressed(false); // Reset flag after concise completes
+      setIsProcessing(false);
+      setHasLongPressed(false); // Reset flag after transformation completes
     }
   };
 
   // Handle send button press - don't send if long press occurred
   const handleSendPress = () => {
-    if (hasLongPressed || showConciseMenu) {
+    if (hasLongPressed || showMenu) {
       // Long press was triggered, don't send message
       return;
     }
@@ -94,7 +98,7 @@ export function ChatInput({ inputText, onChangeText, onSend, disabled = false }:
   const contentWrapper = (
     <View style={styles.wrapper}>
       {/* Overlay to dismiss popover when clicking outside */}
-      {showConciseMenu && (
+      {showMenu && (
         <TouchableOpacity
           style={styles.overlay}
           activeOpacity={1}
@@ -137,21 +141,26 @@ export function ChatInput({ inputText, onChangeText, onSend, disabled = false }:
         </GlassCard>
       </View>
 
-      {/* Concise Menu Popover - positioned absolutely within wrapper */}
-      {showConciseMenu && inputText.trim() && (
+      {/* Transformation Menu Popover - positioned absolutely within wrapper */}
+      {showMenu && inputText.trim() && (
         <Animated.View style={[styles.popoverContainer, popoverAnimatedStyle]} pointerEvents="box-none">
-          <TouchableOpacity
-            style={styles.conciseButton}
-            onPress={() => {
-              handleConcise();
-            }}
-            activeOpacity={0.8}
-            disabled={isProcessingConcise}
-          >
-            <Text style={styles.conciseButtonText}>
-              {isProcessingConcise ? '...' : 'Concise'}
-            </Text>
-          </TouchableOpacity>
+          {transformations.map((transformation, index) => (
+            <TouchableOpacity
+              key={transformation.id}
+              style={[
+                styles.transformButton,
+                index === 0 && styles.transformButtonFirst,
+                index === transformations.length - 1 && styles.transformButtonLast
+              ]}
+              onPress={() => handleTransform(transformation)}
+              activeOpacity={0.8}
+              disabled={isProcessing}
+            >
+              <Text style={styles.transformButtonText}>
+                {isProcessing ? '...' : transformation.label}
+              </Text>
+            </TouchableOpacity>
+          ))}
         </Animated.View>
       )}
     </View>
@@ -235,19 +244,28 @@ const styles = StyleSheet.create({
     right: 20,
     alignItems: 'flex-end',
     zIndex: 1000,
+    gap: 8,
   },
-  conciseButton: {
+  transformButton: {
     backgroundColor: Colors.dark.accentStart,
     paddingHorizontal: 20,
     paddingVertical: 10,
-    borderRadius: 20,
+    borderRadius: 0,
     shadowColor: Colors.dark.glow,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.6,
     shadowRadius: 8,
     elevation: 8,
   },
-  conciseButtonText: {
+  transformButtonFirst: {
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+  },
+  transformButtonLast: {
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
+  },
+  transformButtonText: {
     color: '#FFFFFF',
     fontSize: 15,
     fontWeight: '600',
