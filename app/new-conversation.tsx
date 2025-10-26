@@ -4,10 +4,7 @@ import {
   Text,
   StyleSheet,
   FlatList,
-  TextInput,
   TouchableOpacity,
-  KeyboardAvoidingView,
-  Platform,
   Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -20,6 +17,7 @@ import GradientBackground from '@/components/ui/GradientBackground';
 import GlassCard from '@/components/ui/GlassCard';
 import EditableChipInput, { SelectedContact } from '@/components/conversation/EditableChipInput';
 import { useUsers } from '@/hooks/useUsers';
+import { ChatInput } from '@/components/chat/ChatInput';
 
 type User = {
   id: string;
@@ -79,11 +77,10 @@ export default function NewConversationScreen() {
     // Include sender in participantIds so Firebase query can find it for both users
     const participantIds = [senderId, ...selectedContacts.map(c => c.id)];
     const { conversationId } = await createOrFindConversation(participantIds);
-    const { shouldNavigate } = await sendMessage(conversationId, messageText.trim(), senderId);
+    await sendMessage(conversationId, messageText.trim(), senderId);
     setMessageText('');
-    if (shouldNavigate) {
-      router.push(`/chat/${conversationId}`);
-    }
+    // Always navigate to the chat screen after sending
+    router.push(`/chat/${conversationId}`);
   };
 
   const renderUser = ({ item }: { item: User }) => (
@@ -145,37 +142,12 @@ export default function NewConversationScreen() {
           style={styles.content}
         />
 
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
-          style={{ flex: 0 }}
-        >
-          <View style={styles.messageInputContainer}>
-            <GlassCard style={styles.messageInputCard} intensity={30}>
-              <View style={styles.messageInputWrapper}>
-                <TextInput
-                  style={styles.messageInput}
-                  placeholder={selectedContacts.length > 0 ? "imessage" : "select a contact to start messaging"}
-                  placeholderTextColor={Colors.dark.textSecondary}
-                  value={messageText}
-                  onChangeText={setMessageText}
-                  multiline
-                  maxLength={1000}
-                  editable={selectedContacts.length > 0}
-                />
-                {selectedContacts.length > 0 && (
-                  <TouchableOpacity
-                    style={styles.sendButton}
-                    onPress={handleStartChat}
-                    activeOpacity={0.8}
-                  >
-                    <Text style={styles.sendIcon}>→</Text>
-                  </TouchableOpacity>
-                )}
-              </View>
-            </GlassCard>
-          </View>
-        </KeyboardAvoidingView>
+        <ChatInput
+          inputText={messageText}
+          onChangeText={setMessageText}
+          onSend={handleStartChat}
+          disabled={selectedContacts.length === 0}
+        />
       </SafeAreaView>
     </GradientBackground>
   );
@@ -259,42 +231,5 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: Colors.dark.textSecondary,
     fontFamily: 'Inter_400Regular',
-  },
-  messageInputContainer: {
-    padding: 16,
-    paddingTop: 8,
-    borderTopWidth: 1,
-    borderTopColor: Colors.dark.border,
-  },
-  messageInputCard: {
-    borderRadius: 24,
-  },
-  messageInputWrapper: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    padding: 12,
-    minHeight: 48,
-  },
-  messageInput: {
-    flex: 1,
-    fontSize: 16,
-    color: Colors.dark.text,
-    fontFamily: 'Inter_400Regular',
-    maxHeight: 100,
-    paddingVertical: 8,
-  },
-  sendButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: Colors.dark.accentStart,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginLeft: 8,
-  },
-  sendIcon: {
-    fontSize: 20,
-    color: '#FFFFFF',
-    fontWeight: '700',
   },
 });

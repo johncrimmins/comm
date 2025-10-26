@@ -19,41 +19,51 @@ export function ChatInput({ inputText, onChangeText, onSend, disabled = false }:
     inputTextLength: inputText.length,
   });
 
-  return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
-      style={{ flex: 0 }}
-    >
-      <View style={styles.inputContainer}>
-        <GlassCard style={styles.inputCard} intensity={30}>
-          <View style={styles.inputWrapper}>
-            <TextInput
-              style={styles.input}
-              placeholder="message..."
-              placeholderTextColor={Colors.dark.textSecondary}
-              value={inputText}
-              onChangeText={onChangeText}
-              multiline
-              maxLength={1000}
-              autoFocus
-            />
-            <TouchableOpacity
-              style={[
-                styles.sendButton,
-                (disabled || !inputText.trim()) && styles.sendButtonDisabled,
-              ]}
-              onPress={onSend}
-              disabled={disabled || !inputText.trim()}
-              activeOpacity={0.8}
-            >
-              <Text style={styles.sendButtonText}>→</Text>
-            </TouchableOpacity>
-          </View>
-        </GlassCard>
-      </View>
-    </KeyboardAvoidingView>
+  const inputContent = (
+    <View style={styles.inputContainer}>
+      <GlassCard style={styles.inputCard} intensity={30}>
+        <View style={styles.inputWrapper}>
+          <TextInput
+            style={styles.input}
+            placeholder="message..."
+            placeholderTextColor={Colors.dark.textSecondary}
+            value={inputText}
+            onChangeText={onChangeText}
+            multiline
+            maxLength={1000}
+            autoFocus
+          />
+          <TouchableOpacity
+            style={[
+              styles.sendButton,
+              (disabled || !inputText.trim()) && styles.sendButtonDisabled,
+            ]}
+            onPress={onSend}
+            disabled={disabled || !inputText.trim()}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.sendButtonText}>→</Text>
+          </TouchableOpacity>
+        </View>
+      </GlassCard>
+    </View>
   );
+
+  // Only use KeyboardAvoidingView on native platforms
+  if (Platform.OS === 'ios' || Platform.OS === 'android') {
+    return (
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+        style={{ flex: 0 }}
+      >
+        {inputContent}
+      </KeyboardAvoidingView>
+    );
+  }
+
+  // Web and other platforms render directly
+  return inputContent;
 }
 
 const styles = StyleSheet.create({
