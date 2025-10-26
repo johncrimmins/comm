@@ -143,14 +143,14 @@ export default function ChatScreen() {
   // Get presence subtitle
   const presenceSubtitle = presence.isTyping ? 'typing...' : presence.status;
 
-  console.log('[ChatScreen] Rendering with SafeAreaView edges:', ['top', 'left', 'right'], {
+  console.log('[ChatScreen] Rendering with SafeAreaView edges:', ['top'], {
     presenceSubtitle,
     messageCount: messages.length,
   });
 
   return (
     <GradientBackground>
-      <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
+      <SafeAreaView style={styles.container} edges={['top']}>
         <StatusBar style="light" />
 
         <ChatHeader

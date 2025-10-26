@@ -6,7 +6,7 @@ import {
   FlatList,
   TouchableOpacity,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, Edge } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
 import { Colors } from '@/constants/Colors';
@@ -96,16 +96,21 @@ export default function ConversationListScreen() {
     </TouchableOpacity>
   );
 
+  console.log('[ConversationListScreen] Component rendered');
+
+  const edges: Edge[] = ['top', 'right'];
+  console.log('[ConversationListScreen] Rendering with SafeAreaView edges:', edges);
+
   return (
     <GradientBackground>
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={styles.container} edges={edges}>
         <StatusBar style="light" />
         
         <View style={styles.header}>
           <View>
             <Text style={styles.headerTitle}>messages</Text>
             <Text style={styles.headerSubtitle}>
-              {conversations.length} conversations {user ? `· ${user.email ?? user.uid}` : '· Signed out'}
+              {user ? user.email ?? user.uid : 'Signed out'}
             </Text>
           </View>
           <TouchableOpacity
@@ -139,7 +144,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 24,
+    paddingLeft: 24,
     paddingTop: 20,
     paddingBottom: 24,
   },
@@ -160,7 +165,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 10,
-    paddingHorizontal: 16,
+    paddingRight: 16,
     borderRadius: 20,
     backgroundColor: Colors.dark.glassLight,
     borderWidth: 1,

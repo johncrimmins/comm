@@ -51,18 +51,14 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <ThemeProvider value={DarkTheme}>
-        <Stack>
-          {!user && <Stack.Screen name="(auth)" options={{ headerShown: false }} />}
-          {user && (
-            <>
-              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-              <Stack.Screen name="chat/[id]" options={{ headerShown: false }} />
-              <Stack.Screen name="new-conversation" options={{ headerShown: false }} />
-            </>
-          )}
+        <StatusBar style="light" />
+        <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="(auth)" />
+          <Stack.Screen name="(tabs)" />
+          <Stack.Screen name="chat/[id]" />
+          <Stack.Screen name="new-conversation" />
           <Stack.Screen name="+not-found" />
         </Stack>
-        <StatusBar style="light" />
       </ThemeProvider>
     </SafeAreaProvider>
   );
