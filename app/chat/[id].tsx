@@ -2,13 +2,15 @@ import React, { useState, useRef, useEffect } from 'react';
 import {
   FlatList,
   AppState,
+  Keyboard,
+  TouchableWithoutFeedback,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { Message as MessageType } from '@/components/chat/Message';
 import { useMessages } from '@/hooks/useMessages';
-import { sendMessage, markRead } from '@/services/chat';
+import { sendMessage, markRead, updateConversationTitle } from '@/services/chat';
 import { updatePresence, setTyping, clearTyping } from '@/services/presence';
 import { sendAIMessage, isAIConversation } from '@/services/aiChat';
 import GradientBackground from '@/components/ui/GradientBackground';
@@ -16,6 +18,7 @@ import { useAuthUser } from '@/hooks/useAuth';
 import { useConversation } from '@/hooks/useConversation';
 import { usePresence } from '@/hooks/usePresence';
 import { useNotifications } from '@/hooks/useNotifications';
+import { useUsers } from '@/hooks/useUsers';
 import { ChatHeader } from '@/components/chat/ChatHeader';
 import { ChatInput } from '@/components/chat/ChatInput';
 import { ChatMessages } from '@/components/chat/ChatMessages';
@@ -42,6 +45,7 @@ export default function ChatScreen() {
   const messagesFromFirestore = useMessages(convId || '');
   const conversation = useConversation(convId);
   const presence = usePresence(convId, conversation?.participantIds || []);
+  const users = useUsers();
   
   // Detect if this is an AI conversation
   const isAI = conversation ? isAIConversation(conversation.participantIds) : false;
@@ -107,6 +111,15 @@ export default function ChatScreen() {
     }
   };
 
+  const handleTitleChange = async (newTitle: string) => {
+    if (!convId || !newTitle) return;
+    try {
+      await updateConversationTitle(convId, newTitle);
+    } catch (error) {
+      console.error('Failed to update conversation title:', error);
+    }
+  };
+
   const handleInputChange = (text: string) => {
     setInputText(text);
     
@@ -143,12 +156,34 @@ export default function ChatScreen() {
     };
   }, [uid]);
 
-  // Get conversation title
-  const conversationTitle = isAI
-    ? 'Chat with Comms (AI)'
-    : conversation?.title || (isGroupChat 
-      ? ((Array.isArray(groupName) ? groupName[0] : groupName) || 'group chat')
-      : (convId || 'chat'));
+  // Get conversation title - use Firestore title, or generate from participant names
+  const getConversationTitle = (): string => {
+    if (isAI) return 'Chat with Comms (AI)';
+    if (conversation?.title) return conversation.title;
+    
+    // Generate display name from participant names (same logic as conversation list)
+    const participantIds = conversation?.participantIds || [];
+    const usersMap: Record<string, string> = {};
+    users.forEach(user => {
+      usersMap[user.id] = user.name;
+    });
+    
+    const participantNames = participantIds
+      .filter((id: string) => id !== uid) // Exclude current user
+      .map((id: string) => usersMap[id] || 'user')
+      .slice(0, 3); // Limit to 3 names
+    
+    if (participantNames.length === 1) {
+      return participantNames[0];
+    } else if (participantNames.length === 2) {
+      return `${participantNames[0]} & ${participantNames[1]}`;
+    } else if (participantNames.length > 2) {
+      return `${participantNames[0]}, ${participantNames[1]} & ${participantNames.length - 2} more`;
+    }
+    return 'Chat';
+  };
+  
+  const conversationTitle = getConversationTitle();
 
   // Get presence subtitle
   const presenceSubtitle = presence.isTyping ? 'typing...' : presence.status;
@@ -162,13 +197,17 @@ export default function ChatScreen() {
           onBack={() => router.back()}
           title={conversationTitle}
           subtitle={presenceSubtitle}
+          editable={!isAI}
+          onTitleChange={handleTitleChange}
         />
 
-        <ChatMessages
-          messages={messages}
-          isGroupChat={isGroupChat}
-          flatListRef={flatListRef}
-        />
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <ChatMessages
+            messages={messages}
+            isGroupChat={isGroupChat}
+            flatListRef={flatListRef}
+          />
+        </TouchableWithoutFeedback>
 
         <ChatInput
           inputText={inputText}

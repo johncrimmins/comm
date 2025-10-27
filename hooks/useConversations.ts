@@ -64,19 +64,25 @@ export function useConversations(): ConversationPreviewUI[] {
         const participantIds = data.participantIds || [];
         const title = data.title;
 
-        // Generate display name from participant names
-        const participantNames = participantIds
-          .filter((id: string) => id !== userId) // Exclude current user
-          .map((id: string) => usersMap[id] || 'user')
-          .slice(0, 3); // Limit to 3 names for display
+        // Use stored title if available, otherwise generate from participant names
+        let displayName = title;
         
-        let displayName = 'conversation';
-        if (participantNames.length === 1) {
-          displayName = participantNames[0];
-        } else if (participantNames.length === 2) {
-          displayName = `${participantNames[0]} & ${participantNames[1]}`;
-        } else if (participantNames.length > 2) {
-          displayName = `${participantNames[0]}, ${participantNames[1]} & ${participantNames.length - 2} more`;
+        if (!displayName) {
+          // Generate display name from participant names
+          const participantNames = participantIds
+            .filter((id: string) => id !== userId) // Exclude current user
+            .map((id: string) => usersMap[id] || 'user')
+            .slice(0, 3); // Limit to 3 names for display
+          
+          if (participantNames.length === 1) {
+            displayName = participantNames[0];
+          } else if (participantNames.length === 2) {
+            displayName = `${participantNames[0]} & ${participantNames[1]}`;
+          } else if (participantNames.length > 2) {
+            displayName = `${participantNames[0]}, ${participantNames[1]} & ${participantNames.length - 2} more`;
+          } else {
+            displayName = 'conversation';
+          }
         }
 
         // For MVP, we'll fetch last message synchronously

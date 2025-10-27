@@ -26,10 +26,7 @@ export const chatInputStyles = StyleSheet.create({
     borderRadius: 24, // Changed from 16 to match spec
     overflow: 'visible',
     // Floating effect shadows
-    shadowColor: '#000',
-    shadowOpacity: 0.25,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 4 },
+    boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.25)', // Modern shadow syntax
     elevation: 10,
   },
   inputWrapper: {
@@ -79,10 +76,7 @@ export const chatInputStyles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 0,
-    shadowColor: Colors.dark.glow,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.6,
-    shadowRadius: 8,
+    boxShadow: '0px 4px 8px rgba(245, 166, 35, 0.6)', // Modern shadow syntax (amber glow)
     elevation: 8,
   },
   transformButtonFirst: {

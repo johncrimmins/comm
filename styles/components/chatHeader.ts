@@ -35,6 +35,8 @@ export const chatHeaderStyles = StyleSheet.create({
     fontWeight: '700', // Bold weight from spec
     color: Colors.dark.text,
     fontFamily: 'Inter_700Bold',
+    padding: 0, // Remove default TextInput padding
+    backgroundColor: 'transparent',
   },
   headerSubtitle: {
     fontSize: 13,

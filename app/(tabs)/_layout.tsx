@@ -17,7 +17,7 @@ export default function TabLayout() {
           navBarStyles.tabBar,
           {
             marginHorizontal: 16,
-            marginBottom: Platform.OS === 'web' ? 8 : insets.bottom + 8,
+            marginBottom: Platform.OS === 'web' ? 16 : insets.bottom + 24, // Increased for better floating effect
             width: 'auto', // Prevent overflow
           }
         ],
@@ -27,8 +27,8 @@ export default function TabLayout() {
         tabBarLabelStyle: navBarStyles.tabBarLabel,
         tabBarIconStyle: navBarStyles.tabBarIcon,
         tabBarBackground: Platform.OS === 'web' 
-          ? () => <View style={{ flex: 1, backgroundColor: '#0A0A0A', borderRadius: 32 }} />
-          : () => <BlurView intensity={95} tint="dark" style={{ flex: 1, borderRadius: 32 }} />,
+          ? () => <View style={{ flex: 1, backgroundColor: '#0A0A0A', borderRadius: 36 }} />
+          : () => <BlurView intensity={100} tint="dark" style={{ flex: 1, borderRadius: 36 }} />,
       }}>
       <Tabs.Screen
         name="index"

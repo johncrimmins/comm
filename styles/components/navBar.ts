@@ -8,17 +8,14 @@ import { Colors } from '@/constants/Colors';
 
 export const navBarStyles = StyleSheet.create({
   tabBar: {
-    backgroundColor: '#0A0A0A', // Changed from #1F1F1F
+    backgroundColor: '#0A0A0A', // Dark background
     borderTopWidth: 0,
     height: 72,
     paddingTop: 10,
     paddingBottom: 8,
-    borderRadius: 32, // Changed from borderTopLeftRadius and borderTopRightRadius
-    elevation: 8, // Changed from 0
-    shadowOpacity: 0.25, // Changed from 0
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: -4 },
-    shadowColor: '#000',
+    borderRadius: 36, // Increased for more pill-like appearance
+    elevation: 12, // Increased for more pronounced floating effect
+    boxShadow: '0px -8px 16px rgba(0, 0, 0, 0.4)', // Modern shadow syntax
     // Remove absolute positioning - Expo Router handles this
   },
   tabBarItem: {

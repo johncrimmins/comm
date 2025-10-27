@@ -78,13 +78,41 @@ export function useNotifications(currentConversationId: string | null) {
                 ? messageData.createdAt.toMillis()
                 : Date.now();
               const senderId = messageData.senderId;
+              const deliveredTo = messageData.deliveredTo || [];
 
-              // Skip notifications for user's own messages
+              // TRIPLE-CHECK: Skip notifications for user's own messages
+              // Check 1: Compare senderId
               if (senderId === userId) {
+                console.log('[Notifications] Skipping own message (senderId check):', { senderId, userId });
                 return;
               }
 
+              // Check 2: If user is in deliveredTo array, they already have this message
+              if (deliveredTo.includes(userId)) {
+                console.log('[Notifications] Skipping own message (deliveredTo check):', { senderId, userId, deliveredTo });
+                return;
+              }
+
+              // Check 3: Ensure userId is defined and not empty
+              if (!userId || userId === '') {
+                console.log('[Notifications] Skipping message (no userId):', { senderId, userId });
+                return;
+              }
+
+              // Get last notification time for this conversation
+              const lastNotificationTime = lastNotificationTimeRef.current[conversationId] || 0;
+
+              // Skip if message is older than last notification time (already notified)
+              if (messageCreatedAt <= lastNotificationTime) {
+                console.log('[Notifications] Skipping old message:', { messageCreatedAt, lastNotificationTime });
+                return;
+              }
+
+              // Update last notification time
+              lastNotificationTimeRef.current[conversationId] = messageCreatedAt;
+
               // Show notification
+              console.log('[Notifications] Scheduling notification for:', { senderId, userId, text: messageData.text?.substring(0, 20) });
               Notifications.scheduleNotificationAsync({
                 content: {
                   title: 'New message',

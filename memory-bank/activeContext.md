@@ -6,6 +6,8 @@
 - Conversation list refinements: Borderless design with high contrast text
 - Floating navigation bar: Blur effects on iOS/Android, solid background on web
 - Platform-specific optimizations: BlurView checks for cross-platform compatibility
+- Modern styling: Updated deprecated shadow props to boxShadow for Expo SDK 54
+- Notification filtering: Triple-check to prevent users from receiving notifications for their own messages
 
 ## Recent Changes
 - Added get_decisions tool: Extract key decisions from conversations via n8n webhook at /get-decisions

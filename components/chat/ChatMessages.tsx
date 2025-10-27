@@ -1,5 +1,5 @@
 import React from 'react';
-import { FlatList, StyleSheet } from 'react-native';
+import { FlatList, StyleSheet, View } from 'react-native';
 import Message, { Message as MessageType } from '@/components/chat/Message';
 
 export interface ChatMessagesProps {
@@ -19,19 +19,24 @@ export function ChatMessages({ messages, isGroupChat, flatListRef }: ChatMessage
   };
 
   return (
-    <FlatList
-      ref={flatListRef}
-      data={messages}
-      keyExtractor={(item) => item.id}
-      renderItem={renderMessage}
-      contentContainerStyle={styles.messageList}
-      showsVerticalScrollIndicator={false}
-      inverted={false}
-    />
+    <View style={styles.container}>
+      <FlatList
+        ref={flatListRef}
+        data={messages}
+        keyExtractor={(item) => item.id}
+        renderItem={renderMessage}
+        contentContainerStyle={styles.messageList}
+        showsVerticalScrollIndicator={false}
+        inverted={false}
+      />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
   messageList: {
     paddingVertical: 16,
   },

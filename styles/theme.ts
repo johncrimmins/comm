@@ -56,10 +56,7 @@ export const theme = {
   },
   
   elevation: {
-    shadowColor: '#000',
-    shadowOpacity: 0.25,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 4 },
+    boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.25)', // Modern shadow syntax
     elevation: 10,
   },
   

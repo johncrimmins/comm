@@ -8,7 +8,6 @@ import {
 import { SafeAreaView, Edge } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Colors } from '@/constants/Colors';
 import GradientBackground from '@/components/ui/GradientBackground';
 import { useAuthUser } from '@/hooks/useAuth';
@@ -215,39 +214,37 @@ export default function ConversationListScreen() {
   } : null;
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <GradientBackground>
-        <SafeAreaView style={tabsStyles.container} edges={edges}>
-          <StatusBar style="light" />
-          
-          <View style={tabsStyles.header}>
-            <Text style={tabsStyles.headerTitle}>Comms</Text>
-            <TouchableOpacity
-              style={tabsStyles.newChatButton}
-              onPress={handleNewConversation}
-              activeOpacity={0.7}
-            >
-              <Text style={tabsStyles.newChatIcon}>✨</Text>
-            </TouchableOpacity>
+    <GradientBackground>
+      <SafeAreaView style={tabsStyles.container} edges={edges}>
+        <StatusBar style="light" />
+        
+        <View style={tabsStyles.header}>
+          <Text style={tabsStyles.headerTitle}>Comms</Text>
+          <TouchableOpacity
+            style={tabsStyles.newChatButton}
+            onPress={handleNewConversation}
+            activeOpacity={0.7}
+          >
+            <Text style={tabsStyles.newChatIcon}>✨</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Sticky AI conversation */}
+        {aiConversation && (
+          <View style={tabsStyles.aiSection}>
+            {renderConversation({ item: aiConversation as typeof conversations[0] })}
           </View>
+        )}
 
-          {/* Sticky AI conversation */}
-          {aiConversation && (
-            <View style={tabsStyles.aiSection}>
-              {renderConversation({ item: aiConversation as typeof conversations[0] })}
-            </View>
-          )}
-
-          <FlatList
-            data={conversations}
-            keyExtractor={(item) => item.id}
-            renderItem={renderConversation}
-            ListEmptyComponent={renderEmptyState}
-            contentContainerStyle={tabsStyles.listContent}
-            showsVerticalScrollIndicator={false}
-          />
-        </SafeAreaView>
-      </GradientBackground>
-    </GestureHandlerRootView>
+        <FlatList
+          data={conversations}
+          keyExtractor={(item) => item.id}
+          renderItem={renderConversation}
+          ListEmptyComponent={renderEmptyState}
+          contentContainerStyle={tabsStyles.listContent}
+          showsVerticalScrollIndicator={false}
+        />
+      </SafeAreaView>
+    </GradientBackground>
   );
 }

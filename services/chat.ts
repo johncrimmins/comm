@@ -30,6 +30,24 @@ export async function createOrFindConversation(participantIds: string[], title?:
   return { conversationId: conversationRef.id };
 }
 
+/**
+ * Update conversation title in Firestore
+ */
+export async function updateConversationTitle(
+  conversationId: string,
+  title: string
+): Promise<void> {
+  try {
+    const conversationRef = doc(db, 'conversations', conversationId);
+    await updateDoc(conversationRef, {
+      title: title.trim() || null,
+      updatedAt: serverTimestamp(),
+    });
+  } catch (error: any) {
+    throw error;
+  }
+}
+
 export async function sendMessage(
   conversationId: string,
   text: string,
