@@ -223,7 +223,7 @@ export default function ConversationListScreen() {
             onPress={handleNewConversation}
             activeOpacity={0.7}
           >
-            <Text style={tabsStyles.newChatIcon}>+</Text>
+            <Text style={tabsStyles.newChatIcon}>✨</Text>
           </TouchableOpacity>
         </View>
 
