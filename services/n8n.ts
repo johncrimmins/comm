@@ -27,7 +27,9 @@ export async function summarizeConversation(params: N8NToolParams): Promise<stri
     throw new Error('n8n webhook URL not configured. Please add EXPO_PUBLIC_N8N_WEBHOOK_URL to your environment variables.');
   }
 
-  const webhookUrl = `${N8N_WEBHOOK_URL}/summarize-conversation`;
+  // Remove trailing slash if present
+  const baseUrl = N8N_WEBHOOK_URL.endsWith('/') ? N8N_WEBHOOK_URL.slice(0, -1) : N8N_WEBHOOK_URL;
+  const webhookUrl = `${baseUrl}/summarize-conversation`;
   console.log('[n8n] Calling webhook:', webhookUrl);
   console.log('[n8n] Params:', params);
 

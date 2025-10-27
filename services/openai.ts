@@ -133,13 +133,13 @@ export async function chatWithAI(options: ChatOptions): Promise<string> {
         type: 'function',
         function: {
           name: 'summarize_conversation',
-          description: 'Summarize a conversation thread from its conversation ID',
+          description: 'Summarize a conversation thread. Use the current conversation ID if user asks to summarize their current conversation.',
           parameters: {
             type: 'object',
             properties: {
               conversationId: {
                 type: 'string',
-                description: 'The ID of the conversation to summarize'
+                description: 'The ID of the conversation to summarize. Use "' + options.currentConversationId + '" for the current conversation.'
               }
             },
             required: ['conversationId']
