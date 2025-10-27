@@ -41,7 +41,7 @@ export function useMessages(conversationId: string) {
       // Add AI assistant as a special user
       usersMap['ai-assistant'] = {
         name: 'Comms (AI)',
-        avatarColor: '#C084FC'
+        avatarColor: '#000000'
       };
       setUsers(usersMap);
     });
