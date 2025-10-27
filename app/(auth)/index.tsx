@@ -40,14 +40,14 @@ export default function AuthScreen() {
     <GradientBackground>
       <StatusBar style="light" />
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={authStyles.container}
+        enabled={Platform.OS !== 'web'}
       >
         <ScrollView
           contentContainerStyle={authStyles.scrollContent}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
-          scrollEnabled={false}
         >
           <View style={authStyles.header}>
             <Text style={authStyles.title}>Comm</Text>
