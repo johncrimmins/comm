@@ -49,7 +49,18 @@ export const theme = {
     sm: 8,
     md: 12,
     lg: 16,
+    message: 20, // Message bubbles
+    input: 24, // Input bars
+    navBar: 32, // Navigation bar
     full: 9999,
+  },
+  
+  elevation: {
+    shadowColor: '#000',
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 10,
   },
   
   avatar: {

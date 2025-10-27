@@ -1,6 +1,6 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { Colors } from '@/constants/Colors';
+import { View, Text } from 'react-native';
+import { messageStyles } from '@/styles/components/message';
 
 export type Message = {
   id: string;
@@ -30,41 +30,46 @@ export default function Message({ message }: MessageProps) {
   return (
     <View
       style={[
-        styles.container,
-        message.isCurrentUser ? styles.currentUserContainer : styles.otherUserContainer,
+        messageStyles.container,
+        message.isCurrentUser ? messageStyles.currentUserContainer : messageStyles.otherUserContainer,
       ]}
     >
       {!message.isCurrentUser && message.senderName && (
-        <Text style={styles.senderName}>{message.senderName}</Text>
+        <Text style={messageStyles.senderName}>{message.senderName}</Text>
       )}
       
-      <View style={styles.contentRow}>
+      <View style={messageStyles.contentRow}>
         {!message.isCurrentUser && message.senderName && (
           <View style={[
-            styles.avatar,
+            messageStyles.avatar,
             { backgroundColor: message.senderAvatarColor || '#7C3AED' }
           ]}>
-            <Text style={styles.avatarText}>{getInitials(message.senderName)}</Text>
+            <Text style={messageStyles.avatarText}>{getInitials(message.senderName)}</Text>
           </View>
         )}
         
         <View style={[
-          styles.bubbleWrapper,
-          message.isCurrentUser && styles.currentUserBubble,
+          messageStyles.bubbleWrapper,
+          message.isCurrentUser && messageStyles.currentUserBubble,
         ]}>
           <View
             style={[
-              styles.bubble,
+              messageStyles.bubble,
               message.isCurrentUser
-                ? styles.currentUserBubbleContent
-                : styles.otherUserBubbleContent,
+                ? messageStyles.currentUserBubbleContent
+                : messageStyles.otherUserBubbleContent,
             ]}
           >
-            <Text style={styles.messageText}>{message.text}</Text>
+            <Text style={[
+              messageStyles.messageText,
+              message.isCurrentUser && messageStyles.currentUserMessageText
+            ]}>
+              {message.text}
+            </Text>
             <Text
               style={[
-                styles.timestamp,
-                message.isCurrentUser && styles.currentUserTimestamp,
+                messageStyles.timestamp,
+                message.isCurrentUser && messageStyles.currentUserTimestamp,
               ]}
             >
               {message.timestamp}
@@ -75,10 +80,10 @@ export default function Message({ message }: MessageProps) {
 
         {message.isCurrentUser && message.senderName && (
           <View style={[
-            styles.avatar,
+            messageStyles.avatar,
             { backgroundColor: message.senderAvatarColor || '#7C3AED' }
           ]}>
-            <Text style={styles.avatarText}>{getInitials(message.senderName)}</Text>
+            <Text style={messageStyles.avatarText}>{getInitials(message.senderName)}</Text>
           </View>
         )}
       </View>
@@ -86,76 +91,3 @@ export default function Message({ message }: MessageProps) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    marginVertical: 4,
-    paddingHorizontal: 16,
-  },
-  currentUserContainer: {
-    alignItems: 'flex-end',
-  },
-  otherUserContainer: {
-    alignItems: 'flex-start',
-  },
-  senderName: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: Colors.dark.textSecondary,
-    marginBottom: 4,
-    marginLeft: 2,
-    fontFamily: 'Inter_600SemiBold',
-  },
-  contentRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-  },
-  avatar: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginHorizontal: 8,
-  },
-  avatarText: {
-    color: '#FFFFFF',
-    fontSize: 12,
-    fontWeight: '700',
-    fontFamily: 'Inter_700Bold',
-  },
-  bubbleWrapper: {
-    maxWidth: '75%',
-    borderRadius: 16,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: Colors.dark.border,
-  },
-  currentUserBubble: {
-    borderColor: 'rgba(245, 158, 11, 0.35)',
-  },
-  bubble: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-  },
-  currentUserBubbleContent: {
-    backgroundColor: 'rgba(245, 158, 11, 0.14)',
-  },
-  otherUserBubbleContent: {
-    backgroundColor: Colors.dark.secondary,
-  },
-  messageText: {
-    fontSize: 15,
-    color: Colors.dark.text,
-    fontFamily: 'Inter_400Regular',
-    lineHeight: 21,
-    marginBottom: 4,
-  },
-  timestamp: {
-    fontSize: 11,
-    color: Colors.dark.textSecondary,
-    fontFamily: 'Inter_400Regular',
-  },
-  currentUserTimestamp: {
-    color: '#A1A1AA',
-  },
-});

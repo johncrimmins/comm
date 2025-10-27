@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, Alert } from 'react-native';
 import { LongPressGestureHandler, State } from 'react-native-gesture-handler';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
+import { BlurView } from 'expo-blur';
 import { Colors } from '@/constants/Colors';
-import GlassCard from '@/components/ui/GlassCard';
 import { transformText } from '@/services/openai';
 import { transformations } from '@/services/messageTransformations';
 import { chatInputStyles } from '@/styles/components/chatInput';
@@ -108,38 +108,73 @@ export function ChatInput({ inputText, onChangeText, onSend, disabled = false }:
       )}
 
       <View style={chatInputStyles.inputContainer}>
-        <GlassCard style={chatInputStyles.inputCard} intensity={30}>
-          <View style={chatInputStyles.inputWrapper}>
-            <TextInput
-              style={chatInputStyles.input}
-              placeholder="message..."
-              placeholderTextColor={Colors.dark.textSecondary}
-              value={inputText}
-              onChangeText={onChangeText}
-              multiline
-              maxLength={1000}
-              autoFocus
-            />
-            <View style={chatInputStyles.sendButtonContainer}>
-              <LongPressGestureHandler
-                onHandlerStateChange={handleLongPress}
-                minDurationMs={400}
-              >
-                <TouchableOpacity
-                  style={[
-                    chatInputStyles.sendButton,
-                    (disabled || !inputText.trim()) && chatInputStyles.sendButtonDisabled,
-                  ]}
-                  onPress={handleSendPress}
-                  disabled={disabled || !inputText.trim()}
-                  activeOpacity={0.8}
+        {Platform.OS === 'web' ? (
+          <View style={[chatInputStyles.inputCard, { backgroundColor: Colors.dark.secondary }]}>
+            <View style={chatInputStyles.inputWrapper}>
+              <TextInput
+                style={chatInputStyles.input}
+                placeholder="message..."
+                placeholderTextColor={Colors.dark.textSecondary}
+                value={inputText}
+                onChangeText={onChangeText}
+                multiline
+                maxLength={1000}
+                autoFocus
+              />
+              <View style={chatInputStyles.sendButtonContainer}>
+                <LongPressGestureHandler
+                  onHandlerStateChange={handleLongPress}
+                  minDurationMs={400}
                 >
-                  <Text style={chatInputStyles.sendButtonText}>→</Text>
-                </TouchableOpacity>
-              </LongPressGestureHandler>
+                  <TouchableOpacity
+                    style={[
+                      chatInputStyles.sendButton,
+                      (disabled || !inputText.trim()) && chatInputStyles.sendButtonDisabled,
+                    ]}
+                    onPress={handleSendPress}
+                    disabled={disabled || !inputText.trim()}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={chatInputStyles.sendButtonText}>→</Text>
+                  </TouchableOpacity>
+                </LongPressGestureHandler>
+              </View>
             </View>
           </View>
-        </GlassCard>
+        ) : (
+          <BlurView intensity={80} tint="dark" style={chatInputStyles.inputCard}>
+            <View style={chatInputStyles.inputWrapper}>
+              <TextInput
+                style={chatInputStyles.input}
+                placeholder="message..."
+                placeholderTextColor={Colors.dark.textSecondary}
+                value={inputText}
+                onChangeText={onChangeText}
+                multiline
+                maxLength={1000}
+                autoFocus
+              />
+              <View style={chatInputStyles.sendButtonContainer}>
+                <LongPressGestureHandler
+                  onHandlerStateChange={handleLongPress}
+                  minDurationMs={400}
+                >
+                  <TouchableOpacity
+                    style={[
+                      chatInputStyles.sendButton,
+                      (disabled || !inputText.trim()) && chatInputStyles.sendButtonDisabled,
+                    ]}
+                    onPress={handleSendPress}
+                    disabled={disabled || !inputText.trim()}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={chatInputStyles.sendButtonText}>→</Text>
+                  </TouchableOpacity>
+                </LongPressGestureHandler>
+              </View>
+            </View>
+          </BlurView>
+        )}
       </View>
 
       {/* Transformation Menu Popover - positioned absolutely within wrapper */}

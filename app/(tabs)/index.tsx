@@ -11,7 +11,6 @@ import { useRouter } from 'expo-router';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Colors } from '@/constants/Colors';
 import GradientBackground from '@/components/ui/GradientBackground';
-import GlassCard from '@/components/ui/GlassCard';
 import { useAuthUser } from '@/hooks/useAuth';
 import { useConversations } from '@/hooks/useConversations';
 import { markConversationsDelivered } from '@/services/chat';
@@ -77,6 +76,7 @@ export default function ConversationListScreen() {
       lastMessage: p.lastMessage ?? '',
       timestamp: p.timestamp ?? '',
       avatarColor: p.avatarColor ?? '#7C3AED',
+      unreadCount: p.unreadCount,
     })),
   [previews]);
 
@@ -124,7 +124,7 @@ export default function ConversationListScreen() {
           activeOpacity={0.9}
           style={tabsStyles.conversationWrapper}
         >
-          <GlassCard intensity={20} style={tabsStyles.conversationCard}>
+          <View style={tabsStyles.conversationCard}>
             <View style={tabsStyles.conversationContent}>
               <View style={[tabsStyles.avatar, { backgroundColor: item.avatarColor }]}>
                 <Text style={tabsStyles.avatarText}>
@@ -140,13 +140,21 @@ export default function ConversationListScreen() {
                   <Text style={tabsStyles.timestamp}>{item.timestamp}</Text>
                 </View>
                 <View style={tabsStyles.messageRow}>
-                  <Text style={tabsStyles.lastMessage} numberOfLines={1}>
+                  <Text style={[
+                    tabsStyles.lastMessage,
+                    item.unreadCount ? tabsStyles.lastMessageUnread : undefined
+                  ]} numberOfLines={1}>
                     {item.lastMessage}
                   </Text>
+                  {item.unreadCount && (
+                    <View style={tabsStyles.unreadBadge}>
+                      <Text style={tabsStyles.unreadBadgeText}>{item.unreadCount}</Text>
+                    </View>
+                  )}
                 </View>
               </View>
             </View>
-          </GlassCard>
+          </View>
         </TouchableOpacity>
       );
     }
@@ -158,7 +166,7 @@ export default function ConversationListScreen() {
           activeOpacity={0.9}
           style={tabsStyles.conversationWrapper}
         >
-          <GlassCard intensity={20} style={tabsStyles.conversationCard}>
+          <View style={tabsStyles.conversationCard}>
             <View style={tabsStyles.conversationContent}>
               <View style={[tabsStyles.avatar, { backgroundColor: item.avatarColor }]}>
                 <Text style={tabsStyles.avatarText}>
@@ -174,13 +182,21 @@ export default function ConversationListScreen() {
                   <Text style={tabsStyles.timestamp}>{item.timestamp}</Text>
                 </View>
                 <View style={tabsStyles.messageRow}>
-                  <Text style={tabsStyles.lastMessage} numberOfLines={1}>
+                  <Text style={[
+                    tabsStyles.lastMessage,
+                    item.unreadCount ? tabsStyles.lastMessageUnread : undefined
+                  ]} numberOfLines={1}>
                     {item.lastMessage}
                   </Text>
+                  {item.unreadCount && (
+                    <View style={tabsStyles.unreadBadge}>
+                      <Text style={tabsStyles.unreadBadgeText}>{item.unreadCount}</Text>
+                    </View>
+                  )}
                 </View>
               </View>
             </View>
-          </GlassCard>
+          </View>
         </TouchableOpacity>
       </SwipeableRow>
     );
@@ -195,6 +211,7 @@ export default function ConversationListScreen() {
     lastMessage: '',
     timestamp: '',
     avatarColor: '#C084FC',
+    unreadCount: undefined,
   } : null;
 
   return (
@@ -217,7 +234,7 @@ export default function ConversationListScreen() {
           {/* Sticky AI conversation */}
           {aiConversation && (
             <View style={tabsStyles.aiSection}>
-              {renderConversation({ item: aiConversation })}
+              {renderConversation({ item: aiConversation as typeof conversations[0] })}
             </View>
           )}
 

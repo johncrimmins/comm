@@ -25,12 +25,14 @@
 
 ## UI Composition
 - Theming via centralized `styles/theme.ts` with design tokens (typography, spacing, colors).
-- Visual primitives: `ui/GlassCard` (solid surface), `ui/GradientBackground` (flat black), `ui/GradientButton` (flat amber).
-- Noir + Amber theme: Deep black (#0B0B0B) backgrounds with amber (#F59E0B) accents.
-- Flat design: No gradients or blur effects for minimal, professional aesthetic.
+- Visual primitives: `ui/GradientBackground` (pure black), `ui/GradientButton` (flat amber).
+- TalkTime design: Pure black (#000000) backgrounds with warm amber (#F5A623) accents.
+- High contrast text: Pure white (#FFFFFF) for readability, gray (#AAAAAA) for read messages.
+- Borderless design: No card backgrounds or borders, seamless integration with black background.
 - Safe area handling: Use `SafeAreaView` from `react-native-safe-area-context` with edges prop.
-- Platform checks: Conditional rendering for web vs native (e.g., KeyboardAvoidingView).
+- Platform checks: Conditional rendering for web vs native (BlurView, KeyboardAvoidingView).
 - Centralized styling: `styles/screens/` for screen styles, `styles/components/` for component styles.
+- Blur effects: Use expo-blur's BlurView for iOS/Android only, provide solid background fallback for web.
 
 ## Safe Area Patterns
 - Root: `<SafeAreaProvider>` wraps entire app in `app/_layout.tsx`.
@@ -102,6 +104,9 @@
 - Safe area edges: Configure per screen based on layout needs
 - Platform checks: Use `Platform.OS === 'ios' || Platform.OS === 'android'` for native-only features
 - Web rendering: Avoid components that interfere with browser behavior (like KeyboardAvoidingView)
+- BlurView: expo-blur only works on iOS/Android - always check `Platform.OS === 'web'` before using
+- Tab bar positioning: Expo Router handles positioning automatically - avoid absolute positioning
+- Solid background fallback: Provide View with solid color when BlurView is not supported (web)
 
 ## Motion & Gestures
 - `react-native-reanimated` v4 and `react-native-gesture-handler` v2 used for interaction and transitions.

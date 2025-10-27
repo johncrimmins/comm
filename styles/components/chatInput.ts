@@ -23,8 +23,14 @@ export const chatInputStyles = StyleSheet.create({
     paddingVertical: 12,
   },
   inputCard: {
-    borderRadius: 16,
+    borderRadius: 24, // Changed from 16 to match spec
     overflow: 'visible',
+    // Floating effect shadows
+    shadowColor: '#000',
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 10,
   },
   inputWrapper: {
     flexDirection: 'row',

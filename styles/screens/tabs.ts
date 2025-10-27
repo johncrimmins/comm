@@ -49,20 +49,22 @@ export const tabsStyles = StyleSheet.create({
     paddingBottom: 12,
   },
   conversationWrapper: {
-    marginBottom: 4,
+    marginBottom: 0, // No spacing between items - seamless look
   },
   conversationCard: {
-    overflow: 'hidden',
+    backgroundColor: 'transparent', // Remove card background
+    borderWidth: 0, // Remove borders
   },
   conversationContent: {
     flexDirection: 'row',
-    padding: 14,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
     alignItems: 'center',
   },
   avatar: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
+    width: 52, // Larger to match TalkTime proportions
+    height: 52, // Larger to match TalkTime proportions
+    borderRadius: 26, // Larger to match TalkTime proportions
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
@@ -79,32 +81,52 @@ export const tabsStyles = StyleSheet.create({
   conversationHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 3,
+    alignItems: 'flex-start', // Align to top
+    marginBottom: 2,
   },
   displayName: {
     fontSize: 16,
-    fontWeight: '600',
-    color: Colors.dark.text,
+    fontWeight: '600', // Bold for display names
+    color: '#FFFFFF', // Pure white for high contrast
     fontFamily: 'Inter_600SemiBold',
     flex: 1,
   },
   timestamp: {
-    fontSize: 12,
-    color: Colors.dark.textSecondary,
+    fontSize: 11,
+    color: '#777777', // Gray for timestamps
     fontFamily: 'Inter_400Regular',
-    marginLeft: 8,
+    lineHeight: 13,
   },
   messageRow: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'center', // Center align message and badge horizontally
+    marginTop: 2,
   },
   lastMessage: {
     fontSize: 14,
-    color: Colors.dark.textSecondary,
+    color: '#AAAAAA', // Gray for read messages
     fontFamily: 'Inter_400Regular',
     flex: 1,
     lineHeight: 20,
+  },
+  lastMessageUnread: {
+    color: '#FFFFFF', // High contrast white for unread
+  },
+  unreadBadge: {
+    backgroundColor: Colors.dark.accentStart, // Amber #F5A623
+    borderRadius: 10,
+    minWidth: 20,
+    height: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 6,
+    marginLeft: 6,
+  },
+  unreadBadgeText: {
+    color: '#000000',
+    fontSize: 11,
+    fontWeight: '700',
+    fontFamily: 'Inter_700Bold',
   },
   emptyContainer: {
     flex: 1,

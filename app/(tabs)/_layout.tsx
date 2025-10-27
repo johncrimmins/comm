@@ -1,19 +1,34 @@
 import { Tabs } from 'expo-router';
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, Platform } from 'react-native';
+import { BlurView } from 'expo-blur';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors } from '@/constants/Colors';
+import { navBarStyles } from '@/styles/components/navBar';
 
 export default function TabLayout() {
+  const insets = useSafeAreaInsets();
+  
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarStyle: styles.tabBar,
-        tabBarItemStyle: styles.tabBarItem,
-        tabBarActiveTintColor: Colors.dark.text,
+        tabBarStyle: [
+          navBarStyles.tabBar,
+          {
+            marginHorizontal: 16,
+            marginBottom: Platform.OS === 'web' ? 8 : insets.bottom + 8,
+            width: 'auto', // Prevent overflow
+          }
+        ],
+        tabBarItemStyle: navBarStyles.tabBarItem,
+        tabBarActiveTintColor: Colors.dark.accentStart, // Changed to amber
         tabBarInactiveTintColor: Colors.dark.textSecondary,
-        tabBarLabelStyle: styles.tabBarLabel,
-        tabBarIconStyle: styles.tabBarIcon,
+        tabBarLabelStyle: navBarStyles.tabBarLabel,
+        tabBarIconStyle: navBarStyles.tabBarIcon,
+        tabBarBackground: Platform.OS === 'web' 
+          ? () => <View style={{ flex: 1, backgroundColor: '#0A0A0A', borderRadius: 32 }} />
+          : () => <BlurView intensity={95} tint="dark" style={{ flex: 1, borderRadius: 32 }} />,
       }}>
       <Tabs.Screen
         name="index"
@@ -39,43 +54,8 @@ export default function TabLayout() {
 
 function TabIcon({ icon, color }: { icon: string; color: string }) {
   return (
-    <View style={[styles.iconContainer, { backgroundColor: color === Colors.dark.text ? '#1A1A1A' : 'transparent' }]}>
-      <Text style={styles.icon}>{icon}</Text>
+    <View style={[navBarStyles.iconContainer, { backgroundColor: color === Colors.dark.accentStart ? '#1A1A1A' : 'transparent' }]}>
+      <Text style={navBarStyles.icon}>{icon}</Text>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  tabBar: {
-    backgroundColor: '#1F1F1F',
-    borderTopWidth: 0,
-    height: 72,
-    paddingTop: 10,
-    paddingBottom: 8,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    elevation: 0,
-    shadowOpacity: 0,
-  },
-  tabBarItem: {
-    paddingTop: 6,
-  },
-  tabBarLabel: {
-    fontSize: 12,
-    fontFamily: 'Inter_400Regular',
-    marginTop: 4,
-  },
-  tabBarIcon: {
-    marginTop: 0,
-  },
-  iconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  icon: {
-    fontSize: 20,
-  },
-});

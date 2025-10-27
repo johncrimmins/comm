@@ -1,11 +1,11 @@
 # Active Context
 
 ## Current Focus
-- Noir + Amber theme: Minimal, professional design with amber accents on black background
-- Centralized styling system: Approach 1 implementation for rapid style iteration
-- TalkTime-inspired navigation: Pill-shaped nav bar with floating icons
-- Swipe-to-delete functionality: Gesture-based conversation deletion
-- Designer-level refinements: Clean, precise typography and spacing
+- TalkTime UI design implementation: Pure black backgrounds with white text and amber accents
+- Unread message badges: Amber badges with black text showing unread counts
+- Conversation list refinements: Borderless design with high contrast text
+- Floating navigation bar: Blur effects on iOS/Android, solid background on web
+- Platform-specific optimizations: BlurView checks for cross-platform compatibility
 
 ## Recent Changes
 - Added get_decisions tool: Extract key decisions from conversations via n8n webhook at /get-decisions
@@ -113,8 +113,14 @@
 - CORS handling: Removed Content-Type header to avoid preflight OPTIONS requests (n8n doesn't support OPTIONS)
 - Environment variables: EXPO_PUBLIC_N8N_WEBHOOK_URL for n8n webhook base URL
 - Centralized styling: Implemented Approach 1 with theme.ts, styles/screens/, styles/components/ for rapid iteration
-- Noir + Amber theme: Deep black backgrounds (#0B0B0B) with amber accents (#F59E0B), flat design (no gradients/blur)
-- Designer refinements: Removed card borders, cleaner typography, refined spacing (20px horizontal, 8px gaps)
+- TalkTime UI design: Pure black (#000000) backgrounds with warm amber (#F5A623) accents, white (#FFFFFF) text for high contrast
+- Conversation list: Borderless design, removed GlassCard wrappers, seamless black background integration
+- Unread badges: Small amber badges (20px height, 11px font) positioned in message row, aligned with preview text
+- Text color strategy: Pure white for display names and unread messages, gray (#AAAAAA) for read message previews
+- Timestamp positioning: Small gray text (11px) right-aligned above message preview
+- Avatar sizes: 52px diameter in conversation list, 32px in chat messages
 - Swipe-to-delete: Gesture-based conversation deletion with red delete button, AI conversation protected
-- TalkTime nav bar: Pill-shaped with rounded top corners (20px), floating icons, 72px height, dark active state
+- Floating nav bar: Blur effects (iOS/Android), solid background fallback (web), rounded 32px, proper safe area handling
+- Platform checks: BlurView only on iOS/Android, web uses solid background, Platform.OS checks required
+- Expo Router positioning: Let Expo Router handle tab bar positioning automatically, avoid absolute positioning
 - Profile screen: New tab for user profile with email display and avatar

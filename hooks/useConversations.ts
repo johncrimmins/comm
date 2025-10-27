@@ -10,8 +10,9 @@ export type ConversationPreviewUI = {
   timestamp: string | null;
   avatarColor?: string;
   title?: string;
+  unreadCount?: number;
 };
-
+ 
 function formatTime(ms: number | null | undefined): string | null {
   if (!ms) return null;
   const d = new Date(ms);
@@ -82,6 +83,7 @@ export function useConversations(): ConversationPreviewUI[] {
         // This keeps it simple - we can optimize later with caching
         let lastMessageText: string | null = null;
         let lastMessageAt: number | null = null;
+        let unreadCount = 0;
 
         try {
           const messagesRef = collection(db, 'conversations', conversationId, 'messages');
@@ -98,6 +100,16 @@ export function useConversations(): ConversationPreviewUI[] {
               ? lastMsg.createdAt.toMillis() 
               : null;
           }
+
+          // Count unread messages (messages from others not in readBy array)
+          const allMessagesSnapshot = await getDocs(query(messagesRef, orderBy('createdAt', 'asc')));
+          unreadCount = allMessagesSnapshot.docs.filter(doc => {
+            const data = doc.data();
+            const readBy = data.readBy || [];
+            const senderId = data.senderId;
+            // Count if message is from someone else and user hasn't read it
+            return senderId !== userId && !readBy.includes(userId);
+          }).length;
         } catch (e) {
           // Silent failure for message fetching
         }
@@ -109,6 +121,7 @@ export function useConversations(): ConversationPreviewUI[] {
           timestamp: formatTime(lastMessageAt),
           lastMessageAt: lastMessageAt, // Store raw timestamp for sorting
           title: title,
+          unreadCount: unreadCount > 0 ? unreadCount : undefined,
         };
         
         return conversation;

@@ -1,6 +1,7 @@
 // Noir + Amber Theme
-const amberAccent = '#F59E0B';
+const amberAccent = '#F5A623'; // Warm amber from design spec
 const amberAccentDark = '#D97706';
+const amberDarkText = '#4A3A00'; // Dark amber for outgoing message timestamps
 
 export const Colors = {
   light: {
@@ -22,11 +23,11 @@ export const Colors = {
     glow: 'rgba(245, 158, 11, 0.22)',
   },
   dark: {
-    text: '#F5F5F5',
+    text: '#FFFFFF', // Pure white for primary text
     textSecondary: '#A1A1AA',
-    background: '#0B0B0B',
-    backgroundGradientStart: '#0B0B0B',
-    backgroundGradientEnd: '#0B0B0B',
+    background: '#000000', // Pure black from design spec
+    backgroundGradientStart: '#000000',
+    backgroundGradientEnd: '#000000',
     tint: amberAccent,
     icon: '#9CA3AF',
     tabIconDefault: '#6B7280',
@@ -38,5 +39,9 @@ export const Colors = {
     accentStart: amberAccent,
     accentEnd: amberAccentDark,
     glow: 'rgba(245, 158, 11, 0.22)',
+    // Timestamp colors
+    timestampIncoming: '#666666', // Gray for incoming message timestamps
+    timestampOutgoing: amberDarkText, // Dark amber for outgoing message timestamps
+    timestampGray: '#999999', // Generic gray timestamps
   },
 };

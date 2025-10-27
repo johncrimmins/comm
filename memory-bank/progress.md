@@ -44,10 +44,12 @@
 - Type safety: TypeScript interfaces defined in types/api.ts for all API responses
 - Utility functions: Pure functions extracted for better testability and reusability
 - Centralized styling system: Theme.ts + styles/screens/ + styles/components/ for rapid iteration
-- Noir + Amber theme: Professional minimal design with amber accents on black
-- Designer-level refinements: Clean typography, precise spacing, borderless cards
+- TalkTime UI design: Pure black backgrounds with warm amber accents and high contrast white text
+- Conversation list refinements: Borderless design, larger avatars (52px), unread badges with timestamps
+- Unread message system: Amber badges showing count, calculated from Firestore readBy arrays
+- Platform-specific blur effects: BlurView for iOS/Android, solid backgrounds for web
+- Floating navigation bar: Proper rounded corners (32px), blur effects, safe area handling
 - Swipe-to-delete: Gesture-based conversation deletion with smooth animations
-- TalkTime nav bar: Pill-shaped navigation with floating icons and active states
 - Profile screen: User profile tab with email and avatar display
 
 ## What's Left To Build
