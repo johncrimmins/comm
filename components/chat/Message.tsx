@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text } from 'react-native';
+import { Image } from 'expo-image';
 import { messageStyles } from '@/styles/components/message';
 
 export type Message = {
@@ -11,6 +12,7 @@ export type Message = {
   senderAvatarColor?: string;
   isCurrentUser: boolean;
   status?: 'sent' | 'delivered' | 'read' | null;
+  imageUrl?: string;
 };
 
 type MessageProps = {
@@ -60,12 +62,23 @@ export default function Message({ message }: MessageProps) {
                 : messageStyles.otherUserBubbleContent,
             ]}
           >
-            <Text style={[
-              messageStyles.messageText,
-              message.isCurrentUser && messageStyles.currentUserMessageText
-            ]}>
-              {message.text}
-            </Text>
+            {message.imageUrl && (
+              <View style={messageStyles.imageContainer}>
+                <Image
+                  source={{ uri: message.imageUrl }}
+                  style={messageStyles.image}
+                  contentFit="cover"
+                />
+              </View>
+            )}
+            {message.text && (
+              <Text style={[
+                messageStyles.messageText,
+                message.isCurrentUser && messageStyles.currentUserMessageText
+              ]}>
+                {message.text}
+              </Text>
+            )}
             <Text
               style={[
                 messageStyles.timestamp,

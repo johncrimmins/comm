@@ -1,4 +1,5 @@
 import { initializeApp, getApps, FirebaseApp } from 'firebase/app';
+import { getStorage } from 'firebase/storage';
 
 const getEnv = (key: string): string => {
   const value = process.env[key as keyof NodeJS.ProcessEnv];
@@ -18,5 +19,6 @@ const firebaseConfig = {
 };
 
 export const app: FirebaseApp = getApps().length ? (getApps()[0] as FirebaseApp) : initializeApp(firebaseConfig);
+export const storage = getStorage(app);
 
 

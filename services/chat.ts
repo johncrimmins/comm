@@ -51,7 +51,8 @@ export async function updateConversationTitle(
 export async function sendMessage(
   conversationId: string,
   text: string,
-  senderId: string
+  senderId: string,
+  imageUrl?: string
 ): Promise<{ messageId: string; shouldNavigate: boolean }> {
   try {
     // Check if this is the first message
@@ -61,13 +62,20 @@ export async function sendMessage(
 
     // Create message document in Firestore
     const messageRef = doc(messagesRef);
-    await setDoc(messageRef, {
+    const messageData: any = {
       text,
       senderId,
       createdAt: serverTimestamp(),
       deliveredTo: [senderId], // Sender has "received" their own message immediately
       readBy: [],
-    });
+    };
+    
+    // Add imageUrl if provided
+    if (imageUrl) {
+      messageData.imageUrl = imageUrl;
+    }
+    
+    await setDoc(messageRef, messageData);
 
     // Update conversation's updatedAt timestamp
     const conversationRef = doc(db, 'conversations', conversationId);

@@ -80,5 +80,14 @@ export const messageStyles = StyleSheet.create({
   currentUserTimestamp: {
     color: Colors.dark.timestampOutgoing, // #4A3A00 dark amber
   },
+  image: {
+    width: 200,
+    height: 200,
+    borderRadius: 12,
+    marginBottom: 4,
+  },
+  imageContainer: {
+    overflow: 'hidden',
+  },
 });
 

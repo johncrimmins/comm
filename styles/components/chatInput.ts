@@ -34,6 +34,17 @@ export const chatInputStyles = StyleSheet.create({
     alignItems: 'flex-end',
     padding: 12,
   },
+  attachButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 8,
+  },
+  attachButtonText: {
+    fontSize: 20,
+  },
   input: {
     flex: 1,
     fontSize: 15,
@@ -92,6 +103,33 @@ export const chatInputStyles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600',
     fontFamily: 'Inter_600SemiBold',
+  },
+  imagePreviewContainer: {
+    marginHorizontal: 16,
+    marginBottom: 8,
+    borderRadius: 12,
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  imagePreview: {
+    width: '100%',
+    height: 200,
+  },
+  removeImageButton: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  removeImageButtonText: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: '600',
   },
 });
 

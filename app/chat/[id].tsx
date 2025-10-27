@@ -4,6 +4,7 @@ import {
   AppState,
   Keyboard,
   TouchableWithoutFeedback,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -11,6 +12,7 @@ import { StatusBar } from 'expo-status-bar';
 import { Message as MessageType } from '@/components/chat/Message';
 import { useMessages } from '@/hooks/useMessages';
 import { sendMessage, markRead, updateConversationTitle } from '@/services/chat';
+import { uploadImage } from '@/services/storage';
 import { updatePresence, setTyping, clearTyping } from '@/services/presence';
 import { sendAIMessage, isAIConversation } from '@/services/aiChat';
 import GradientBackground from '@/components/ui/GradientBackground';
@@ -38,6 +40,7 @@ export default function ChatScreen() {
 
   const [messages, setMessages] = useState<MessageType[]>([]);
   const [inputText, setInputText] = useState('');
+  const [selectedImageUri, setSelectedImageUri] = useState<string | null>(null);
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Replace mock messages with Firestore-driven list if id is provided
@@ -67,6 +70,7 @@ export default function ChatScreen() {
         senderAvatarColor: m.senderAvatarColor,
         isCurrentUser: !!uid && m.senderId === uid,
         status: (m.status as any) ?? null,
+        imageUrl: m.imageUrl,
       }))
     );
   }, [convId, uid, messagesFromFirestore]);
@@ -93,22 +97,39 @@ export default function ChatScreen() {
 
   const handleSend = async () => {
     if (!convId || !uid) return;
-    if (inputText.trim()) {
-      if (isAI) {
-        // Use AI service for AI conversations
-        await sendAIMessage(convId, inputText.trim(), uid);
-      } else {
-        // Use regular chat service for normal conversations
-        await sendMessage(convId, inputText.trim(), uid);
+    if (!inputText.trim() && !selectedImageUri) return;
+    
+    let imageUrl: string | undefined;
+    
+    // Upload image if selected
+    if (selectedImageUri) {
+      try {
+        // Create a temporary message ID for the upload
+        const tempMessageId = `temp_${Date.now()}`;
+        imageUrl = await uploadImage(selectedImageUri, convId, tempMessageId);
+      } catch (error) {
+        console.error('Failed to upload image:', error);
+        Alert.alert('Error', 'Failed to upload image. Please try again.');
+        return;
       }
-      setInputText('');
-      clearTyping(uid).catch(() => {});
-      if (typingTimeoutRef.current) {
-        clearTimeout(typingTimeoutRef.current);
-        typingTimeoutRef.current = null;
-      }
-      setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
     }
+    
+    if (isAI) {
+      // Use AI service for AI conversations
+      await sendAIMessage(convId, inputText.trim() || '', uid);
+    } else {
+      // Use regular chat service for normal conversations
+      await sendMessage(convId, inputText.trim() || '', uid, imageUrl);
+    }
+    
+    setInputText('');
+    setSelectedImageUri(null);
+    clearTyping(uid).catch(() => {});
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+      typingTimeoutRef.current = null;
+    }
+    setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
   };
 
   const handleTitleChange = async (newTitle: string) => {
@@ -213,6 +234,8 @@ export default function ChatScreen() {
           inputText={inputText}
           onChangeText={handleInputChange}
           onSend={handleSend}
+          onImageSelect={setSelectedImageUri}
+          selectedImageUri={selectedImageUri || undefined}
         />
       </SafeAreaView>
     </GradientBackground>

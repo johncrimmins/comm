@@ -3,6 +3,8 @@ import { View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform
 import { LongPressGestureHandler, State } from 'react-native-gesture-handler';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
 import { BlurView } from 'expo-blur';
+import * as ImagePicker from 'expo-image-picker';
+import { Image } from 'expo-image';
 import { Colors } from '@/constants/Colors';
 import { transformText } from '@/services/openai';
 import { transformations } from '@/services/messageTransformations';
@@ -12,13 +14,40 @@ export interface ChatInputProps {
   inputText: string;
   onChangeText: (text: string) => void;
   onSend: () => void;
+  onImageSelect?: (uri: string) => void;
+  selectedImageUri?: string;
   disabled?: boolean;
 }
 
-export function ChatInput({ inputText, onChangeText, onSend, disabled = false }: ChatInputProps) {
+export function ChatInput({ inputText, onChangeText, onSend, onImageSelect, selectedImageUri, disabled = false }: ChatInputProps) {
   const [showMenu, setShowMenu] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [hasLongPressed, setHasLongPressed] = useState(false);
+  
+  // Handle image picker
+  const handleImagePick = async () => {
+    try {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permission needed', 'We need access to your photos to send images.');
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets[0]) {
+        onImageSelect?.(result.assets[0].uri);
+      }
+    } catch (error) {
+      console.error('Error picking image:', error);
+      Alert.alert('Error', 'Failed to pick image');
+    }
+  };
   
   // Animated values for popover
   const popoverOpacity = useSharedValue(0);
@@ -107,10 +136,35 @@ export function ChatInput({ inputText, onChangeText, onSend, disabled = false }:
         />
       )}
 
+      {/* Image Preview */}
+      {selectedImageUri && (
+        <View style={chatInputStyles.imagePreviewContainer}>
+          <Image
+            source={{ uri: selectedImageUri }}
+            style={chatInputStyles.imagePreview}
+            contentFit="cover"
+          />
+          <TouchableOpacity
+            style={chatInputStyles.removeImageButton}
+            onPress={() => onImageSelect?.(undefined as any)}
+            activeOpacity={0.8}
+          >
+            <Text style={chatInputStyles.removeImageButtonText}>✕</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
       <View style={chatInputStyles.inputContainer}>
         {Platform.OS === 'web' ? (
           <View style={[chatInputStyles.inputCard, { backgroundColor: Colors.dark.secondary }]}>
             <View style={chatInputStyles.inputWrapper}>
+              <TouchableOpacity
+                style={chatInputStyles.attachButton}
+                onPress={handleImagePick}
+                activeOpacity={0.7}
+              >
+                <Text style={chatInputStyles.attachButtonText}>📎</Text>
+              </TouchableOpacity>
               <TextInput
                 style={chatInputStyles.input}
                 placeholder="message..."
@@ -129,10 +183,10 @@ export function ChatInput({ inputText, onChangeText, onSend, disabled = false }:
                   <TouchableOpacity
                     style={[
                       chatInputStyles.sendButton,
-                      (disabled || !inputText.trim()) && chatInputStyles.sendButtonDisabled,
+                      (disabled || (!inputText.trim() && !selectedImageUri)) && chatInputStyles.sendButtonDisabled,
                     ]}
                     onPress={handleSendPress}
-                    disabled={disabled || !inputText.trim()}
+                    disabled={disabled || (!inputText.trim() && !selectedImageUri)}
                     activeOpacity={0.8}
                   >
                     <Text style={chatInputStyles.sendButtonText}>→</Text>
@@ -144,6 +198,13 @@ export function ChatInput({ inputText, onChangeText, onSend, disabled = false }:
         ) : (
           <BlurView intensity={80} tint="dark" style={chatInputStyles.inputCard}>
             <View style={chatInputStyles.inputWrapper}>
+              <TouchableOpacity
+                style={chatInputStyles.attachButton}
+                onPress={handleImagePick}
+                activeOpacity={0.7}
+              >
+                <Text style={chatInputStyles.attachButtonText}>📎</Text>
+              </TouchableOpacity>
               <TextInput
                 style={chatInputStyles.input}
                 placeholder="message..."
@@ -162,10 +223,10 @@ export function ChatInput({ inputText, onChangeText, onSend, disabled = false }:
                   <TouchableOpacity
                     style={[
                       chatInputStyles.sendButton,
-                      (disabled || !inputText.trim()) && chatInputStyles.sendButtonDisabled,
+                      (disabled || (!inputText.trim() && !selectedImageUri)) && chatInputStyles.sendButtonDisabled,
                     ]}
                     onPress={handleSendPress}
-                    disabled={disabled || !inputText.trim()}
+                    disabled={disabled || (!inputText.trim() && !selectedImageUri)}
                     activeOpacity={0.8}
                   >
                     <Text style={chatInputStyles.sendButtonText}>→</Text>

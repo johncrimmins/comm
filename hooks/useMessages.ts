@@ -17,6 +17,7 @@ export function useMessages(conversationId: string) {
       status: 'sent' | 'delivered' | 'read' | null;
       deliveredTo?: string[];
       readBy?: string[];
+      imageUrl?: string;
     }>
   );
   
@@ -101,7 +102,7 @@ export function useMessages(conversationId: string) {
         const readBy = data.readBy || [];
         
         // Calculate status for current user's own messages
-        const status = calculateMessageStatus(senderId, currentUserId, deliveredTo, readBy);
+        const status = calculateMessageStatus(senderId, currentUserId || '', deliveredTo, readBy);
         
         return {
           id: doc.id,
@@ -116,6 +117,7 @@ export function useMessages(conversationId: string) {
           status,
           deliveredTo,
           readBy,
+          imageUrl: data.imageUrl,
         };
       });
       
