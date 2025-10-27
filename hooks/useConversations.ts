@@ -41,7 +41,13 @@ export function useConversations(): ConversationPreviewUI[] {
       const conversations: ConversationPreviewUI[] = [];
 
       // Process conversations in parallel
-      const conversationPromises = snapshot.docs.map(async (doc, index) => {
+      const conversationPromises = snapshot.docs
+        .filter(doc => {
+          // Exclude AI conversations (they're shown as sticky header)
+          const data = doc.data();
+          return !data.participantIds.includes('ai-assistant');
+        })
+        .map(async (doc, index) => {
         const conversationId = doc.id;
 
         // For MVP, we'll fetch last message synchronously

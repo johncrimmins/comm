@@ -2,6 +2,7 @@ import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWith
 import { db } from './db';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { app } from './app';
+import { createOrFindConversation } from '@/services/chat';
 
 export const auth = getAuth(app);
 
@@ -33,11 +34,16 @@ async function ensureUserProfile(user: User, displayName?: string): Promise<void
     const ref = doc(db, 'users', user.uid);
     const snap = await getDoc(ref);
     const name = displayName || (user.email?.split('@')[0] || 'user').toLowerCase();
-    if (!snap.exists()) {
+    const isNewUser = !snap.exists();
+    
+    if (isNewUser) {
       await setDoc(ref, {
         name,
         avatarColor: getDeterministicColorFor(user.uid),
       }, { merge: true });
+      
+      // Create AI conversation for new users
+      await createOrFindConversation([user.uid, 'ai-assistant']);
     } else {
       // Merge to avoid overwriting any existing fields
       await setDoc(ref, {

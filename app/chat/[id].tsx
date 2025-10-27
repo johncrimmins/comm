@@ -11,6 +11,7 @@ import { Message as MessageType } from '@/components/chat/Message';
 import { useMessages } from '@/hooks/useMessages';
 import { sendMessage, markRead } from '@/services/chat';
 import { updatePresence, setTyping, clearTyping } from '@/services/presence';
+import { sendAIMessage, isAIConversation } from '@/services/aiChat';
 import GradientBackground from '@/components/ui/GradientBackground';
 import { useAuthUser } from '@/hooks/useAuth';
 import { useConversation } from '@/hooks/useConversation';
@@ -41,6 +42,9 @@ export default function ChatScreen() {
   const messagesFromFirestore = useMessages(convId || '');
   const conversation = useConversation(convId);
   const presence = usePresence(convId, conversation?.participantIds || []);
+  
+  // Detect if this is an AI conversation
+  const isAI = conversation ? isAIConversation(conversation.participantIds) : false;
   
   // Initialize notifications for conversations OTHER than the current one
   useNotifications(convId || null);
@@ -86,7 +90,13 @@ export default function ChatScreen() {
   const handleSend = async () => {
     if (!convId || !uid) return;
     if (inputText.trim()) {
-      await sendMessage(convId, inputText.trim(), uid);
+      if (isAI) {
+        // Use AI service for AI conversations
+        await sendAIMessage(convId, inputText.trim(), uid);
+      } else {
+        // Use regular chat service for normal conversations
+        await sendMessage(convId, inputText.trim(), uid);
+      }
       setInputText('');
       clearTyping(uid).catch(() => {});
       if (typingTimeoutRef.current) {
@@ -134,9 +144,11 @@ export default function ChatScreen() {
   }, [uid]);
 
   // Get conversation title
-  const conversationTitle = isGroupChat 
-    ? ((Array.isArray(groupName) ? groupName[0] : groupName) || 'group chat')
-    : (convId || 'chat');
+  const conversationTitle = isAI
+    ? 'Chat with Comms (AI)'
+    : isGroupChat 
+      ? ((Array.isArray(groupName) ? groupName[0] : groupName) || 'group chat')
+      : (convId || 'chat');
 
   // Get presence subtitle
   const presenceSubtitle = presence.isTyping ? 'typing...' : presence.status;

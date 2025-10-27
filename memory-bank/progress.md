@@ -26,11 +26,16 @@
 - Gesture handler patterns: LongPressGestureHandler with state management to prevent unintended actions
 - Popover UI with smooth animations (Reanimated spring animations)
 - Tap-outside-to-dismiss functionality for popovers
+- AI conversation feature: Sticky "Chat with Comms (AI)" conversation with OpenAI integration
+- AI chat service: Separate aiChat service wrapping chat and OpenAI APIs
+- AI conversation auto-creation: Created during user signup with participantIds [userId, 'ai-assistant']
+- AI message handling: Uses OpenAI GPT-4o-mini to generate AI responses and stores them in Firestore
 
 ## What's Left To Build
 - Robust error handling and retry logic
 - Improved offline support beyond Firestore cache
 - Fix iPhone input area visibility issues
+- Future: Multiple AI agent types (Summarize, Detect Actions, Track Decisions, Scheduler)
 
 ## Current Status
 - Firestore-first architecture working
@@ -43,6 +48,8 @@
 - Gesture handling patterns established for future enhancements
 - Transformation architecture established with scalable design pattern
 - Dynamic UI rendering patterns implemented for reusable components
+- AI conversation feature fully implemented with sticky header and OpenAI integration
+- AI chat service pattern established for future multi-agent support
 
 ## Known Issues
 - No offline persistence beyond Firestore's offline cache

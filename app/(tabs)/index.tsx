@@ -1,4 +1,4 @@
-import React, { useMemo, useEffect } from 'react';
+import React, { useMemo, useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -16,6 +16,8 @@ import { useAuthUser } from '@/hooks/useAuth';
 import { useConversations } from '@/hooks/useConversations';
 import { markConversationsDelivered } from '@/services/chat';
 import { useNotifications } from '@/hooks/useNotifications';
+import { collection, query, where, getDocs } from 'firebase/firestore';
+import { db } from '@/lib/firebase/db';
 
 // Removed mock conversations; using SQLite-driven hook instead
 
@@ -23,6 +25,36 @@ export default function ConversationListScreen() {
   const router = useRouter();
   const previews = useConversations();
   const user = useAuthUser();
+  const [aiConversationId, setAiConversationId] = useState<string | null>(null);
+
+  // Get AI conversation ID
+  useEffect(() => {
+    if (!user?.uid) return;
+    
+    const getAIConversation = async () => {
+      try {
+        const conversationsRef = collection(db, 'conversations');
+        const q = query(
+          conversationsRef,
+          where('participantIds', 'array-contains', user.uid)
+        );
+        const snapshot = await getDocs(q);
+        
+        const aiConv = snapshot.docs.find(doc => {
+          const data = doc.data();
+          return data.participantIds.includes('ai-assistant');
+        });
+        
+        if (aiConv) {
+          setAiConversationId(aiConv.id);
+        }
+      } catch (error) {
+        // Silent failure
+      }
+    };
+    
+    getAIConversation();
+  }, [user?.uid]);
 
   // Mark all conversations as delivered when user opens app (tabs screen)
   useEffect(() => {
@@ -54,6 +86,12 @@ export default function ConversationListScreen() {
     router.push('/new-conversation');
   };
 
+  const handleAIConversationPress = () => {
+    if (aiConversationId) {
+      router.push(`/chat/${aiConversationId}`);
+    }
+  };
+
   const renderEmptyState = () => (
     <View style={styles.emptyContainer}>
       <Text style={styles.emptyIcon}>✨</Text>
@@ -64,12 +102,14 @@ export default function ConversationListScreen() {
     </View>
   );
 
-  const renderConversation = ({ item }: { item: typeof conversations[0] }) => (
-    <TouchableOpacity
-      onPress={() => handleConversationPress(item)}
-      activeOpacity={0.9}
-      style={styles.conversationWrapper}
-    >
+  const renderConversation = ({ item }: { item: typeof conversations[0] }) => {
+    const isAI = item.id === aiConversationId;
+    return (
+      <TouchableOpacity
+        onPress={() => isAI ? handleAIConversationPress() : handleConversationPress(item)}
+        activeOpacity={0.9}
+        style={styles.conversationWrapper}
+      >
       <GlassCard intensity={20} style={styles.conversationCard}>
         <View style={styles.conversationContent}>
           <View style={[styles.avatar, { backgroundColor: item.avatarColor }]}>
@@ -94,9 +134,19 @@ export default function ConversationListScreen() {
         </View>
       </GlassCard>
     </TouchableOpacity>
-  );
+    );
+  };
 
   const edges: Edge[] = ['top', 'right'];
+
+  // AI conversation item
+  const aiConversation = aiConversationId ? {
+    id: aiConversationId,
+    displayName: 'Chat with Comms (AI)',
+    lastMessage: '',
+    timestamp: '',
+    avatarColor: '#C084FC',
+  } : null;
 
   return (
     <GradientBackground>
@@ -119,6 +169,13 @@ export default function ConversationListScreen() {
             <Text style={styles.newChatText}>new</Text>
           </TouchableOpacity>
         </View>
+
+        {/* Sticky AI conversation */}
+        {aiConversation && (
+          <View style={styles.aiSection}>
+            {renderConversation({ item: aiConversation })}
+          </View>
+        )}
 
         <FlatList
           data={conversations}
@@ -182,6 +239,10 @@ const styles = StyleSheet.create({
     padding: 24,
     paddingTop: 0,
     gap: 12,
+  },
+  aiSection: {
+    paddingHorizontal: 24,
+    paddingBottom: 8,
   },
   conversationWrapper: {
     marginBottom: 4,

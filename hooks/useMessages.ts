@@ -36,6 +36,11 @@ export function useMessages(conversationId: string) {
           avatarColor: data.avatarColor || '#7C3AED'
         };
       });
+      // Add AI assistant as a special user
+      usersMap['ai-assistant'] = {
+        name: 'Comms (AI)',
+        avatarColor: '#C084FC'
+      };
       setUsers(usersMap);
     });
     return () => unsubscribeUsers();

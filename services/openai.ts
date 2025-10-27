@@ -19,6 +19,11 @@ export interface TransformOptions {
   systemPrompt: string;
 }
 
+export interface ChatOptions {
+  userMessage: string;
+  systemPrompt: string;
+}
+
 /**
  * Generic function to transform text using OpenAI API with a custom system prompt
  */
@@ -74,6 +79,66 @@ export async function transformText(options: TransformOptions): Promise<string> 
     return transformedText;
   } catch (error: any) {
     console.error('[OpenAI] Error transforming text:', error);
+    throw error;
+  }
+}
+
+/**
+ * Chat with AI assistant using OpenAI API
+ * Designed for conversational AI chat (not text transformations)
+ */
+export async function chatWithAI(options: ChatOptions): Promise<string> {
+  if (!OPENAI_API_KEY) {
+    throw new Error('OpenAI API key not configured. Please add EXPO_PUBLIC_OPENAI_API_KEY to your environment variables.');
+  }
+
+  if (!options.userMessage.trim()) {
+    throw new Error('User message cannot be empty');
+  }
+
+  if (!options.systemPrompt.trim()) {
+    throw new Error('System prompt cannot be empty');
+  }
+
+  try {
+    const response = await fetch(OPENAI_API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${OPENAI_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        messages: [
+          {
+            role: 'system',
+            content: options.systemPrompt
+          },
+          {
+            role: 'user',
+            content: options.userMessage
+          }
+        ],
+        temperature: 0.4,
+        max_tokens: 500,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error?.message || `OpenAI API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    const aiResponse = data.choices?.[0]?.message?.content?.trim();
+
+    if (!aiResponse) {
+      throw new Error('No response returned from OpenAI');
+    }
+
+    return aiResponse;
+  } catch (error: any) {
+    console.error('[OpenAI] Error chatting with AI:', error);
     throw error;
   }
 }
