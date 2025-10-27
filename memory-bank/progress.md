@@ -30,12 +30,17 @@
 - AI chat service: Separate aiChat service wrapping chat and OpenAI APIs
 - AI conversation auto-creation: Created during user signup with participantIds [userId, 'ai-assistant']
 - AI message handling: Uses OpenAI GPT-4o-mini to generate AI responses and stores them in Firestore
+- RAG integration: OpenAI tool calling for conversation summarization via n8n webhooks
+- n8n service: Webhook integration for calling RAG pipelines from client
+- Conversation summarization: AI detects "summary" keywords and calls n8n to summarize conversations
+- Tool calling flow: OpenAI → tool call → n8n webhook → Firebase fetch → summary → OpenAI → final response
 
 ## What's Left To Build
+- Future: Proactive conversation summaries stored in Firebase (automatic summarization)
+- Future: Multiple AI agent types (Detect Actions, Track Decisions, Scheduler)
 - Robust error handling and retry logic
 - Improved offline support beyond Firestore cache
 - Fix iPhone input area visibility issues
-- Future: Multiple AI agent types (Summarize, Detect Actions, Track Decisions, Scheduler)
 
 ## Current Status
 - Firestore-first architecture working
@@ -50,6 +55,8 @@
 - Dynamic UI rendering patterns implemented for reusable components
 - AI conversation feature fully implemented with sticky header and OpenAI integration
 - AI chat service pattern established for future multi-agent support
+- RAG integration complete: Conversation summarization working via n8n webhooks
+- OpenAI tool calling implemented for extendable AI capabilities
 
 ## Known Issues
 - No offline persistence beyond Firestore's offline cache

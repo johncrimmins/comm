@@ -47,14 +47,17 @@
 - Conditional styling: Apply styles conditionally based on array index (e.g., `index === 0 && styles.first`, `index === last && styles.last`).
 
 ## External API Services
-- Service layer pattern: Create dedicated service files in `services/` directory (e.g., `services/openai.ts`, `services/chat.ts`).
+- Service layer pattern: Create dedicated service files in `services/` directory (e.g., `services/openai.ts`, `services/chat.ts`, `services/n8n.ts`).
 - Transformation configuration: Define transformation options in dedicated config file (e.g., `services/messageTransformations.ts`).
 - Generic API wrappers: Create reusable API functions that accept configuration parameters (e.g., `transformText(text, systemPrompt)`).
 - Environment variables: Use `EXPO_PUBLIC_` prefix for client-accessible variables; follow Firebase pattern for consistency.
 - API error handling: Use try/catch with user-friendly Alert messages for errors.
-- OpenAI integration: GPT-4o-mini model with system prompts and temperature 0.3 for consistent results.
+- OpenAI integration: GPT-4o-mini model with system prompts and temperature 0.3 for consistent results (transformations) and 0.4 for conversational responses (AI chat).
 - Service organization: One service file per external API integration; separate configuration from implementation.
 - Dynamic transformations: Define transformations as data (objects with id, label, systemPrompt) rather than separate functions.
+- RAG integration: n8n webhooks for RAG pipeline execution, OpenAI tool calling for extensible AI capabilities.
+- Tool calling flow: Detect keywords → OpenAI tool call → n8n webhook → Firebase fetch → process → return to OpenAI → final response.
+- CORS handling: Avoid custom headers that trigger preflight OPTIONS requests; use simple POST requests without Content-Type header.
 
 ## Forms & Validation
 - Local hooks: `hooks/useAuthForm.ts`, `hooks/useFormValidation.ts` manage inputs and errors.

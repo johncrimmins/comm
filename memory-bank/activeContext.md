@@ -1,15 +1,19 @@
 # Active Context
 
 ## Current Focus
-- AI conversation feature complete
-- Future: Multiple AI agent types (Summarize, Detect Actions, Track Decisions, Scheduler)
+- RAG integration complete and working
+- Conversation summarization operational via n8n webhooks
+- Future: Proactive summaries stored in Firebase
+- Future: Multiple AI agent types (Detect Actions, Track Decisions, Scheduler)
 
 ## Recent Changes
-- AI conversation RAG integration: Added OpenAI tool calling for conversation summarization via n8n webhooks
-- Created services/n8n.ts: Webhook service for calling n8n RAG pipelines
-- Updated services/openai.ts: Added tool calling support to chatWithAI function for summarize_conversation tool
-- Updated services/aiPrompts.ts: Added instruction to use tools when users request summaries
-- Updated services/aiChat.ts: Fetches conversation history (filtered to user's messages) and passes to OpenAI
+- RAG integration complete: Conversation summarization working end-to-end
+- OpenAI tool calling: AI detects "summary" keywords and calls n8n to summarize conversations
+- n8n webhook integration: Handles array response format, extracts summary from data[0].summary
+- Fixed CORS issues: Removed Content-Type header to avoid preflight OPTIONS requests
+- Added comprehensive logging for debugging webhook calls and response handling
+- Conversation history: Fetches last 10 messages (user + AI only) and passes to OpenAI for context
+- Tool calling pattern: OpenAI → tool call → n8n webhook → Firebase → summary → OpenAI final response
 - AI conversation feature implemented: Sticky header for "Chat with Comms (AI)", separate aiChat service, auto-creation on signup, OpenAI integration for responses
 - Fixed AI chat to use dedicated chatWithAI function instead of transformText, separated transformation vs chat logic, temperature set to 0.4 for consistent responses
 - Created services/aiPrompts.ts: Centralized AI system prompt configuration with placeholders for future agent types
@@ -71,5 +75,9 @@
 - Service layer separation: Keep transformation definitions separate from API implementation for maintainability
 - AI conversations: Create AI conversation during signup, use separate aiChat service for AI-specific logic, detect via participantIds including 'ai-assistant'
 - Sticky UI patterns: Render AI conversation outside FlatList for sticky positioning, regular conversations scroll below
-- RAG integration: OpenAI tool calling for conversation summarization, n8n webhooks for RAG pipeline execution, conversation history fetched and filtered to user's messages
+- RAG integration: OpenAI tool calling for conversation summarization, n8n webhooks for RAG pipeline execution
+- Conversation history: Last 10 messages fetched from Firestore and filtered to user + AI only
 - Tool calling pattern: AI detects keywords like "summary" and calls n8n webhook with conversationId, n8n fetches from Firebase and returns summary
+- n8n response format: Array response [{summary: "..."}] extracted via data[0].summary
+- CORS handling: Removed Content-Type header to avoid preflight OPTIONS requests (n8n doesn't support OPTIONS)
+- Environment variables: EXPO_PUBLIC_N8N_WEBHOOK_URL for n8n webhook base URL
