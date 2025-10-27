@@ -19,7 +19,7 @@ export function useUsers(): ContactUser[] {
         return {
           id: d.id,
           name: data.name ?? 'user',
-          avatarColor: data.avatarColor ?? '#7C3AED',
+          avatarColor: data.avatarColor ?? '#000000',
         };
       });
       setUsers(list);

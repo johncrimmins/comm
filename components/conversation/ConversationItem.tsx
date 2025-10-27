@@ -26,7 +26,7 @@ export default function ConversationItem({ conversation, onPress }: Conversation
       .map((n) => n[0])
       .join('')
       .toUpperCase()
-      .slice(0, 2);
+      .slice(0, 1);
   };
 
   return (

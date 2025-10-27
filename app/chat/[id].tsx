@@ -42,6 +42,7 @@ export default function ChatScreen() {
   const [inputText, setInputText] = useState('');
   const [selectedImageUri, setSelectedImageUri] = useState<string | null>(null);
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const hasScrolledToBottomRef = useRef(false);
 
   // Replace mock messages with Firestore-driven list if id is provided
   const convId = (Array.isArray(id) ? id[0] : (id as string | undefined)) ?? '';
@@ -82,6 +83,22 @@ export default function ChatScreen() {
     updatePresence(uid).catch(() => {});
   }, [convId, uid]);
 
+  // Scroll to bottom when chat opens
+  useEffect(() => {
+    hasScrolledToBottomRef.current = false;
+  }, [convId]);
+
+  // Scroll to bottom when messages first load
+  useEffect(() => {
+    if (messages.length > 0 && flatListRef.current && !hasScrolledToBottomRef.current) {
+      // Small delay to ensure FlatList is rendered
+      setTimeout(() => {
+        flatListRef.current?.scrollToEnd({ animated: false });
+        hasScrolledToBottomRef.current = true;
+      }, 100);
+    }
+  }, [messages.length]); // Trigger when message count changes
+
   // Update presence when app comes to foreground
   useEffect(() => {
     if (!uid) return;
@@ -96,6 +113,7 @@ export default function ChatScreen() {
   }, [uid]);
 
   const handleSend = async () => {
+    console.log('[ChatScreen] handleSend called', { convId, uid, hasText: !!inputText.trim(), hasImage: !!selectedImageUri });
     if (!convId || !uid) return;
     if (!inputText.trim() && !selectedImageUri) return;
     
@@ -103,25 +121,31 @@ export default function ChatScreen() {
     
     // Upload image if selected
     if (selectedImageUri) {
+      console.log('[ChatScreen] Starting image upload:', selectedImageUri);
       try {
         // Create a temporary message ID for the upload
         const tempMessageId = `temp_${Date.now()}`;
+        console.log('[ChatScreen] Uploading with temp message ID:', tempMessageId);
         imageUrl = await uploadImage(selectedImageUri, convId, tempMessageId);
+        console.log('[ChatScreen] Image uploaded successfully, URL:', imageUrl);
       } catch (error) {
-        console.error('Failed to upload image:', error);
+        console.error('[ChatScreen] Failed to upload image:', error);
         Alert.alert('Error', 'Failed to upload image. Please try again.');
         return;
       }
     }
     
     if (isAI) {
+      console.log('[ChatScreen] Sending AI message');
       // Use AI service for AI conversations
       await sendAIMessage(convId, inputText.trim() || '', uid);
     } else {
+      console.log('[ChatScreen] Sending regular message', { hasImage: !!imageUrl });
       // Use regular chat service for normal conversations
       await sendMessage(convId, inputText.trim() || '', uid, imageUrl);
     }
     
+    console.log('[ChatScreen] Message sent, clearing state');
     setInputText('');
     setSelectedImageUri(null);
     clearTyping(uid).catch(() => {});

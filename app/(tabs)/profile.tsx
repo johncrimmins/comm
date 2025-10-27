@@ -22,7 +22,7 @@ export default function ProfileScreen() {
           <View style={styles.profileSection}>
             <View style={styles.avatar}>
               <Text style={styles.avatarText}>
-                {user?.email?.[0]?.toUpperCase() || 'U'}
+                {user?.displayName?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || 'U'}
               </Text>
             </View>
             <Text style={styles.email}>{user?.email || 'Not signed in'}</Text>
@@ -61,13 +61,13 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: Colors.dark.accentStart,
+    backgroundColor: '#000000',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 16,
   },
   avatarText: {
-    color: '#000000',
+    color: '#FFFFFF',
     fontSize: 32,
     fontWeight: '700',
     fontFamily: 'Inter_700Bold',

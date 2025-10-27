@@ -54,11 +54,13 @@ export async function sendMessage(
   senderId: string,
   imageUrl?: string
 ): Promise<{ messageId: string; shouldNavigate: boolean }> {
+  console.log('[Chat] sendMessage called', { conversationId, text: text.substring(0, 20), hasImage: !!imageUrl });
   try {
     // Check if this is the first message
     const messagesRef = collection(db, 'conversations', conversationId, 'messages');
     const messagesSnapshot = await getDocs(query(messagesRef, orderBy('createdAt', 'asc')));
     const wasEmpty = messagesSnapshot.empty;
+    console.log('[Chat] Message count:', messagesSnapshot.size, 'wasEmpty:', wasEmpty);
 
     // Create message document in Firestore
     const messageRef = doc(messagesRef);
@@ -73,9 +75,12 @@ export async function sendMessage(
     // Add imageUrl if provided
     if (imageUrl) {
       messageData.imageUrl = imageUrl;
+      console.log('[Chat] Adding imageUrl to message');
     }
     
+    console.log('[Chat] Saving message to Firestore');
     await setDoc(messageRef, messageData);
+    console.log('[Chat] Message saved, ID:', messageRef.id);
 
     // Update conversation's updatedAt timestamp
     const conversationRef = doc(db, 'conversations', conversationId);
@@ -85,6 +90,7 @@ export async function sendMessage(
 
     return { messageId: messageRef.id, shouldNavigate: wasEmpty };
   } catch (error: any) {
+    console.error('[Chat] Error sending message:', error);
     throw error;
   }
 }

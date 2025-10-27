@@ -26,7 +26,7 @@ export default function Message({ message }: MessageProps) {
       .map(n => n[0])
       .join('')
       .toUpperCase()
-      .slice(0, 2);
+      .slice(0, 1);
   };
 
   return (
@@ -44,7 +44,7 @@ export default function Message({ message }: MessageProps) {
         {!message.isCurrentUser && message.senderName && (
           <View style={[
             messageStyles.avatar,
-            { backgroundColor: message.senderAvatarColor || '#7C3AED' }
+            { backgroundColor: message.senderAvatarColor || '#000000' }
           ]}>
             <Text style={messageStyles.avatarText}>{getInitials(message.senderName)}</Text>
           </View>
@@ -94,7 +94,7 @@ export default function Message({ message }: MessageProps) {
         {message.isCurrentUser && message.senderName && (
           <View style={[
             messageStyles.avatar,
-            { backgroundColor: message.senderAvatarColor || '#7C3AED' }
+            { backgroundColor: message.senderAvatarColor || '#000000' }
           ]}>
             <Text style={messageStyles.avatarText}>{getInitials(message.senderName)}</Text>
           </View>

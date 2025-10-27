@@ -26,25 +26,30 @@ export function ChatInput({ inputText, onChangeText, onSend, onImageSelect, sele
   
   // Handle image picker
   const handleImagePick = async () => {
+    console.log('[ChatInput] Image picker opened');
     try {
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      console.log('[ChatInput] Permission status:', status);
       if (status !== 'granted') {
         Alert.alert('Permission needed', 'We need access to your photos to send images.');
         return;
       }
 
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
-        aspect: [4, 3],
+        mediaTypes: ['images'],
+        allowsEditing: false,
         quality: 0.8,
       });
 
+      console.log('[ChatInput] Image picker result:', { canceled: result.canceled, assetsCount: result.assets?.length });
       if (!result.canceled && result.assets[0]) {
+        console.log('[ChatInput] Image selected:', result.assets[0].uri);
         onImageSelect?.(result.assets[0].uri);
+      } else {
+        console.log('[ChatInput] Image selection canceled');
       }
     } catch (error) {
-      console.error('Error picking image:', error);
+      console.error('[ChatInput] Error picking image:', error);
       Alert.alert('Error', 'Failed to pick image');
     }
   };

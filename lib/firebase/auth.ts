@@ -23,10 +23,8 @@ export const signUp = async (email: string, password: string, displayName?: stri
 export const logOut = () => signOut(auth);
 
 function getDeterministicColorFor(uid: string): string {
-  const palette = ['#C084FC', '#9333EA', '#A855F7', '#7C3AED'];
-  let sum = 0;
-  for (let i = 0; i < uid.length; i++) sum = (sum + uid.charCodeAt(i)) % 9973;
-  return palette[sum % palette.length];
+  // Always return black for profile avatars
+  return '#000000';
 }
 
 async function ensureUserProfile(user: User, displayName?: string, title?: string): Promise<void> {

@@ -35,7 +35,7 @@ export function useMessages(conversationId: string) {
         const data = doc.data();
         usersMap[doc.id] = { 
           name: data.name || 'user',
-          avatarColor: data.avatarColor || '#7C3AED'
+          avatarColor: data.avatarColor || '#000000'
         };
       });
       // Add AI assistant as a special user
