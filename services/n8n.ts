@@ -28,7 +28,7 @@ export async function summarizeConversation(params: N8NToolParams): Promise<stri
     throw new Error('n8n webhook URL not configured. Please add EXPO_PUBLIC_N8N_WEBHOOK_URL to your environment variables.');
   }
 
-  // Use the webhook URL as-is (it's the complete endpoint)
+  // Use the webhook URL as-is (it's the complete endpoint, no need to append path)
   const webhookUrl = N8N_WEBHOOK_URL.endsWith('/') ? N8N_WEBHOOK_URL.slice(0, -1) : N8N_WEBHOOK_URL;
   console.log('[n8n] Calling webhook:', webhookUrl);
   console.log('[n8n] Params:', params);
@@ -62,7 +62,24 @@ export async function summarizeConversation(params: N8NToolParams): Promise<stri
       throw new Error('Invalid JSON response from n8n');
     }
     
-    return data.summary || 'Unable to generate summary';
+    // Handle different response formats from n8n
+    // Format 1: Direct summary object
+    if (data.summary) {
+      return data.summary;
+    }
+    
+    // Format 2: OpenAI array response (extract from nested structure)
+    if (Array.isArray(data) && data[0]?.message?.content) {
+      return data[0].message.content;
+    }
+    
+    // Format 3: Check if content is in different location
+    if (data.content) {
+      return data.content;
+    }
+    
+    console.error('[n8n] Could not extract summary from response:', data);
+    return 'Unable to generate summary';
   } catch (error: any) {
     console.error('[n8n] Error calling summarize workflow:', error);
     throw error;
