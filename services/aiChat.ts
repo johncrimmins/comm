@@ -6,6 +6,8 @@
 import { sendMessage } from './chat';
 import { chatWithAI } from './openai';
 import { getAISystemPrompt } from './aiPrompts';
+import { collection, query, orderBy, getDocs, limit } from 'firebase/firestore';
+import { db } from '@/lib/firebase/db';
 
 /**
  * Send a message in an AI conversation
@@ -19,14 +21,41 @@ export async function sendAIMessage(
   // 1. Store user message using existing chat service
   await sendMessage(conversationId, userMessage, senderId);
 
-  // 2. Generate AI response using OpenAI
+  // 2. Fetch conversation history (only conversations user is part of)
+  let conversationHistory: Array<{ role: 'user' | 'assistant'; content: string }> = [];
+  
+  try {
+    const messagesRef = collection(db, 'conversations', conversationId, 'messages');
+    const messagesQuery = query(messagesRef, orderBy('createdAt', 'desc'), limit(10));
+    const messagesSnapshot = await getDocs(messagesQuery);
+    
+    // Transform messages to OpenAI format, filtering to only user's conversations
+    const messages = messagesSnapshot.docs
+      .map(doc => doc.data())
+      .filter(msg => msg.senderId === senderId || msg.senderId === 'ai-assistant')
+      .reverse(); // Reverse to get chronological order
+    
+    conversationHistory = messages.map(msg => ({
+      role: msg.senderId === senderId ? 'user' : 'assistant',
+      content: msg.text || ''
+    }));
+  } catch (error) {
+    console.error('[AI Chat] Error fetching conversation history:', error);
+    // Continue without history if fetch fails
+  }
+
+  // 3. Generate AI response using OpenAI with tools enabled
   try {
     const aiResponse = await chatWithAI({
       userMessage: userMessage,
       systemPrompt: getAISystemPrompt('default'),
+      conversationHistory: conversationHistory,
+      enableTools: true,
+      currentConversationId: conversationId,
+      userId: senderId,
     });
 
-    // 3. Store AI response as a message from the AI assistant
+    // 4. Store AI response as a message from the AI assistant
     await sendMessage(conversationId, aiResponse, 'ai-assistant');
   } catch (error) {
     // If AI fails, send a fallback message

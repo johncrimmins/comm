@@ -5,6 +5,11 @@
 - Future: Multiple AI agent types (Summarize, Detect Actions, Track Decisions, Scheduler)
 
 ## Recent Changes
+- AI conversation RAG integration: Added OpenAI tool calling for conversation summarization via n8n webhooks
+- Created services/n8n.ts: Webhook service for calling n8n RAG pipelines
+- Updated services/openai.ts: Added tool calling support to chatWithAI function for summarize_conversation tool
+- Updated services/aiPrompts.ts: Added instruction to use tools when users request summaries
+- Updated services/aiChat.ts: Fetches conversation history (filtered to user's messages) and passes to OpenAI
 - AI conversation feature implemented: Sticky header for "Chat with Comms (AI)", separate aiChat service, auto-creation on signup, OpenAI integration for responses
 - Fixed AI chat to use dedicated chatWithAI function instead of transformText, separated transformation vs chat logic, temperature set to 0.4 for consistent responses
 - Created services/aiPrompts.ts: Centralized AI system prompt configuration with placeholders for future agent types
@@ -66,3 +71,5 @@
 - Service layer separation: Keep transformation definitions separate from API implementation for maintainability
 - AI conversations: Create AI conversation during signup, use separate aiChat service for AI-specific logic, detect via participantIds including 'ai-assistant'
 - Sticky UI patterns: Render AI conversation outside FlatList for sticky positioning, regular conversations scroll below
+- RAG integration: OpenAI tool calling for conversation summarization, n8n webhooks for RAG pipeline execution, conversation history fetched and filtered to user's messages
+- Tool calling pattern: AI detects keywords like "summary" and calls n8n webhook with conversationId, n8n fetches from Firebase and returns summary
