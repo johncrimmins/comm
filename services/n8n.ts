@@ -13,6 +13,7 @@ const getEnv = (key: string): string => {
 };
 
 const N8N_WEBHOOK_URL = getEnv('EXPO_PUBLIC_N8N_WEBHOOK_URL');
+console.log('[n8n] Loaded webhook URL from env:', N8N_WEBHOOK_URL);
 
 export interface N8NToolParams {
   conversationId: string;
