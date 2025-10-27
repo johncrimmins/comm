@@ -30,10 +30,14 @@
 - AI chat service: Separate aiChat service wrapping chat and OpenAI APIs
 - AI conversation auto-creation: Created during user signup with participantIds [userId, 'ai-assistant']
 - AI message handling: Uses OpenAI GPT-4o-mini to generate AI responses and stores them in Firestore
-- RAG integration: OpenAI tool calling for conversation summarization via n8n webhooks
+- RAG integration: OpenAI tool calling for conversation analysis via n8n webhooks
 - n8n service: Webhook integration for calling RAG pipelines from client
+- Three AI tools implemented: summarize_conversation, pull_actions, get_decisions
 - Conversation summarization: AI detects "summary" keywords and calls n8n to summarize conversations
-- Tool calling flow: OpenAI → tool call → n8n webhook → Firebase fetch → summary → OpenAI → final response
+- Action items extraction: AI detects "action items" keywords and calls n8n to extract tasks
+- Decisions extraction: AI detects "decisions" keywords and calls n8n to extract key decisions
+- Tool calling flow: OpenAI → tool call → n8n webhook → Firebase fetch → process → personalize → OpenAI → final response
+- Conversation titles: Signup includes title field for AI conversations, stored in Firestore
 - Code refactoring: Extracted message status logic to utils/messageStatus.ts (reduced complexity by 13 lines)
 - Code refactoring: Extracted conversation search logic to utils/conversationHelpers.ts (reduced complexity by 69 lines)
 - Architecture documentation: Comprehensive data flow mapping in docs/ai-chat-architecture-analysis.md
@@ -42,10 +46,10 @@
 
 ## What's Left To Build
 - Add sender names to message documents in Firestore
-- Additional tool calls (action items, decisions, next steps)
-- Store summaries in Firestore for future retrieval
-- Future: Proactive conversation summaries stored in Firebase (automatic summarization)
-- Future: Multiple AI agent types (Detect Actions, Track Decisions, Scheduler)
+- Additional tool calls (next steps, meeting notes, key takeaways)
+- Store tool outputs in Firestore for caching and retrieval
+- Future: Proactive conversation analysis stored in Firebase (automatic tool execution)
+- Future: Scheduling agent, calendar integration
 - Robust error handling and retry logic
 - Improved offline support beyond Firestore cache
 - Fix iPhone input area visibility issues
@@ -63,9 +67,10 @@
 - Dynamic UI rendering patterns implemented for reusable components
 - AI conversation feature fully implemented with sticky header and OpenAI integration
 - AI chat service pattern established for future multi-agent support
-- RAG integration complete: Conversation summarization working via n8n webhooks
+- RAG integration complete: Three conversation analysis tools working via n8n webhooks
 - OpenAI tool calling implemented for extendable AI capabilities
-- Code quality improved: Reduced code complexity by 82 lines through utility extraction
+- Code quality improved: Reduced code complexity by ~170 lines through helper function extraction
+- Conversation titles: Users can set titles during signup for AI conversations
 - Architecture documented: Complete data flow mapping and file responsibilities documented
 - Type safety enhanced: TypeScript interfaces defined for all external API responses
 - Separation of concerns: Pure utility functions extracted for message status and conversation search

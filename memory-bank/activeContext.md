@@ -1,11 +1,19 @@
 # Active Context
 
 ## Current Focus
-- Code refactoring complete: Extracted utilities for better separation of concerns
-- Reduced code complexity: 82 lines removed through utility extraction
-- Architecture fully documented with comprehensive data flow mapping
+- Multi-tool AI agent: Three tools implemented (summarize, pull_actions, get_decisions)
+- Conversation titles: Users can add titles during signup for AI conversations
+- Code refactoring complete: Extracted helper functions to remove duplication
+- Reduced code complexity: ~170 lines removed through utility extraction
 
 ## Recent Changes
+- Added get_decisions tool: Extract key decisions from conversations via n8n webhook at /get-decisions
+- Added pull_actions tool: Extract action items from conversations via n8n webhook at /pull-actions
+- Conversation titles implemented: Signup form includes title field, stored in Firestore conversation documents
+- Code refactoring: Extracted resolveConversationId() and personalizeResponse() helper functions in services/openai.ts
+- OpenAI service simplified: Reduced tool handlers from ~110 lines to ~40 lines each using shared helpers
+- n8n webhook paths: Updated to use base URL + path pattern (/summarize, /pull-actions, /get-decisions)
+- Updated AI prompt: Added keywords for detecting action items and decisions requests
 - Code refactoring (commit d2f1c5c): Extracted message status logic to utils/messageStatus.ts, reduced useMessages.ts by 13 lines
 - Code refactoring (commit d2f1c5c): Extracted conversation search logic to utils/conversationHelpers.ts, reduced n8n.ts by 69 lines
 - Architecture documentation: Created comprehensive docs/ai-chat-architecture-analysis.md mapping all data flows
@@ -65,13 +73,12 @@
 - Firestore as single source of truth with native offline persistence
 
 ## Next Steps
-1. Connect Summarize workflow to vector store and test in Expo Go app
-2. Implement conversation names (default to participant names) and sender names in Firestore
-3. Add metadata to vector store and filter queries by user participation
-4. Future: Multiple AI agent types (Detect Actions, Track Decisions, Scheduler)
-5. Investigate iPhone input area visibility issues
-6. Robust error handling and retry logic
-7. Improved offline support beyond Firestore cache
+1. Test all three tools (summarize, pull_actions, get_decisions) end-to-end
+2. Future: Additional tools (next steps, meeting notes, key takeaways)
+3. Store tool outputs in Firestore for caching
+4. Investigate iPhone input area visibility issues
+5. Robust error handling and retry logic
+6. Improved offline support beyond Firestore cache
 
 ## Active Decisions
 - Firestore is single source of truth with native offline persistence
@@ -96,7 +103,11 @@
 - Sticky UI patterns: Render AI conversation outside FlatList for sticky positioning, regular conversations scroll below
 - RAG integration: OpenAI tool calling for conversation summarization, n8n webhooks for RAG pipeline execution
 - Conversation history: Last 10 messages fetched from Firestore and filtered to user + AI only
-- Tool calling pattern: AI detects keywords like "summary" and calls n8n webhook with conversationId, n8n fetches from Firebase and returns summary
-- n8n response format: Array response [{summary: "..."}] extracted via data[0].summary
+- Tool calling pattern: AI detects keywords and calls appropriate n8n webhook (summarize, pull_actions, get_decisions)
+- Three AI tools implemented: summarize_conversation, pull_actions, get_decisions
+- Tool handlers use shared helpers: resolveConversationId() and personalizeResponse() reduce duplication
+- n8n webhook paths: Base URL + path pattern ({baseUrl}/summarize, {baseUrl}/pull-actions, {baseUrl}/get-decisions)
+- n8n response formats: Array responses [{summary: "..."}, {actions: "..."}, {decisions: "..."}]
+- Conversation titles: Optional title field in Firestore conversations, set during signup for AI conversations
 - CORS handling: Removed Content-Type header to avoid preflight OPTIONS requests (n8n doesn't support OPTIONS)
 - Environment variables: EXPO_PUBLIC_N8N_WEBHOOK_URL for n8n webhook base URL

@@ -56,7 +56,11 @@
 - Service organization: One service file per external API integration; separate configuration from implementation.
 - Dynamic transformations: Define transformations as data (objects with id, label, systemPrompt) rather than separate functions.
 - RAG integration: n8n webhooks for RAG pipeline execution, OpenAI tool calling for extensible AI capabilities.
-- Tool calling flow: Detect keywords → OpenAI tool call → n8n webhook → Firebase fetch → process → return to OpenAI → final response.
+- Three AI tools: summarize_conversation (keywords: summary, summarize, recap), pull_actions (keywords: action items, tasks, todo), get_decisions (keywords: decisions, decided, agreed).
+- Tool calling flow: Detect keywords → OpenAI tool call → n8n webhook → Firebase fetch → process → personalize → return to OpenAI → final response.
+- Tool handler pattern: Use shared helper functions (resolveConversationId, personalizeResponse) to reduce duplication.
+- n8n webhook URL pattern: Base URL + path ({baseUrl}/summarize, {baseUrl}/pull-actions, {baseUrl}/get-decisions).
+- Conversation titles: Optional title field in Firestore conversations, set during signup for AI conversations.
 - CORS handling: Avoid custom headers that trigger preflight OPTIONS requests; use simple POST requests without Content-Type header.
 
 ## Forms & Validation

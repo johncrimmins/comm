@@ -213,3 +213,68 @@ export async function pullActions(params: N8NToolParams): Promise<string> {
   }
 }
 
+/**
+ * n8n Webhook Integration for Get Decisions
+ * 
+ * Calls n8n workflow that extracts key decisions from a conversation
+ * 
+ * Response format: [{decisions: "..."}] (array format from n8n)
+ */
+export async function getDecisions(params: N8NToolParams): Promise<string> {
+  if (!N8N_WEBHOOK_URL) {
+    throw new Error('n8n webhook URL not configured. Please add EXPO_PUBLIC_N8N_WEBHOOK_URL to your environment variables.');
+  }
+
+  // Normalize webhook URL and append /get-decisions
+  const baseUrl = N8N_WEBHOOK_URL.endsWith('/') ? N8N_WEBHOOK_URL.slice(0, -1) : N8N_WEBHOOK_URL;
+  const webhookUrl = `${baseUrl}/get-decisions`;
+  console.log('[n8n] Calling decisions webhook:', webhookUrl);
+  console.log('[n8n] Params:', params);
+
+  try {
+    // Send POST request to n8n webhook
+    const response = await fetch(webhookUrl, {
+      method: 'POST',
+      body: JSON.stringify(params),
+    });
+
+    console.log('[n8n] Response status:', response.status, response.statusText);
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      console.error('[n8n] Error response:', errorData);
+      throw new Error(errorData.error?.message || `n8n webhook error: ${response.status}`);
+    }
+
+    // Parse response (n8n returns array format)
+    const responseText = await response.text();
+    console.log('[n8n] Raw response length:', responseText.length);
+    
+    if (!responseText || responseText.length === 0) {
+      throw new Error('n8n returned empty response. Check that Respond to Webhook node has data wired to it.');
+    }
+    
+    const data = JSON.parse(responseText);
+    console.log('[n8n] Parsed JSON data:', data);
+    
+    // EXTRACT DECISIONS FROM RESPONSE
+    // n8n typically returns array format: [{decisions: "..."}]
+    if (Array.isArray(data) && data.length > 0) {
+      const decisions = data[0].decisions;
+      console.log('[n8n] Extracted decisions from array:', decisions);
+      return decisions || 'No decisions found';
+    }
+    
+    // Fallback: handle object response format
+    if (data.decisions) {
+      return data.decisions;
+    }
+    
+    console.error('[n8n] Unexpected response format:', data);
+    return 'No decisions found';
+  } catch (error: any) {
+    console.error('[n8n] Error calling get decisions workflow:', error);
+    throw error;
+  }
+}
+

@@ -2,7 +2,7 @@
  * OpenAI API integration for text transformations
  */
 
-import { summarizeConversation, findConversationByParticipant, pullActions } from './n8n';
+import { summarizeConversation, findConversationByParticipant, pullActions, getDecisions } from './n8n';
 
 const getEnv = (key: string): string => {
   const value = process.env[key as keyof NodeJS.ProcessEnv];
@@ -262,6 +262,27 @@ export async function chatWithAI(options: ChatOptions): Promise<string> {
             required: []
           }
         }
+      },
+      {
+        type: 'function',
+        function: {
+          name: 'get_decisions',
+          description: 'Extract key decisions made in a conversation thread. Can use conversation ID directly or search by participant name.',
+          parameters: {
+            type: 'object',
+            properties: {
+              conversationId: {
+                type: 'string',
+                description: 'The ID of the conversation to extract decisions from. Leave empty if using participantName to search.'
+              },
+              participantName: {
+                type: 'string',
+                description: 'Name of a participant in the conversation. Use this if the user mentions someone by name.'
+              }
+            },
+            required: []
+          }
+        }
       }
     ] : undefined;
 
@@ -393,6 +414,50 @@ export async function chatWithAI(options: ChatOptions): Promise<string> {
               role: 'tool',
               name: 'pull_actions',
               content: JSON.stringify({ actions: personalizedActions })
+            };
+          }
+          
+          // Handle get_decisions tool
+          if (toolCall.function.name === 'get_decisions') {
+            const params = JSON.parse(toolCall.function.arguments);
+            console.log('[OpenAI] get_decisions params:', params);
+            
+            // Resolve conversation ID
+            const conversationId = await resolveConversationId(
+              params,
+              options.userId || '',
+              options.currentConversationId
+            );
+            
+            if (!conversationId && params.participantName) {
+              return {
+                tool_call_id: toolCall.id,
+                role: 'tool',
+                name: 'get_decisions',
+                content: JSON.stringify({ 
+                  decisions: `I couldn't find a conversation with ${params.participantName}. Please try again with a different name or conversation ID.`
+                })
+              };
+            }
+            
+            // Call n8n webhook to get decisions
+            const decisions = await getDecisions({
+              conversationId: conversationId || '',
+              userId: options.userId || ''
+            });
+            
+            console.log('[OpenAI] Received decisions from n8n, length:', decisions.length);
+            
+            // Personalize the decisions
+            const personalizedDecisions = await personalizeResponse(decisions, options.userId || '');
+            
+            console.log('[OpenAI] Personalized decisions:', personalizedDecisions.substring(0, 100) + '...');
+            
+            return {
+              tool_call_id: toolCall.id,
+              role: 'tool',
+              name: 'get_decisions',
+              content: JSON.stringify({ decisions: personalizedDecisions })
             };
           }
           
