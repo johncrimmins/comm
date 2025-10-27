@@ -20,6 +20,88 @@ export interface N8NToolParams {
   userId: string;
 }
 
+export interface ConversationSearchParams {
+  userId: string;
+  participantName: string;
+}
+
+/**
+ * Search for conversations by participant name
+ * Returns the conversationId of the first matching conversation
+ */
+export async function findConversationByParticipant(params: ConversationSearchParams): Promise<string | null> {
+  try {
+    const { getDocs, collection, query, where } = await import('firebase/firestore');
+    const { db } = await import('@/lib/firebase/db');
+    
+    // 1. Get all users to find the user ID by name
+    const usersRef = collection(db, 'users');
+    const usersSnapshot = await getDocs(usersRef);
+    const users = usersSnapshot.docs.map(doc => ({ id: doc.id, name: doc.data().name || '' }));
+    
+    // 2. Find user IDs that match the participant name
+    const matchingUserIds = users
+      .filter(user => user.name.toLowerCase().includes(params.participantName.toLowerCase()))
+      .map(user => user.id);
+    
+    if (matchingUserIds.length === 0) {
+      console.log('[n8n] No users found matching:', params.participantName);
+      return null;
+    }
+    
+    console.log('[n8n] Found matching user IDs:', matchingUserIds);
+    
+    // 3. Get all conversations where the current user is a participant
+    const conversationsRef = collection(db, 'conversations');
+    const userConversationsQuery = query(
+      conversationsRef,
+      where('participantIds', 'array-contains', params.userId)
+    );
+    const conversationsSnapshot = await getDocs(userConversationsQuery);
+    
+    // 4. Find conversations that also include the matching participant
+    const matchingConversations = conversationsSnapshot.docs.filter(doc => {
+      const participantIds = doc.data().participantIds || [];
+      // Check if any of the matching user IDs are in this conversation
+      return matchingUserIds.some(id => participantIds.includes(id));
+    });
+    
+    if (matchingConversations.length === 0) {
+      console.log('[n8n] No conversations found with matching participants');
+      return null;
+    }
+    
+    // 5. Separate 1-on-1 conversations from group chats
+    const oneOnOneConversations = matchingConversations.filter(doc => {
+      const participantIds = doc.data().participantIds || [];
+      return participantIds.length === 2; // Exactly 2 participants = 1-on-1
+    });
+    
+    const groupChats = matchingConversations.filter(doc => {
+      const participantIds = doc.data().participantIds || [];
+      return participantIds.length > 2; // More than 2 participants = group chat
+    });
+    
+    // 6. Prefer 1-on-1 conversations, fall back to group chats
+    const candidates = oneOnOneConversations.length > 0 ? oneOnOneConversations : groupChats;
+    
+    console.log('[n8n] Search results:', {
+      totalMatches: matchingConversations.length,
+      oneOnOnes: oneOnOneConversations.length,
+      groupChats: groupChats.length,
+      using: oneOnOneConversations.length > 0 ? '1-on-1' : 'group chat'
+    });
+    
+    const conversationId = candidates[0].id;
+    console.log('[n8n] Found conversation:', conversationId);
+    
+    return conversationId;
+  } catch (error) {
+    console.error('[n8n] Error searching conversations:', error);
+    return null;
+  }
+}
+
 /**
  * Call n8n workflow for conversation summarization
  */
@@ -28,15 +110,28 @@ export async function summarizeConversation(params: N8NToolParams): Promise<stri
     throw new Error('n8n webhook URL not configured. Please add EXPO_PUBLIC_N8N_WEBHOOK_URL to your environment variables.');
   }
 
+  // Fetch user's display name
+  let userName = 'User';
+  try {
+    const { getDoc, doc } = await import('firebase/firestore');
+    const { db } = await import('@/lib/firebase/db');
+    const userDoc = await getDoc(doc(db, 'users', params.userId));
+    if (userDoc.exists()) {
+      userName = userDoc.data().name || 'User';
+    }
+  } catch (error) {
+    console.warn('[n8n] Could not fetch user name:', error);
+  }
+
   // Use the webhook URL as-is (it's the complete endpoint, no need to append path)
   const webhookUrl = N8N_WEBHOOK_URL.endsWith('/') ? N8N_WEBHOOK_URL.slice(0, -1) : N8N_WEBHOOK_URL;
   console.log('[n8n] Calling webhook:', webhookUrl);
-  console.log('[n8n] Params:', params);
+  console.log('[n8n] Params:', { ...params, userName });
 
   try {
     const response = await fetch(webhookUrl, {
       method: 'POST',
-      body: JSON.stringify(params),
+      body: JSON.stringify({ ...params, userName }),
     });
 
     console.log('[n8n] Response status:', response.status, response.statusText);

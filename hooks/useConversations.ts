@@ -40,6 +40,15 @@ export function useConversations(): ConversationPreviewUI[] {
     const unsubscribe = onSnapshot(q, async (snapshot) => {
       const conversations: ConversationPreviewUI[] = [];
 
+      // Fetch all users once for name lookup
+      const { getDocs: getDocsFn } = await import('firebase/firestore');
+      const usersRef = collection(db, 'users');
+      const usersSnapshot = await getDocsFn(usersRef);
+      const usersMap: Record<string, string> = {};
+      usersSnapshot.docs.forEach(doc => {
+        usersMap[doc.id] = doc.data().name || 'user';
+      });
+
       // Process conversations in parallel
       const conversationPromises = snapshot.docs
         .filter(doc => {
@@ -49,6 +58,22 @@ export function useConversations(): ConversationPreviewUI[] {
         })
         .map(async (doc, index) => {
         const conversationId = doc.id;
+        const participantIds = doc.data().participantIds || [];
+
+        // Generate display name from participant names
+        const participantNames = participantIds
+          .filter(id => id !== userId) // Exclude current user
+          .map(id => usersMap[id] || 'user')
+          .slice(0, 3); // Limit to 3 names for display
+        
+        let displayName = 'conversation';
+        if (participantNames.length === 1) {
+          displayName = participantNames[0];
+        } else if (participantNames.length === 2) {
+          displayName = `${participantNames[0]} & ${participantNames[1]}`;
+        } else if (participantNames.length > 2) {
+          displayName = `${participantNames[0]}, ${participantNames[1]} & ${participantNames.length - 2} more`;
+        }
 
         // For MVP, we'll fetch last message synchronously
         // This keeps it simple - we can optimize later with caching
@@ -76,7 +101,7 @@ export function useConversations(): ConversationPreviewUI[] {
 
         const conversation = {
           id: conversationId,
-          displayName: `conversation ${index + 1}`,
+          displayName: displayName,
           lastMessage: lastMessageText,
           timestamp: formatTime(lastMessageAt),
           lastMessageAt: lastMessageAt, // Store raw timestamp for sorting
