@@ -2,7 +2,7 @@
  * OpenAI API integration for text transformations
  */
 
-import { summarizeConversation } from './n8n';
+import { summarizeConversation, findConversationByParticipant } from './n8n';
 
 const getEnv = (key: string): string => {
   const value = process.env[key as keyof NodeJS.ProcessEnv];
@@ -133,16 +133,20 @@ export async function chatWithAI(options: ChatOptions): Promise<string> {
         type: 'function',
         function: {
           name: 'summarize_conversation',
-          description: 'Summarize a conversation thread. Use the current conversation ID if user asks to summarize their current conversation.',
+          description: 'Summarize a conversation thread. Can use conversation ID directly or search by participant name.',
           parameters: {
             type: 'object',
             properties: {
               conversationId: {
                 type: 'string',
-                description: 'The ID of the conversation to summarize. Use "' + options.currentConversationId + '" for the current conversation.'
+                description: 'The ID of the conversation to summarize. Leave empty if using participantName to search.'
+              },
+              participantName: {
+                type: 'string',
+                description: 'Name of a participant in the conversation. Use this if the user mentions someone by name instead of a conversation ID.'
               }
             },
-            required: ['conversationId']
+            required: []
           }
         }
       }
@@ -192,19 +196,110 @@ export async function chatWithAI(options: ChatOptions): Promise<string> {
             const params = JSON.parse(toolCall.function.arguments);
             console.log('[OpenAI] summarize_conversation params:', params);
             
+            let conversationId = params.conversationId;
+            
+            // If no conversationId but participantName provided, search for it
+            if (!conversationId && params.participantName) {
+              console.log('[OpenAI] Searching for conversation with participant:', params.participantName);
+              const foundId = await findConversationByParticipant({
+                userId: options.userId || '',
+                participantName: params.participantName
+              });
+              
+              if (!foundId) {
+                return {
+                  tool_call_id: toolCall.id,
+                  role: 'tool',
+                  name: 'summarize_conversation',
+                  content: JSON.stringify({ 
+                    summary: `I couldn't find a conversation with ${params.participantName}. Please try again with a different name or conversation ID.`
+                  })
+                };
+              }
+              
+              conversationId = foundId;
+              console.log('[OpenAI] Found conversation:', conversationId);
+            }
+            
+            // Fallback to current conversation if still no ID
+            if (!conversationId) {
+              conversationId = options.currentConversationId || '';
+              console.log('[OpenAI] Using current conversation:', conversationId);
+            }
+            
             // Call n8n webhook to get summary
-            const summary = await summarizeConversation({
-              conversationId: params.conversationId,
+            const summaryResponse = await summarizeConversation({
+              conversationId: conversationId,
               userId: options.userId || ''
             });
             
+            // Parse the response (n8n returns plain summary string)
+            const summary = summaryResponse;
+            const currentUserId = options.userId || '';
+            
             console.log('[OpenAI] Received summary from n8n, length:', summary.length);
+            
+            // Fetch participant names to replace IDs with names
+            let participantNames: Record<string, string> = {};
+            try {
+              const { getDocs, collection } = await import('firebase/firestore');
+              const { db } = await import('@/lib/firebase/db');
+              const usersRef = collection(db, 'users');
+              const usersSnapshot = await getDocs(usersRef);
+              usersSnapshot.docs.forEach(doc => {
+                participantNames[doc.id] = doc.data().name || '';
+              });
+              console.log('[OpenAI] Loaded participant names:', Object.keys(participantNames).length, 'users');
+            } catch (error) {
+              console.warn('[OpenAI] Could not fetch participant names:', error);
+            }
+            
+            // Personalize the summary by replacing IDs with names and current user with "You"
+            let personalizedSummary = summary;
+            const currentUserName = currentUserId ? participantNames[currentUserId] : '';
+            
+            // Step 1: Replace IDs with names first
+            Object.keys(participantNames).forEach(userId => {
+              const name = participantNames[userId];
+              const idRegex = new RegExp(userId, 'g');
+              personalizedSummary = personalizedSummary.replace(idRegex, name);
+            });
+            
+            // Step 2: Replace common patterns involving the current user with "You"
+            if (currentUserName) {
+              // Escape special regex characters in the name
+              const escapedName = currentUserName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+              
+              // Pattern: "user {name}" → "You"
+              // Pattern: "{name} stated" → "You stated"
+              // Pattern: "from {name}" → "from You"
+              const userPatterns = [
+                new RegExp(`user\\s+${escapedName}`, 'gi'),
+                new RegExp(`from\\s+user\\s+${escapedName}`, 'gi'),
+                new RegExp(`${escapedName}\\s+stated`, 'gi'),
+                new RegExp(`${escapedName}\\s+said`, 'gi'),
+                new RegExp(`message\\s+from\\s+${escapedName}`, 'gi'),
+                new RegExp(`single\\s+message\\s+from\\s+user\\s+${escapedName}`, 'gi'),
+              ];
+              
+              userPatterns.forEach(pattern => {
+                personalizedSummary = personalizedSummary.replace(pattern, 'You');
+              });
+            }
+            
+            // Step 3: Replace remaining instances of current user's name with "You"
+            if (currentUserName) {
+              const currentUserNameRegex = new RegExp(`\\b${currentUserName}\\b`, 'gi');
+              personalizedSummary = personalizedSummary.replace(currentUserNameRegex, 'You');
+            }
+            
+            console.log('[OpenAI] Personalized summary:', personalizedSummary.substring(0, 100) + '...');
             
             return {
               tool_call_id: toolCall.id,
               role: 'tool',
               name: 'summarize_conversation',
-              content: JSON.stringify({ summary })
+              content: JSON.stringify({ summary: personalizedSummary })
             };
           }
           return null;

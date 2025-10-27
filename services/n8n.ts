@@ -62,7 +62,6 @@ export async function findConversationByParticipant(params: ConversationSearchPa
     // 4. Find conversations that also include the matching participant
     const matchingConversations = conversationsSnapshot.docs.filter(doc => {
       const participantIds = doc.data().participantIds || [];
-      // Check if any of the matching user IDs are in this conversation
       return matchingUserIds.some(id => participantIds.includes(id));
     });
     
@@ -74,12 +73,12 @@ export async function findConversationByParticipant(params: ConversationSearchPa
     // 5. Separate 1-on-1 conversations from group chats
     const oneOnOneConversations = matchingConversations.filter(doc => {
       const participantIds = doc.data().participantIds || [];
-      return participantIds.length === 2; // Exactly 2 participants = 1-on-1
+      return participantIds.length === 2;
     });
     
     const groupChats = matchingConversations.filter(doc => {
       const participantIds = doc.data().participantIds || [];
-      return participantIds.length > 2; // More than 2 participants = group chat
+      return participantIds.length > 2;
     });
     
     // 6. Prefer 1-on-1 conversations, fall back to group chats
@@ -110,28 +109,15 @@ export async function summarizeConversation(params: N8NToolParams): Promise<stri
     throw new Error('n8n webhook URL not configured. Please add EXPO_PUBLIC_N8N_WEBHOOK_URL to your environment variables.');
   }
 
-  // Fetch user's display name
-  let userName = 'User';
-  try {
-    const { getDoc, doc } = await import('firebase/firestore');
-    const { db } = await import('@/lib/firebase/db');
-    const userDoc = await getDoc(doc(db, 'users', params.userId));
-    if (userDoc.exists()) {
-      userName = userDoc.data().name || 'User';
-    }
-  } catch (error) {
-    console.warn('[n8n] Could not fetch user name:', error);
-  }
-
   // Use the webhook URL as-is (it's the complete endpoint, no need to append path)
   const webhookUrl = N8N_WEBHOOK_URL.endsWith('/') ? N8N_WEBHOOK_URL.slice(0, -1) : N8N_WEBHOOK_URL;
   console.log('[n8n] Calling webhook:', webhookUrl);
-  console.log('[n8n] Params:', { ...params, userName });
+  console.log('[n8n] Params:', params);
 
   try {
     const response = await fetch(webhookUrl, {
       method: 'POST',
-      body: JSON.stringify({ ...params, userName }),
+      body: JSON.stringify(params),
     });
 
     console.log('[n8n] Response status:', response.status, response.statusText);
