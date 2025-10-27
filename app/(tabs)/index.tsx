@@ -104,10 +104,8 @@ export default function ConversationListScreen() {
 
   const renderEmptyState = () => (
     <View style={tabsStyles.emptyContainer}>
-      <Text style={tabsStyles.emptyIcon}>✨</Text>
-      <Text style={tabsStyles.emptyTitle}>reply 3x faster</Text>
       <Text style={tabsStyles.emptyText}>
-        start your first conversation with ai that understands your tone
+        No conversations yet
       </Text>
     </View>
   );
@@ -225,7 +223,7 @@ export default function ConversationListScreen() {
             onPress={handleNewConversation}
             activeOpacity={0.7}
           >
-            <Text style={tabsStyles.newChatIcon}>✨</Text>
+            <Text style={tabsStyles.newChatIcon}>+</Text>
           </TouchableOpacity>
         </View>
 
