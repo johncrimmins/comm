@@ -14,9 +14,9 @@ export const signIn = async (email: string, password: string) => {
   return cred;
 };
 
-export const signUp = async (email: string, password: string, displayName?: string) => {
+export const signUp = async (email: string, password: string, displayName?: string, title?: string) => {
   const cred = await createUserWithEmailAndPassword(auth, email, password);
-  await ensureUserProfile(cred.user, displayName);
+  await ensureUserProfile(cred.user, displayName, title);
   return cred;
 };
 
@@ -29,7 +29,7 @@ function getDeterministicColorFor(uid: string): string {
   return palette[sum % palette.length];
 }
 
-async function ensureUserProfile(user: User, displayName?: string): Promise<void> {
+async function ensureUserProfile(user: User, displayName?: string, title?: string): Promise<void> {
   try {
     const ref = doc(db, 'users', user.uid);
     const snap = await getDoc(ref);
@@ -42,8 +42,8 @@ async function ensureUserProfile(user: User, displayName?: string): Promise<void
         avatarColor: getDeterministicColorFor(user.uid),
       }, { merge: true });
       
-      // Create AI conversation for new users
-      await createOrFindConversation([user.uid, 'ai-assistant']);
+      // Create AI conversation for new users with title
+      await createOrFindConversation([user.uid, 'ai-assistant'], title);
     } else {
       // Merge to avoid overwriting any existing fields
       await setDoc(ref, {

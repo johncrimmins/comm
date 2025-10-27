@@ -92,8 +92,9 @@ export async function summarizeConversation(params: N8NToolParams): Promise<stri
     throw new Error('n8n webhook URL not configured. Please add EXPO_PUBLIC_N8N_WEBHOOK_URL to your environment variables.');
   }
 
-  // Normalize webhook URL (remove trailing slash if present)
-  const webhookUrl = N8N_WEBHOOK_URL.endsWith('/') ? N8N_WEBHOOK_URL.slice(0, -1) : N8N_WEBHOOK_URL;
+  // Normalize webhook URL and append /summarize
+  const baseUrl = N8N_WEBHOOK_URL.endsWith('/') ? N8N_WEBHOOK_URL.slice(0, -1) : N8N_WEBHOOK_URL;
+  const webhookUrl = `${baseUrl}/summarize`;
   console.log('[n8n] Calling webhook:', webhookUrl);
   console.log('[n8n] Params:', params);
 
@@ -143,6 +144,71 @@ export async function summarizeConversation(params: N8NToolParams): Promise<stri
     return 'Unable to generate summary';
   } catch (error: any) {
     console.error('[n8n] Error calling summarize workflow:', error);
+    throw error;
+  }
+}
+
+/**
+ * n8n Webhook Integration for Pull Actions
+ * 
+ * Calls n8n workflow that extracts action items from a conversation
+ * 
+ * Response format: [{actions: "..."}] (array format from n8n)
+ */
+export async function pullActions(params: N8NToolParams): Promise<string> {
+  if (!N8N_WEBHOOK_URL) {
+    throw new Error('n8n webhook URL not configured. Please add EXPO_PUBLIC_N8N_WEBHOOK_URL to your environment variables.');
+  }
+
+  // Normalize webhook URL and append /pull-actions
+  const baseUrl = N8N_WEBHOOK_URL.endsWith('/') ? N8N_WEBHOOK_URL.slice(0, -1) : N8N_WEBHOOK_URL;
+  const webhookUrl = `${baseUrl}/pull-actions`;
+  console.log('[n8n] Calling actions webhook:', webhookUrl);
+  console.log('[n8n] Params:', params);
+
+  try {
+    // Send POST request to n8n webhook
+    const response = await fetch(webhookUrl, {
+      method: 'POST',
+      body: JSON.stringify(params),
+    });
+
+    console.log('[n8n] Response status:', response.status, response.statusText);
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      console.error('[n8n] Error response:', errorData);
+      throw new Error(errorData.error?.message || `n8n webhook error: ${response.status}`);
+    }
+
+    // Parse response (n8n returns array format)
+    const responseText = await response.text();
+    console.log('[n8n] Raw response length:', responseText.length);
+    
+    if (!responseText || responseText.length === 0) {
+      throw new Error('n8n returned empty response. Check that Respond to Webhook node has data wired to it.');
+    }
+    
+    const data = JSON.parse(responseText);
+    console.log('[n8n] Parsed JSON data:', data);
+    
+    // EXTRACT ACTIONS FROM RESPONSE
+    // n8n typically returns array format: [{actions: "..."}]
+    if (Array.isArray(data) && data.length > 0) {
+      const actions = data[0].actions;
+      console.log('[n8n] Extracted actions from array:', actions);
+      return actions || 'No action items found';
+    }
+    
+    // Fallback: handle object response format
+    if (data.actions) {
+      return data.actions;
+    }
+    
+    console.error('[n8n] Unexpected response format:', data);
+    return 'No action items found';
+  } catch (error: any) {
+    console.error('[n8n] Error calling pull actions workflow:', error);
     throw error;
   }
 }

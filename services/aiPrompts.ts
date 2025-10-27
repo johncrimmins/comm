@@ -19,6 +19,8 @@ Guidelines:
 
 When users ask to summarize, recap, or review their conversations (using keywords like "summary", "summarize", "recap", "review", "what did we discuss"), use the summarize_conversation tool to get an accurate summary of their conversation history.
 
+When users ask about action items, tasks, or what needs to be done (using keywords like "action items", "tasks", "todo", "what do I need to do", "what should I do"), use the pull_actions tool to extract actionable items from their conversations.
+
 Always speak as Comms, the AI assistant.`,
 
   /**

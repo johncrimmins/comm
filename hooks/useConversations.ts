@@ -5,10 +5,11 @@ import { useAuthUser } from '@/hooks/useAuth';
 
 export type ConversationPreviewUI = {
   id: string;
-  displayName: string; // placeholder; real names come from participants in future epic
+  displayName: string;
   lastMessage: string | null;
   timestamp: string | null;
   avatarColor?: string;
+  title?: string;
 };
 
 function formatTime(ms: number | null | undefined): string | null {
@@ -45,7 +46,7 @@ export function useConversations(): ConversationPreviewUI[] {
       const usersRef = collection(db, 'users');
       const usersSnapshot = await getDocsFn(usersRef);
       const usersMap: Record<string, string> = {};
-      usersSnapshot.docs.forEach(doc => {
+      usersSnapshot.docs.forEach((doc: any) => {
         usersMap[doc.id] = doc.data().name || 'user';
       });
 
@@ -58,12 +59,14 @@ export function useConversations(): ConversationPreviewUI[] {
         })
         .map(async (doc, index) => {
         const conversationId = doc.id;
-        const participantIds = doc.data().participantIds || [];
+        const data = doc.data();
+        const participantIds = data.participantIds || [];
+        const title = data.title;
 
         // Generate display name from participant names
         const participantNames = participantIds
-          .filter(id => id !== userId) // Exclude current user
-          .map(id => usersMap[id] || 'user')
+          .filter((id: string) => id !== userId) // Exclude current user
+          .map((id: string) => usersMap[id] || 'user')
           .slice(0, 3); // Limit to 3 names for display
         
         let displayName = 'conversation';
@@ -105,6 +108,7 @@ export function useConversations(): ConversationPreviewUI[] {
           lastMessage: lastMessageText,
           timestamp: formatTime(lastMessageAt),
           lastMessageAt: lastMessageAt, // Store raw timestamp for sorting
+          title: title,
         };
         
         return conversation;

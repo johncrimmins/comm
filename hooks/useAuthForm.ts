@@ -8,6 +8,7 @@ interface ValidationErrors {
   email?: string;
   password?: string;
   displayName?: string;
+  title?: string;
 }
 
 export function useAuthForm() {
@@ -16,6 +17,7 @@ export function useAuthForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
+  const [title, setTitle] = useState('');
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<ValidationErrors>({});
 
@@ -54,6 +56,12 @@ export function useAuthForm() {
       } else if (displayName.length < 2) {
         newErrors.displayName = 'display name must be at least 2 characters';
       }
+      
+      if (!title.trim()) {
+        newErrors.title = 'title is required';
+      } else if (title.length < 2) {
+        newErrors.title = 'title must be at least 2 characters';
+      }
     }
 
     setErrors(newErrors);
@@ -70,7 +78,7 @@ export function useAuthForm() {
       if (mode === 'signin') {
         await signIn(email.trim(), password);
       } else {
-        await signUp(email.trim(), password, displayName.trim());
+        await signUp(email.trim(), password, displayName.trim(), title.trim());
       }
       router.replace('/(tabs)');
     } catch (error) {
@@ -85,11 +93,13 @@ export function useAuthForm() {
     email,
     password,
     displayName,
+    title,
     loading,
     errors,
     setEmail,
     setPassword,
     setDisplayName,
+    setTitle,
     toggleMode,
     handleAuth,
     clearError,

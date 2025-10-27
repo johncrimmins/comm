@@ -146,9 +146,9 @@ export default function ChatScreen() {
   // Get conversation title
   const conversationTitle = isAI
     ? 'Chat with Comms (AI)'
-    : isGroupChat 
+    : conversation?.title || (isGroupChat 
       ? ((Array.isArray(groupName) ? groupName[0] : groupName) || 'group chat')
-      : (convId || 'chat');
+      : (convId || 'chat'));
 
   // Get presence subtitle
   const presenceSubtitle = presence.isTyping ? 'typing...' : presence.status;

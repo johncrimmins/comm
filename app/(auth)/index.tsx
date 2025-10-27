@@ -24,11 +24,13 @@ export default function AuthScreen() {
     email,
     password,
     displayName,
+    title,
     loading,
     errors,
     setEmail,
     setPassword,
     setDisplayName,
+    setTitle,
     toggleMode,
     handleAuth,
     clearError,
@@ -62,21 +64,39 @@ export default function AuthScreen() {
           <GlassCard style={styles.formCard} intensity={40}>
             <View style={styles.formContainer}>
               {mode === 'signup' && (
-                <View style={styles.inputGroup}>
-                  <FormLabel>name</FormLabel>
-                  <FormInput
-                    hasError={!!errors.displayName}
-                    placeholder="your name"
-                    value={displayName}
-                    onChangeText={(text) => {
-                      setDisplayName(text);
-                      if (errors.displayName) clearError('displayName');
-                    }}
-                    autoCapitalize="words"
-                    editable={!loading}
-                  />
-                  <ErrorText>{errors.displayName}</ErrorText>
-                </View>
+                <>
+                  <View style={styles.inputGroup}>
+                    <FormLabel>name</FormLabel>
+                    <FormInput
+                      hasError={!!errors.displayName}
+                      placeholder="your name"
+                      value={displayName}
+                      onChangeText={(text) => {
+                        setDisplayName(text);
+                        if (errors.displayName) clearError('displayName');
+                      }}
+                      autoCapitalize="words"
+                      editable={!loading}
+                    />
+                    <ErrorText>{errors.displayName}</ErrorText>
+                  </View>
+
+                  <View style={styles.inputGroup}>
+                    <FormLabel>title</FormLabel>
+                    <FormInput
+                      hasError={!!errors.title}
+                      placeholder="e.g., Finance, Engineering"
+                      value={title}
+                      onChangeText={(text) => {
+                        setTitle(text);
+                        if (errors.title) clearError('title');
+                      }}
+                      autoCapitalize="words"
+                      editable={!loading}
+                    />
+                    <ErrorText>{errors.title}</ErrorText>
+                  </View>
+                </>
               )}
 
               <View style={styles.inputGroup}>

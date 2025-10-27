@@ -4,6 +4,7 @@ import { db } from '@/lib/firebase/db';
 
 export type ConversationData = {
   participantIds: string[];
+  title?: string;
   createdAt?: any;
   updatedAt?: any;
 };
@@ -23,7 +24,13 @@ export function useConversation(conversationId: string): ConversationData | null
     const conversationRef = doc(db, 'conversations', conversationId);
     const unsubscribe = onSnapshot(conversationRef, (snapshot) => {
       if (snapshot.exists()) {
-        setConversation(snapshot.data() as ConversationData);
+        const data = snapshot.data();
+        setConversation({
+          participantIds: data.participantIds || [],
+          title: data.title || undefined,
+          createdAt: data.createdAt,
+          updatedAt: data.updatedAt,
+        });
       } else {
         setConversation(null);
       }

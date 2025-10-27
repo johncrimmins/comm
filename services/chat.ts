@@ -1,7 +1,7 @@
 import { collection, doc, setDoc, updateDoc, getDocs, query, orderBy, serverTimestamp, where, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase/db';
 
-export async function createOrFindConversation(participantIds: string[]): Promise<{ conversationId: string }> {
+export async function createOrFindConversation(participantIds: string[], title?: string): Promise<{ conversationId: string }> {
   // IMPORTANT: Sort participantIds to ensure consistency
   // This prevents creating duplicate conversations when order differs
   const sortedParticipants = [...participantIds].sort();
@@ -22,6 +22,7 @@ export async function createOrFindConversation(participantIds: string[]): Promis
   const conversationRef = doc(collection(db, 'conversations'));
   await setDoc(conversationRef, {
     participantIds: sortedParticipants,
+    title: title || null,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   });
