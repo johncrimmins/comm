@@ -47,38 +47,23 @@ export async function summarizeConversation(params: N8NToolParams): Promise<stri
       throw new Error(errorData.error?.message || `n8n webhook error: ${response.status}`);
     }
 
-    // Get response text first to debug
-    const responseText = await response.text();
-    console.log('[n8n] Raw response text:', responseText);
+    // Parse JSON response
+    const data = await response.json();
+    console.log('[n8n] Parsed JSON data:', data);
     
-    // Try to parse as JSON
-    let data;
-    try {
-      data = JSON.parse(responseText);
-      console.log('[n8n] Parsed JSON data:', data);
-    } catch (parseError) {
-      console.error('[n8n] Failed to parse JSON:', parseError);
-      console.error('[n8n] Response text was:', responseText);
-      throw new Error('Invalid JSON response from n8n');
+    // Handle array response from n8n
+    if (Array.isArray(data) && data.length > 0) {
+      const summary = data[0].summary;
+      console.log('[n8n] Extracted summary from array:', summary);
+      return summary || 'Unable to generate summary';
     }
     
-    // Handle different response formats from n8n
-    // Format 1: Direct summary object
+    // Handle object response
     if (data.summary) {
       return data.summary;
     }
     
-    // Format 2: OpenAI array response (extract from nested structure)
-    if (Array.isArray(data) && data[0]?.message?.content) {
-      return data[0].message.content;
-    }
-    
-    // Format 3: Check if content is in different location
-    if (data.content) {
-      return data.content;
-    }
-    
-    console.error('[n8n] Could not extract summary from response:', data);
+    console.error('[n8n] Unexpected response format:', data);
     return 'Unable to generate summary';
   } catch (error: any) {
     console.error('[n8n] Error calling summarize workflow:', error);
