@@ -1,27 +1,33 @@
 import { initializeAuth, getReactNativePersistence, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, User, getAuth } from 'firebase/auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Platform } from 'react-native';
 import { db } from './db';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { app } from './app';
 import { createOrFindConversation } from '@/services/chat';
 
-// Initialize Auth with AsyncStorage persistence for React Native
+// Initialize Auth with platform-specific persistence
 // Use singleton pattern to avoid re-initialization
 let authInstance: ReturnType<typeof getAuth> | null = null;
 
 export const auth = (() => {
   if (!authInstance) {
-    try {
-      // Try to initialize with AsyncStorage persistence
-      authInstance = initializeAuth(app, {
-        persistence: getReactNativePersistence(AsyncStorage)
-      });
-    } catch (error: any) {
-      // If already initialized (e.g., hot reload), get existing instance
-      if (error.code === 'auth/already-initialized') {
-        authInstance = getAuth(app);
-      } else {
-        throw error;
+    // Web uses getAuth() which automatically uses localStorage
+    if (Platform.OS === 'web') {
+      authInstance = getAuth(app);
+    } else {
+      // React Native (iOS/Android) uses AsyncStorage persistence
+      try {
+        authInstance = initializeAuth(app, {
+          persistence: getReactNativePersistence(AsyncStorage)
+        });
+      } catch (error: any) {
+        // If already initialized (e.g., hot reload), get existing instance
+        if (error.code === 'auth/already-initialized') {
+          authInstance = getAuth(app);
+        } else {
+          throw error;
+        }
       }
     }
   }

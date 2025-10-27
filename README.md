@@ -1,8 +1,16 @@
-# Welcome to your Expo app 👋
+# Comm
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Build a modern, cross‑platform messaging app with real‑time sync, offline persistence, group chats, and AI features — in minutes with Expo Go.
 
-## Get started
+## Why Comm
+
+- Real‑time messaging that feels instant
+- Offline‑first reliability that survives restarts
+- Group chats with read receipts and presence
+- An integrated AI assistant that summarizes threads, extracts action items, and tracks decisions
+- Polished TalkTime‑inspired design that looks great on iOS, Android, and Web
+
+## Quickstart (Expo Go)
 
 1. Install dependencies
 
@@ -10,41 +18,95 @@ This is an [Expo](https://expo.dev) project created with [`create-expo-app`](htt
    npm install
    ```
 
-2. Start the app
+2. Add environment variables (create a `.env` file)
+
+   ```
+   EXPO_PUBLIC_FIREBASE_API_KEY=...
+   EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN=...
+   EXPO_PUBLIC_FIREBASE_PROJECT_ID=...
+   EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET=...
+   EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=...
+   EXPO_PUBLIC_FIREBASE_APP_ID=...
+   EXPO_PUBLIC_OPENAI_API_KEY=...
+   EXPO_PUBLIC_N8N_WEBHOOK_URL=...
+   ```
+
+3. Start the app
 
    ```bash
    npx expo start
    ```
 
-In the output, you'll find options to open the app in a
+4. Open on device with Expo Go (or press `i` for iOS simulator, `a` for Android emulator)
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+## Features
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+- One‑on‑one and group chats (3+ users)
+- Real‑time delivery with optimistic UI
+- Read receipts (sent / delivered / read)
+- Presence and typing indicators
+- Foreground push notifications (expo‑notifications)
+- Image attachments with preview (Firebase Storage)
+- AI conversation (Chat with Comms) powered by OpenAI
+- Message transformations (Concise, Professionalize, Technicalize)
+- Cross‑platform: iOS, Android, Web
 
-## Get a fresh project
+## AI Superpowers
 
-When you're ready, run:
+- Summarize long threads on demand
+- Extract action items from discussions
+- Surface key decisions made in chats
+- Search by participant name and operate on that conversation
+
+Backed by OpenAI function calling + n8n RAG workflows, with results stored and rendered in‑app.
+
+## Architecture
+
+- Expo Router v6 with file‑based routes in `app/`
+- Firebase Auth + Firestore (real‑time listeners, offline cache)
+- Firebase Storage for media
+- Service layer in `services/` (chat, AI, n8n, storage, presence)
+- Hooks in `hooks/` (messages, conversations, notifications, presence)
+- Centralized theming in `styles/`
+
+Key files:
+- `app/chat/[id].tsx` — chat screen, presence, image send, AI handling
+- `services/chat.ts` — sending, delivery/read tracking
+- `services/aiChat.ts`, `services/openai.ts`, `services/n8n.ts` — AI + tools
+- `hooks/useMessages.ts`, `hooks/useNotifications.ts`, `hooks/usePresence.ts`
+
+## Screenshots / Demos
+
+- Real‑time updates on two devices
+- Group chat with presence and read receipts
+- AI assistant summarizing an active thread
+- Image attachment preview and send
+
+(Add your screenshots or Loom links here.)
+
+## Developer Experience
+
+- Start fast with Expo Go — no native builds required
+- Strict TypeScript for clarity
+- Clean separation of concerns (services + hooks)
+- Smooth animations with Reanimated
+
+## Documentation
+
+See detailed docs in `docs/project-content/`:
+- README (deep‑dive), AI features, real‑time messaging, offline support, message transformations, feature summary, persona brainlift
+
+## Scripts
 
 ```bash
-npm run reset-project
+npm start          # Expo dev server
+npm run ios        # iOS simulator
+npm run android    # Android emulator
+npm run web        # Web
+npm test           # Jest tests
+npm run lint       # ESLint
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## License
 
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+For evaluation and learning. Replace with your license of choice.
