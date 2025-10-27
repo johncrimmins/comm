@@ -47,8 +47,21 @@ export async function summarizeConversation(params: N8NToolParams): Promise<stri
       throw new Error(errorData.error?.message || `n8n webhook error: ${response.status}`);
     }
 
-    const data = await response.json();
-    console.log('[n8n] Success, received data:', data);
+    // Get response text first to debug
+    const responseText = await response.text();
+    console.log('[n8n] Raw response text:', responseText);
+    
+    // Try to parse as JSON
+    let data;
+    try {
+      data = JSON.parse(responseText);
+      console.log('[n8n] Parsed JSON data:', data);
+    } catch (parseError) {
+      console.error('[n8n] Failed to parse JSON:', parseError);
+      console.error('[n8n] Response text was:', responseText);
+      throw new Error('Invalid JSON response from n8n');
+    }
+    
     return data.summary || 'Unable to generate summary';
   } catch (error: any) {
     console.error('[n8n] Error calling summarize workflow:', error);
