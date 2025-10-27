@@ -2,7 +2,6 @@ import React, { useState, useRef, useEffect } from 'react';
 import {
   FlatList,
   AppState,
-  StyleSheet,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -20,6 +19,7 @@ import { useNotifications } from '@/hooks/useNotifications';
 import { ChatHeader } from '@/components/chat/ChatHeader';
 import { ChatInput } from '@/components/chat/ChatInput';
 import { ChatMessages } from '@/components/chat/ChatMessages';
+import { chatStyles } from '@/styles/screens/chat';
 
 // Removed mock conversation data; using Firestore-driven messages via useMessages
 
@@ -155,7 +155,7 @@ export default function ChatScreen() {
 
   return (
     <GradientBackground>
-      <SafeAreaView style={styles.container} edges={['top']}>
+      <SafeAreaView style={chatStyles.container} edges={['top']}>
         <StatusBar style="light" />
 
         <ChatHeader
@@ -180,8 +180,3 @@ export default function ChatScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-});

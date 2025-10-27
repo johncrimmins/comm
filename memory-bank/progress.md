@@ -43,6 +43,12 @@
 - Architecture documentation: Comprehensive data flow mapping in docs/ai-chat-architecture-analysis.md
 - Type safety: TypeScript interfaces defined in types/api.ts for all API responses
 - Utility functions: Pure functions extracted for better testability and reusability
+- Centralized styling system: Theme.ts + styles/screens/ + styles/components/ for rapid iteration
+- Noir + Amber theme: Professional minimal design with amber accents on black
+- Designer-level refinements: Clean typography, precise spacing, borderless cards
+- Swipe-to-delete: Gesture-based conversation deletion with smooth animations
+- TalkTime nav bar: Pill-shaped navigation with floating icons and active states
+- Profile screen: User profile tab with email and avatar display
 
 ## What's Left To Build
 - Add sender names to message documents in Firestore
@@ -74,6 +80,9 @@
 - Architecture documented: Complete data flow mapping and file responsibilities documented
 - Type safety enhanced: TypeScript interfaces defined for all external API responses
 - Separation of concerns: Pure utility functions extracted for message status and conversation search
+- Professional design system: Centralized styling enables rapid iteration on app appearance
+- Minimal noir aesthetic: Flat design with amber accents, no gradients or blur effects
+- Designer refinement: TalkTime-inspired UI with clean typography and precise spacing
 
 ## Known Issues
 - No offline persistence beyond Firestore's offline cache

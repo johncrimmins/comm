@@ -1,7 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Colors } from '@/constants/Colors';
-import { BlurView } from 'expo-blur';
 
 export type Message = {
   id: string;
@@ -53,31 +52,25 @@ export default function Message({ message }: MessageProps) {
           styles.bubbleWrapper,
           message.isCurrentUser && styles.currentUserBubble,
         ]}>
-          <BlurView
-            intensity={message.isCurrentUser ? 60 : 40}
-            style={styles.blur}
-            tint="dark"
+          <View
+            style={[
+              styles.bubble,
+              message.isCurrentUser
+                ? styles.currentUserBubbleContent
+                : styles.otherUserBubbleContent,
+            ]}
           >
-            <View
+            <Text style={styles.messageText}>{message.text}</Text>
+            <Text
               style={[
-                styles.bubble,
-                message.isCurrentUser
-                  ? styles.currentUserBubbleContent
-                  : styles.otherUserBubbleContent,
+                styles.timestamp,
+                message.isCurrentUser && styles.currentUserTimestamp,
               ]}
             >
-              <Text style={styles.messageText}>{message.text}</Text>
-              <Text
-                style={[
-                  styles.timestamp,
-                  message.isCurrentUser && styles.currentUserTimestamp,
-                ]}
-              >
-                {message.timestamp}
-                {message.isCurrentUser && message.status ? ` · ${message.status}` : ''}
-              </Text>
-            </View>
-          </BlurView>
+              {message.timestamp}
+              {message.isCurrentUser && message.status ? ` · ${message.status}` : ''}
+            </Text>
+          </View>
         </View>
 
         {message.isCurrentUser && message.senderName && (
@@ -132,27 +125,23 @@ const styles = StyleSheet.create({
   },
   bubbleWrapper: {
     maxWidth: '75%',
-    borderRadius: 18,
+    borderRadius: 16,
     overflow: 'hidden',
     borderWidth: 1,
     borderColor: Colors.dark.border,
   },
   currentUserBubble: {
-    borderColor: Colors.dark.accentStart,
-    boxShadow: [{ color: Colors.dark.glow, offsetX: 0, offsetY: 2, blurRadius: 8 }],
-  },
-  blur: {
-    overflow: 'hidden',
+    borderColor: 'rgba(245, 158, 11, 0.35)',
   },
   bubble: {
     paddingHorizontal: 16,
     paddingVertical: 12,
   },
   currentUserBubbleContent: {
-    backgroundColor: 'rgba(192, 132, 252, 0.15)',
+    backgroundColor: 'rgba(245, 158, 11, 0.14)',
   },
   otherUserBubbleContent: {
-    backgroundColor: Colors.dark.glass,
+    backgroundColor: Colors.dark.secondary,
   },
   messageText: {
     fontSize: 15,
@@ -167,6 +156,6 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter_400Regular',
   },
   currentUserTimestamp: {
-    color: 'rgba(255, 255, 255, 0.6)',
+    color: '#A1A1AA',
   },
 });

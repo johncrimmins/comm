@@ -11,10 +11,10 @@ type GradientBackgroundProps = {
 export default function GradientBackground({ children, style }: GradientBackgroundProps) {
   return (
     <LinearGradient
-      colors={[Colors.dark.backgroundGradientStart, Colors.dark.backgroundGradientEnd]}
+      colors={[Colors.dark.background, Colors.dark.background]}
       style={[styles.gradient, style]}
       start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
+      end={{ x: 0, y: 0 }}
     >
       {children}
     </LinearGradient>

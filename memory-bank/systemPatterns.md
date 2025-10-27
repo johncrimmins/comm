@@ -24,11 +24,13 @@
 - All screens registered unconditionally in Stack for proper Expo Router integration.
 
 ## UI Composition
-- Theming via `components/ThemedText.tsx` and `components/ThemedView.tsx`.
-- Visual primitives: `ui/GlassCard`, `ui/GradientBackground`, `ui/GradientButton`.
-- iOS‑specific symbols and tab background shims for polish.
+- Theming via centralized `styles/theme.ts` with design tokens (typography, spacing, colors).
+- Visual primitives: `ui/GlassCard` (solid surface), `ui/GradientBackground` (flat black), `ui/GradientButton` (flat amber).
+- Noir + Amber theme: Deep black (#0B0B0B) backgrounds with amber (#F59E0B) accents.
+- Flat design: No gradients or blur effects for minimal, professional aesthetic.
 - Safe area handling: Use `SafeAreaView` from `react-native-safe-area-context` with edges prop.
 - Platform checks: Conditional rendering for web vs native (e.g., KeyboardAvoidingView).
+- Centralized styling: `styles/screens/` for screen styles, `styles/components/` for component styles.
 
 ## Safe Area Patterns
 - Root: `<SafeAreaProvider>` wraps entire app in `app/_layout.tsx`.
@@ -41,7 +43,8 @@
 - `ChatInput`: Used in both chat screen and new-conversation screen for consistency; includes long-press transformation feature with dynamic popover.
 - `ChatHeader`: Displays conversation title and presence status.
 - `ChatMessages`: Handles message list rendering with FlatList.
-- `GlassCard`: Themed container with blur effect and dark theme.
+- `GlassCard`: Solid surface container with border (no blur, flat design).
+- `SwipeableRow`: Gesture-based swipe-to-delete wrapper for conversation items.
 - Components located in `components/` directory organized by feature (auth, chat, conversation, ui).
 - Dynamic rendering: Use `.map()` over configuration arrays to render reusable UI elements (buttons, cards, etc.).
 - Conditional styling: Apply styles conditionally based on array index (e.g., `index === 0 && styles.first`, `index === last && styles.last`).
@@ -106,6 +109,8 @@
 - Gesture state management: Wrap `TouchableOpacity` with gesture handlers; use state flags to prevent unintended actions on release.
 - Popover animations: Use `useAnimatedStyle` with `withSpring` and `withTiming` for smooth entry/exit animations.
 - Tap-outside-to-dismiss: Use invisible overlay TouchableOpacity positioned absolutely with high zIndex to capture outside taps.
+- Swipe gestures: Use `Swipeable` from `react-native-gesture-handler` for swipe-to-delete functionality.
+- Swipe animations: Scale interpolation for smooth delete button reveal.
 
 ## Testing & Linting
 - Tests via Jest‑Expo preset.

@@ -1,10 +1,11 @@
 # Active Context
 
 ## Current Focus
-- Multi-tool AI agent: Three tools implemented (summarize, pull_actions, get_decisions)
-- Conversation titles: Users can add titles during signup for AI conversations
-- Code refactoring complete: Extracted helper functions to remove duplication
-- Reduced code complexity: ~170 lines removed through utility extraction
+- Noir + Amber theme: Minimal, professional design with amber accents on black background
+- Centralized styling system: Approach 1 implementation for rapid style iteration
+- TalkTime-inspired navigation: Pill-shaped nav bar with floating icons
+- Swipe-to-delete functionality: Gesture-based conversation deletion
+- Designer-level refinements: Clean, precise typography and spacing
 
 ## Recent Changes
 - Added get_decisions tool: Extract key decisions from conversations via n8n webhook at /get-decisions
@@ -73,10 +74,10 @@
 - Firestore as single source of truth with native offline persistence
 
 ## Next Steps
-1. Test all three tools (summarize, pull_actions, get_decisions) end-to-end
-2. Future: Additional tools (next steps, meeting notes, key takeaways)
+1. Fine-tune styling iterations using centralized system
+2. Future: Additional tool calls (next steps, meeting notes, key takeaways)
 3. Store tool outputs in Firestore for caching
-4. Investigate iPhone input area visibility issues
+4. Continue refining UI for professional polish
 5. Robust error handling and retry logic
 6. Improved offline support beyond Firestore cache
 
@@ -111,3 +112,9 @@
 - Conversation titles: Optional title field in Firestore conversations, set during signup for AI conversations
 - CORS handling: Removed Content-Type header to avoid preflight OPTIONS requests (n8n doesn't support OPTIONS)
 - Environment variables: EXPO_PUBLIC_N8N_WEBHOOK_URL for n8n webhook base URL
+- Centralized styling: Implemented Approach 1 with theme.ts, styles/screens/, styles/components/ for rapid iteration
+- Noir + Amber theme: Deep black backgrounds (#0B0B0B) with amber accents (#F59E0B), flat design (no gradients/blur)
+- Designer refinements: Removed card borders, cleaner typography, refined spacing (20px horizontal, 8px gaps)
+- Swipe-to-delete: Gesture-based conversation deletion with red delete button, AI conversation protected
+- TalkTime nav bar: Pill-shaped with rounded top corners (20px), floating icons, 72px height, dark active state
+- Profile screen: New tab for user profile with email display and avatar

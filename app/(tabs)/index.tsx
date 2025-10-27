@@ -2,13 +2,13 @@ import React, { useMemo, useEffect, useState } from 'react';
 import {
   View,
   Text,
-  StyleSheet,
   FlatList,
   TouchableOpacity,
 } from 'react-native';
 import { SafeAreaView, Edge } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Colors } from '@/constants/Colors';
 import GradientBackground from '@/components/ui/GradientBackground';
 import GlassCard from '@/components/ui/GlassCard';
@@ -16,8 +16,10 @@ import { useAuthUser } from '@/hooks/useAuth';
 import { useConversations } from '@/hooks/useConversations';
 import { markConversationsDelivered } from '@/services/chat';
 import { useNotifications } from '@/hooks/useNotifications';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { collection, query, where, getDocs, doc, deleteDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase/db';
+import { tabsStyles } from '@/styles/screens/tabs';
+import { SwipeableRow } from '@/components/conversation/SwipeableRow';
 
 // Removed mock conversations; using SQLite-driven hook instead
 
@@ -92,11 +94,20 @@ export default function ConversationListScreen() {
     }
   };
 
+  const handleDeleteConversation = async (conversationId: string) => {
+    try {
+      const conversationRef = doc(db, 'conversations', conversationId);
+      await deleteDoc(conversationRef);
+    } catch (error) {
+      console.error('Error deleting conversation:', error);
+    }
+  };
+
   const renderEmptyState = () => (
-    <View style={styles.emptyContainer}>
-      <Text style={styles.emptyIcon}>✨</Text>
-      <Text style={styles.emptyTitle}>reply 3x faster</Text>
-      <Text style={styles.emptyText}>
+    <View style={tabsStyles.emptyContainer}>
+      <Text style={tabsStyles.emptyIcon}>✨</Text>
+      <Text style={tabsStyles.emptyTitle}>reply 3x faster</Text>
+      <Text style={tabsStyles.emptyText}>
         start your first conversation with ai that understands your tone
       </Text>
     </View>
@@ -104,36 +115,74 @@ export default function ConversationListScreen() {
 
   const renderConversation = ({ item }: { item: typeof conversations[0] }) => {
     const isAI = item.id === aiConversationId;
+    
+    // Don't allow deleting AI conversation
+    if (isAI) {
+      return (
+        <TouchableOpacity
+          onPress={handleAIConversationPress}
+          activeOpacity={0.9}
+          style={tabsStyles.conversationWrapper}
+        >
+          <GlassCard intensity={20} style={tabsStyles.conversationCard}>
+            <View style={tabsStyles.conversationContent}>
+              <View style={[tabsStyles.avatar, { backgroundColor: item.avatarColor }]}>
+                <Text style={tabsStyles.avatarText}>
+                  {item.displayName.split(' ').map(n => n[0]).join('')}
+                </Text>
+              </View>
+              
+              <View style={tabsStyles.conversationInfo}>
+                <View style={tabsStyles.conversationHeader}>
+                  <Text style={tabsStyles.displayName} numberOfLines={1}>
+                    {item.displayName}
+                  </Text>
+                  <Text style={tabsStyles.timestamp}>{item.timestamp}</Text>
+                </View>
+                <View style={tabsStyles.messageRow}>
+                  <Text style={tabsStyles.lastMessage} numberOfLines={1}>
+                    {item.lastMessage}
+                  </Text>
+                </View>
+              </View>
+            </View>
+          </GlassCard>
+        </TouchableOpacity>
+      );
+    }
+    
     return (
-      <TouchableOpacity
-        onPress={() => isAI ? handleAIConversationPress() : handleConversationPress(item)}
-        activeOpacity={0.9}
-        style={styles.conversationWrapper}
-      >
-      <GlassCard intensity={20} style={styles.conversationCard}>
-        <View style={styles.conversationContent}>
-          <View style={[styles.avatar, { backgroundColor: item.avatarColor }]}>
-            <Text style={styles.avatarText}>
-              {item.displayName.split(' ').map(n => n[0]).join('')}
-            </Text>
-          </View>
-          
-          <View style={styles.conversationInfo}>
-            <View style={styles.conversationHeader}>
-              <Text style={styles.displayName} numberOfLines={1}>
-                {item.displayName}
-              </Text>
-              <Text style={styles.timestamp}>{item.timestamp}</Text>
+      <SwipeableRow onDelete={() => handleDeleteConversation(item.id)}>
+        <TouchableOpacity
+          onPress={() => handleConversationPress(item)}
+          activeOpacity={0.9}
+          style={tabsStyles.conversationWrapper}
+        >
+          <GlassCard intensity={20} style={tabsStyles.conversationCard}>
+            <View style={tabsStyles.conversationContent}>
+              <View style={[tabsStyles.avatar, { backgroundColor: item.avatarColor }]}>
+                <Text style={tabsStyles.avatarText}>
+                  {item.displayName.split(' ').map(n => n[0]).join('')}
+                </Text>
+              </View>
+              
+              <View style={tabsStyles.conversationInfo}>
+                <View style={tabsStyles.conversationHeader}>
+                  <Text style={tabsStyles.displayName} numberOfLines={1}>
+                    {item.displayName}
+                  </Text>
+                  <Text style={tabsStyles.timestamp}>{item.timestamp}</Text>
+                </View>
+                <View style={tabsStyles.messageRow}>
+                  <Text style={tabsStyles.lastMessage} numberOfLines={1}>
+                    {item.lastMessage}
+                  </Text>
+                </View>
+              </View>
             </View>
-            <View style={styles.messageRow}>
-              <Text style={styles.lastMessage} numberOfLines={1}>
-                {item.lastMessage}
-              </Text>
-            </View>
-          </View>
-        </View>
-      </GlassCard>
-    </TouchableOpacity>
+          </GlassCard>
+        </TouchableOpacity>
+      </SwipeableRow>
     );
   };
 
@@ -149,184 +198,39 @@ export default function ConversationListScreen() {
   } : null;
 
   return (
-    <GradientBackground>
-      <SafeAreaView style={styles.container} edges={edges}>
-        <StatusBar style="light" />
-        
-        <View style={styles.header}>
-          <View>
-            <Text style={styles.headerTitle}>messages</Text>
-            <Text style={styles.headerSubtitle}>
-              {user ? user.email ?? user.uid : 'Signed out'}
-            </Text>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <GradientBackground>
+        <SafeAreaView style={tabsStyles.container} edges={edges}>
+          <StatusBar style="light" />
+          
+          <View style={tabsStyles.header}>
+            <Text style={tabsStyles.headerTitle}>Comms</Text>
+            <TouchableOpacity
+              style={tabsStyles.newChatButton}
+              onPress={handleNewConversation}
+              activeOpacity={0.7}
+            >
+              <Text style={tabsStyles.newChatIcon}>✨</Text>
+            </TouchableOpacity>
           </View>
-          <TouchableOpacity
-            style={styles.newChatButton}
-            onPress={handleNewConversation}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.newChatIcon}>✨</Text>
-            <Text style={styles.newChatText}>new</Text>
-          </TouchableOpacity>
-        </View>
 
-        {/* Sticky AI conversation */}
-        {aiConversation && (
-          <View style={styles.aiSection}>
-            {renderConversation({ item: aiConversation })}
-          </View>
-        )}
+          {/* Sticky AI conversation */}
+          {aiConversation && (
+            <View style={tabsStyles.aiSection}>
+              {renderConversation({ item: aiConversation })}
+            </View>
+          )}
 
-        <FlatList
-          data={conversations}
-          keyExtractor={(item) => item.id}
-          renderItem={renderConversation}
-          ListEmptyComponent={renderEmptyState}
-          contentContainerStyle={styles.listContent}
-          showsVerticalScrollIndicator={false}
-        />
-      </SafeAreaView>
-    </GradientBackground>
+          <FlatList
+            data={conversations}
+            keyExtractor={(item) => item.id}
+            renderItem={renderConversation}
+            ListEmptyComponent={renderEmptyState}
+            contentContainerStyle={tabsStyles.listContent}
+            showsVerticalScrollIndicator={false}
+          />
+        </SafeAreaView>
+      </GradientBackground>
+    </GestureHandlerRootView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingLeft: 24,
-    paddingTop: 20,
-    paddingBottom: 24,
-  },
-  headerTitle: {
-    fontSize: 32,
-    fontWeight: '800',
-    color: Colors.dark.text,
-    fontFamily: 'Inter_800ExtraBold',
-    letterSpacing: -1,
-  },
-  headerSubtitle: {
-    fontSize: 14,
-    color: Colors.dark.textSecondary,
-    fontFamily: 'Inter_400Regular',
-    marginTop: 4,
-  },
-  newChatButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 10,
-    paddingRight: 16,
-    borderRadius: 20,
-    backgroundColor: Colors.dark.glassLight,
-    borderWidth: 1,
-    borderColor: Colors.dark.accentStart,
-    gap: 8,
-  },
-  newChatIcon: {
-    fontSize: 18,
-  },
-  newChatText: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: Colors.dark.text,
-    fontFamily: 'Inter_600SemiBold',
-  },
-  listContent: {
-    padding: 24,
-    paddingTop: 0,
-    gap: 12,
-  },
-  aiSection: {
-    paddingHorizontal: 24,
-    paddingBottom: 8,
-  },
-  conversationWrapper: {
-    marginBottom: 4,
-  },
-  conversationCard: {
-    overflow: 'hidden',
-  },
-  conversationContent: {
-    flexDirection: 'row',
-    padding: 16,
-    alignItems: 'center',
-  },
-  avatar: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 14,
-  },
-  avatarText: {
-    color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: '700',
-    fontFamily: 'Inter_700Bold',
-  },
-  conversationInfo: {
-    flex: 1,
-  },
-  conversationHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 4,
-  },
-  displayName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: Colors.dark.text,
-    fontFamily: 'Inter_600SemiBold',
-    flex: 1,
-  },
-  timestamp: {
-    fontSize: 13,
-    color: Colors.dark.textSecondary,
-    fontFamily: 'Inter_400Regular',
-    marginLeft: 8,
-  },
-  messageRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  lastMessage: {
-    fontSize: 14,
-    color: Colors.dark.textSecondary,
-    fontFamily: 'Inter_400Regular',
-    flex: 1,
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 48,
-    paddingVertical: 100,
-  },
-  emptyIcon: {
-    fontSize: 64,
-    marginBottom: 20,
-  },
-  emptyTitle: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: Colors.dark.text,
-    fontFamily: 'Inter_700Bold',
-    marginBottom: 12,
-    textAlign: 'center',
-    textTransform: 'lowercase',
-  },
-  emptyText: {
-    fontSize: 15,
-    color: Colors.dark.textSecondary,
-    fontFamily: 'Inter_400Regular',
-    textAlign: 'center',
-    lineHeight: 22,
-    textTransform: 'lowercase',
-  },
-});

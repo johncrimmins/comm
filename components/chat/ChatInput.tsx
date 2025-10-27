@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, TouchableOpacity, KeyboardAvoidingView, Platform, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, Alert } from 'react-native';
 import { LongPressGestureHandler, State } from 'react-native-gesture-handler';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
 import { Colors } from '@/constants/Colors';
 import GlassCard from '@/components/ui/GlassCard';
 import { transformText } from '@/services/openai';
 import { transformations } from '@/services/messageTransformations';
+import { chatInputStyles } from '@/styles/components/chatInput';
 
 export interface ChatInputProps {
   inputText: string;
@@ -96,21 +97,21 @@ export function ChatInput({ inputText, onChangeText, onSend, disabled = false }:
   }));
 
   const contentWrapper = (
-    <View style={styles.wrapper}>
+    <View style={chatInputStyles.wrapper}>
       {/* Overlay to dismiss popover when clicking outside */}
       {showMenu && (
         <TouchableOpacity
-          style={styles.overlay}
+          style={chatInputStyles.overlay}
           activeOpacity={1}
           onPress={handleDismissPopover}
         />
       )}
 
-      <View style={styles.inputContainer}>
-        <GlassCard style={styles.inputCard} intensity={30}>
-          <View style={styles.inputWrapper}>
+      <View style={chatInputStyles.inputContainer}>
+        <GlassCard style={chatInputStyles.inputCard} intensity={30}>
+          <View style={chatInputStyles.inputWrapper}>
             <TextInput
-              style={styles.input}
+              style={chatInputStyles.input}
               placeholder="message..."
               placeholderTextColor={Colors.dark.textSecondary}
               value={inputText}
@@ -119,21 +120,21 @@ export function ChatInput({ inputText, onChangeText, onSend, disabled = false }:
               maxLength={1000}
               autoFocus
             />
-            <View style={styles.sendButtonContainer}>
+            <View style={chatInputStyles.sendButtonContainer}>
               <LongPressGestureHandler
                 onHandlerStateChange={handleLongPress}
                 minDurationMs={400}
               >
                 <TouchableOpacity
                   style={[
-                    styles.sendButton,
-                    (disabled || !inputText.trim()) && styles.sendButtonDisabled,
+                    chatInputStyles.sendButton,
+                    (disabled || !inputText.trim()) && chatInputStyles.sendButtonDisabled,
                   ]}
                   onPress={handleSendPress}
                   disabled={disabled || !inputText.trim()}
                   activeOpacity={0.8}
                 >
-                  <Text style={styles.sendButtonText}>→</Text>
+                  <Text style={chatInputStyles.sendButtonText}>→</Text>
                 </TouchableOpacity>
               </LongPressGestureHandler>
             </View>
@@ -143,20 +144,20 @@ export function ChatInput({ inputText, onChangeText, onSend, disabled = false }:
 
       {/* Transformation Menu Popover - positioned absolutely within wrapper */}
       {showMenu && inputText.trim() && (
-        <Animated.View style={[styles.popoverContainer, popoverAnimatedStyle]} pointerEvents="box-none">
+        <Animated.View style={[chatInputStyles.popoverContainer, popoverAnimatedStyle]} pointerEvents="box-none">
           {transformations.map((transformation, index) => (
             <TouchableOpacity
               key={transformation.id}
               style={[
-                styles.transformButton,
-                index === 0 && styles.transformButtonFirst,
-                index === transformations.length - 1 && styles.transformButtonLast
+                chatInputStyles.transformButton,
+                index === 0 && chatInputStyles.transformButtonFirst,
+                index === transformations.length - 1 && chatInputStyles.transformButtonLast
               ]}
               onPress={() => handleTransform(transformation)}
               activeOpacity={0.8}
               disabled={isProcessing}
             >
-              <Text style={styles.transformButtonText}>
+              <Text style={chatInputStyles.transformButtonText}>
                 {isProcessing ? '...' : transformation.label}
               </Text>
             </TouchableOpacity>
@@ -182,94 +183,4 @@ export function ChatInput({ inputText, onChangeText, onSend, disabled = false }:
   // Web and other platforms render directly
   return contentWrapper;
 }
-
-const styles = StyleSheet.create({
-  wrapper: {
-    overflow: 'visible',
-  },
-  overlay: {
-    position: 'absolute',
-    top: -1000,
-    left: -1000,
-    right: -1000,
-    bottom: -1000,
-    zIndex: 998,
-  },
-  inputContainer: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-  },
-  inputCard: {
-    borderRadius: 24,
-    overflow: 'visible',
-  },
-  inputWrapper: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    padding: 12,
-  },
-  input: {
-    flex: 1,
-    fontSize: 15,
-    color: Colors.dark.text,
-    fontFamily: 'Inter_400Regular',
-    maxHeight: 100,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-  },
-  sendButtonContainer: {
-    position: 'relative',
-    marginLeft: 8,
-  },
-  sendButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: Colors.dark.accentStart,
-    alignItems: 'center',
-    justifyContent: 'center',
-    boxShadow: [{ color: Colors.dark.glow, offsetX: 0, offsetY: 2, blurRadius: 8 }],
-  },
-  sendButtonDisabled: {
-    backgroundColor: Colors.dark.border,
-  },
-  sendButtonText: {
-    fontSize: 20,
-    color: '#FFFFFF',
-    fontWeight: '600',
-  },
-  popoverContainer: {
-    position: 'absolute',
-    bottom: 60,
-    right: 20,
-    alignItems: 'flex-end',
-    zIndex: 1000,
-    gap: 8,
-  },
-  transformButton: {
-    backgroundColor: Colors.dark.accentStart,
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 0,
-    shadowColor: Colors.dark.glow,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.6,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  transformButtonFirst: {
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-  },
-  transformButtonLast: {
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
-  },
-  transformButtonText: {
-    color: '#FFFFFF',
-    fontSize: 15,
-    fontWeight: '600',
-    fontFamily: 'Inter_600SemiBold',
-  },
-});
 

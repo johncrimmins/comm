@@ -26,10 +26,10 @@ export default function GradientButton({
       style={[styles.container, style]}
     >
       <LinearGradient
-        colors={disabled ? ['#4A4A5A', '#3A3A4A'] : [Colors.dark.accentStart, Colors.dark.accentEnd]}
+        colors={disabled ? ['#3F3F46', '#3F3F46'] : [Colors.dark.accentStart, Colors.dark.accentStart]}
         style={styles.gradient}
         start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 0 }}
+        end={{ x: 0, y: 0 }}
       >
         <Text style={[styles.text, textStyle]}>{title}</Text>
       </LinearGradient>
@@ -41,8 +41,6 @@ const styles = StyleSheet.create({
   container: {
     borderRadius: 12,
     overflow: 'hidden',
-    boxShadow: [{ color: Colors.dark.glow, offset: { width: 0, height: 4 }, opacity: 0.6, radius: 12 }],
-    elevation: 8,
   },
   gradient: {
     paddingVertical: 16,
