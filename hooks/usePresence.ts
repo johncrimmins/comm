@@ -37,6 +37,13 @@ export function usePresence(conversationId: string, participantIds: string[]): P
     // For 1-on-1 chats, listen to the other user's presence
     if (otherUserIds.length === 1) {
       const otherUserId = otherUserIds[0];
+      
+      // AI assistant is always online
+      if (otherUserId === 'ai-assistant') {
+        setPresence({ status: 'online', isTyping: false });
+        return;
+      }
+      
       const userRef = doc(db, 'users', otherUserId);
       
       const unsubscribe = onSnapshot(userRef, (snapshot) => {

@@ -127,7 +127,7 @@ export default function ConversationListScreen() {
             <View style={tabsStyles.conversationContent}>
               <View style={[tabsStyles.avatar, { backgroundColor: item.avatarColor }]}>
                 <Text style={tabsStyles.avatarText}>
-                  {item.displayName.split(' ').map(n => n[0]).join('')}
+                  {item.displayName[0]}
                 </Text>
               </View>
               
@@ -169,7 +169,7 @@ export default function ConversationListScreen() {
             <View style={tabsStyles.conversationContent}>
               <View style={[tabsStyles.avatar, { backgroundColor: item.avatarColor }]}>
                 <Text style={tabsStyles.avatarText}>
-                  {item.displayName.split(' ').map(n => n[0]).join('')}
+                  {item.displayName[0]}
                 </Text>
               </View>
               
@@ -209,7 +209,7 @@ export default function ConversationListScreen() {
     displayName: 'Chat with Comms (AI)',
     lastMessage: '',
     timestamp: '',
-    avatarColor: '#C084FC',
+    avatarColor: '#000000',
     unreadCount: undefined,
   } : null;
 
