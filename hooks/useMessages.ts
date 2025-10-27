@@ -3,6 +3,7 @@ import { collection, query, orderBy, onSnapshot, Timestamp } from 'firebase/fire
 import { db } from '@/lib/firebase/db';
 import { useAuthUser } from '@/hooks/useAuth';
 import { markDelivered, markRead } from '@/services/chat';
+import { calculateMessageStatus } from '@/utils/messageStatus';
 
 export function useMessages(conversationId: string) {
   const [messages, setMessages] = useState(
@@ -100,17 +101,7 @@ export function useMessages(conversationId: string) {
         const readBy = data.readBy || [];
         
         // Calculate status for current user's own messages
-        let status: 'sent' | 'delivered' | 'read' | null = null;
-        if (senderId === currentUserId) {
-          // Check if other participants have read it
-          if (readBy.length > 1) { // More than just sender
-            status = 'read';
-          } else if (deliveredTo.length > 1) { // More than just sender
-            status = 'delivered';
-          } else {
-            status = 'sent';
-          }
-        }
+        const status = calculateMessageStatus(senderId, currentUserId, deliveredTo, readBy);
         
         return {
           id: doc.id,

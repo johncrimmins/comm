@@ -3,6 +3,10 @@
  * Calls n8n workflows for RAG-powered tool execution
  */
 
+import { findConversationByParticipantName, filterUserConversations, categorizeConversations } from '@/utils/conversationHelpers';
+import { getDocs, collection, query, where } from 'firebase/firestore';
+import { db } from '@/lib/firebase/db';
+
 const getEnv = (key: string): string => {
   const value = process.env[key as keyof NodeJS.ProcessEnv];
   if (!value) {
@@ -28,30 +32,17 @@ export interface ConversationSearchParams {
 /**
  * Search for conversations by participant name
  * Returns the conversationId of the first matching conversation
+ * 
+ * Uses extracted utility functions from utils/conversationHelpers.ts
  */
 export async function findConversationByParticipant(params: ConversationSearchParams): Promise<string | null> {
   try {
-    const { getDocs, collection, query, where } = await import('firebase/firestore');
-    const { db } = await import('@/lib/firebase/db');
-    
     // 1. Get all users to find the user ID by name
     const usersRef = collection(db, 'users');
     const usersSnapshot = await getDocs(usersRef);
     const users = usersSnapshot.docs.map(doc => ({ id: doc.id, name: doc.data().name || '' }));
     
-    // 2. Find user IDs that match the participant name
-    const matchingUserIds = users
-      .filter(user => user.name.toLowerCase().includes(params.participantName.toLowerCase()))
-      .map(user => user.id);
-    
-    if (matchingUserIds.length === 0) {
-      console.log('[n8n] No users found matching:', params.participantName);
-      return null;
-    }
-    
-    console.log('[n8n] Found matching user IDs:', matchingUserIds);
-    
-    // 3. Get all conversations where the current user is a participant
+    // 2. Get all conversations where the current user is a participant
     const conversationsRef = collection(db, 'conversations');
     const userConversationsQuery = query(
       conversationsRef,
@@ -59,40 +50,25 @@ export async function findConversationByParticipant(params: ConversationSearchPa
     );
     const conversationsSnapshot = await getDocs(userConversationsQuery);
     
-    // 4. Find conversations that also include the matching participant
-    const matchingConversations = conversationsSnapshot.docs.filter(doc => {
-      const participantIds = doc.data().participantIds || [];
-      return matchingUserIds.some(id => participantIds.includes(id));
-    });
+    // 3. Transform to format expected by utility function
+    const conversations = conversationsSnapshot.docs.map(doc => ({
+      id: doc.id,
+      participantIds: doc.data().participantIds || []
+    }));
     
-    if (matchingConversations.length === 0) {
-      console.log('[n8n] No conversations found with matching participants');
-      return null;
+    // 4. Use extracted utility function to find conversation
+    const conversationId = findConversationByParticipantName(
+      conversations,
+      users,
+      params.userId,
+      params.participantName
+    );
+    
+    if (conversationId) {
+      console.log('[n8n] Found conversation:', conversationId);
+    } else {
+      console.log('[n8n] No conversation found with participant:', params.participantName);
     }
-    
-    // 5. Separate 1-on-1 conversations from group chats
-    const oneOnOneConversations = matchingConversations.filter(doc => {
-      const participantIds = doc.data().participantIds || [];
-      return participantIds.length === 2;
-    });
-    
-    const groupChats = matchingConversations.filter(doc => {
-      const participantIds = doc.data().participantIds || [];
-      return participantIds.length > 2;
-    });
-    
-    // 6. Prefer 1-on-1 conversations, fall back to group chats
-    const candidates = oneOnOneConversations.length > 0 ? oneOnOneConversations : groupChats;
-    
-    console.log('[n8n] Search results:', {
-      totalMatches: matchingConversations.length,
-      oneOnOnes: oneOnOneConversations.length,
-      groupChats: groupChats.length,
-      using: oneOnOneConversations.length > 0 ? '1-on-1' : 'group chat'
-    });
-    
-    const conversationId = candidates[0].id;
-    console.log('[n8n] Found conversation:', conversationId);
     
     return conversationId;
   } catch (error) {
@@ -102,19 +78,28 @@ export async function findConversationByParticipant(params: ConversationSearchPa
 }
 
 /**
- * Call n8n workflow for conversation summarization
+ * n8n Webhook Integration for RAG Pipeline
+ * 
+ * Calls n8n workflow that:
+ * 1. Fetches messages from Firebase
+ * 2. Sends to OpenAI for summarization
+ * 3. Returns summary back to client
+ * 
+ * Response format: [{summary: "..."}] (array format from n8n)
  */
 export async function summarizeConversation(params: N8NToolParams): Promise<string> {
   if (!N8N_WEBHOOK_URL) {
     throw new Error('n8n webhook URL not configured. Please add EXPO_PUBLIC_N8N_WEBHOOK_URL to your environment variables.');
   }
 
-  // Use the webhook URL as-is (it's the complete endpoint, no need to append path)
+  // Normalize webhook URL (remove trailing slash if present)
   const webhookUrl = N8N_WEBHOOK_URL.endsWith('/') ? N8N_WEBHOOK_URL.slice(0, -1) : N8N_WEBHOOK_URL;
   console.log('[n8n] Calling webhook:', webhookUrl);
   console.log('[n8n] Params:', params);
 
   try {
+    // Send POST request to n8n webhook
+    // Note: No Content-Type header to avoid CORS preflight OPTIONS request
     const response = await fetch(webhookUrl, {
       method: 'POST',
       body: JSON.stringify(params),
@@ -129,7 +114,7 @@ export async function summarizeConversation(params: N8NToolParams): Promise<stri
       throw new Error(errorData.error?.message || `n8n webhook error: ${response.status}`);
     }
 
-    // Parse JSON response - but first check if body exists
+    // Parse response (n8n returns array format)
     const responseText = await response.text();
     console.log('[n8n] Raw response length:', responseText.length);
     console.log('[n8n] Raw response preview:', responseText.substring(0, 200));
@@ -141,14 +126,15 @@ export async function summarizeConversation(params: N8NToolParams): Promise<stri
     const data = JSON.parse(responseText);
     console.log('[n8n] Parsed JSON data:', data);
     
-    // Handle array response from n8n
+    // EXTRACT SUMMARY FROM RESPONSE
+    // n8n typically returns array format: [{summary: "..."}]
     if (Array.isArray(data) && data.length > 0) {
       const summary = data[0].summary;
       console.log('[n8n] Extracted summary from array:', summary);
       return summary || 'Unable to generate summary';
     }
     
-    // Handle object response
+    // Fallback: handle object response format (if n8n returns object directly)
     if (data.summary) {
       return data.summary;
     }

@@ -183,22 +183,31 @@ export async function chatWithAI(options: ChatOptions): Promise<string> {
       content: message.content
     });
 
-    // Check if OpenAI wants to call a tool
+    // ====================================================================
+    // TOOL CALLING FLOW
+    // OpenAI detected keywords and wants to call a tool (e.g., summarize_conversation)
+    // ====================================================================
     if (message.tool_calls && message.tool_calls.length > 0) {
       console.log('[OpenAI] Tool calls detected:', message.tool_calls);
       
-      // Execute tool calls
+      // Execute all tool calls in parallel
       const toolResults = await Promise.all(
         message.tool_calls.map(async (toolCall: any) => {
           console.log('[OpenAI] Executing tool call:', toolCall.function.name);
           
+          // Handle summarize_conversation tool
           if (toolCall.function.name === 'summarize_conversation') {
             const params = JSON.parse(toolCall.function.arguments);
             console.log('[OpenAI] summarize_conversation params:', params);
             
             let conversationId = params.conversationId;
             
-            // If no conversationId but participantName provided, search for it
+            // CONVERSATION ID RESOLUTION FLOW:
+            // 1. Try conversationId parameter (if provided)
+            // 2. Search by participantName (if provided)
+            // 3. Fall back to current conversation
+            
+            // Step 2: Search by participant name if no conversationId
             if (!conversationId && params.participantName) {
               console.log('[OpenAI] Searching for conversation with participant:', params.participantName);
               const foundId = await findConversationByParticipant({
@@ -207,6 +216,7 @@ export async function chatWithAI(options: ChatOptions): Promise<string> {
               });
               
               if (!foundId) {
+                // Return error message if not found
                 return {
                   tool_call_id: toolCall.id,
                   role: 'tool',
@@ -221,25 +231,30 @@ export async function chatWithAI(options: ChatOptions): Promise<string> {
               console.log('[OpenAI] Found conversation:', conversationId);
             }
             
-            // Fallback to current conversation if still no ID
+            // Step 3: Fallback to current conversation if still no ID
             if (!conversationId) {
               conversationId = options.currentConversationId || '';
               console.log('[OpenAI] Using current conversation:', conversationId);
             }
             
-            // Call n8n webhook to get summary
+            // Call n8n webhook to get summary from RAG pipeline
             const summaryResponse = await summarizeConversation({
               conversationId: conversationId,
               userId: options.userId || ''
             });
             
-            // Parse the response (n8n returns plain summary string)
+            // n8n returns a plain summary string (extracted from array format)
             const summary = summaryResponse;
             const currentUserId = options.userId || '';
             
             console.log('[OpenAI] Received summary from n8n, length:', summary.length);
             
-            // Fetch participant names to replace IDs with names
+            // PERSONALIZATION FLOW:
+            // 1. Fetch all user names from Firebase
+            // 2. Replace user IDs with names in summary
+            // 3. Replace current user's name with "You"
+            
+            // Step 1: Fetch participant names for personalization
             let participantNames: Record<string, string> = {};
             try {
               const { getDocs, collection } = await import('firebase/firestore');
@@ -254,7 +269,7 @@ export async function chatWithAI(options: ChatOptions): Promise<string> {
               console.warn('[OpenAI] Could not fetch participant names:', error);
             }
             
-            // Personalize the summary by replacing IDs with names and current user with "You"
+            // Step 2 & 3: Personalize the summary
             let personalizedSummary = summary;
             const currentUserName = currentUserId ? participantNames[currentUserId] : '';
             
