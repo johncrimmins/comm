@@ -36,9 +36,6 @@ export async function summarizeConversation(params: N8NToolParams): Promise<stri
   try {
     const response = await fetch(webhookUrl, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
       body: JSON.stringify(params),
     });
 
