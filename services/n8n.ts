@@ -40,6 +40,7 @@ export async function summarizeConversation(params: N8NToolParams): Promise<stri
     });
 
     console.log('[n8n] Response status:', response.status, response.statusText);
+    console.log('[n8n] Response headers:', Object.fromEntries(response.headers.entries()));
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
@@ -47,8 +48,16 @@ export async function summarizeConversation(params: N8NToolParams): Promise<stri
       throw new Error(errorData.error?.message || `n8n webhook error: ${response.status}`);
     }
 
-    // Parse JSON response
-    const data = await response.json();
+    // Parse JSON response - but first check if body exists
+    const responseText = await response.text();
+    console.log('[n8n] Raw response length:', responseText.length);
+    console.log('[n8n] Raw response preview:', responseText.substring(0, 200));
+    
+    if (!responseText || responseText.length === 0) {
+      throw new Error('n8n returned empty response. Check that Respond to Webhook node has data wired to it.');
+    }
+    
+    const data = JSON.parse(responseText);
     console.log('[n8n] Parsed JSON data:', data);
     
     // Handle array response from n8n
