@@ -34,8 +34,16 @@
 - n8n service: Webhook integration for calling RAG pipelines from client
 - Conversation summarization: AI detects "summary" keywords and calls n8n to summarize conversations
 - Tool calling flow: OpenAI → tool call → n8n webhook → Firebase fetch → summary → OpenAI → final response
+- Code refactoring: Extracted message status logic to utils/messageStatus.ts (reduced complexity by 13 lines)
+- Code refactoring: Extracted conversation search logic to utils/conversationHelpers.ts (reduced complexity by 69 lines)
+- Architecture documentation: Comprehensive data flow mapping in docs/ai-chat-architecture-analysis.md
+- Type safety: TypeScript interfaces defined in types/api.ts for all API responses
+- Utility functions: Pure functions extracted for better testability and reusability
 
 ## What's Left To Build
+- Add sender names to message documents in Firestore
+- Additional tool calls (action items, decisions, next steps)
+- Store summaries in Firestore for future retrieval
 - Future: Proactive conversation summaries stored in Firebase (automatic summarization)
 - Future: Multiple AI agent types (Detect Actions, Track Decisions, Scheduler)
 - Robust error handling and retry logic
@@ -57,6 +65,10 @@
 - AI chat service pattern established for future multi-agent support
 - RAG integration complete: Conversation summarization working via n8n webhooks
 - OpenAI tool calling implemented for extendable AI capabilities
+- Code quality improved: Reduced code complexity by 82 lines through utility extraction
+- Architecture documented: Complete data flow mapping and file responsibilities documented
+- Type safety enhanced: TypeScript interfaces defined for all external API responses
+- Separation of concerns: Pure utility functions extracted for message status and conversation search
 
 ## Known Issues
 - No offline persistence beyond Firestore's offline cache

@@ -1,13 +1,30 @@
 # Active Context
 
 ## Current Focus
-- RAG integration complete and working
-- Conversation summarization operational via n8n webhooks
-- Future: Proactive summaries stored in Firebase
-- Future: Multiple AI agent types (Detect Actions, Track Decisions, Scheduler)
+- Code refactoring complete: Extracted utilities for better separation of concerns
+- Reduced code complexity: 82 lines removed through utility extraction
+- Architecture fully documented with comprehensive data flow mapping
 
 ## Recent Changes
-- RAG integration complete: Conversation summarization working end-to-end
+- Code refactoring (commit d2f1c5c): Extracted message status logic to utils/messageStatus.ts, reduced useMessages.ts by 13 lines
+- Code refactoring (commit d2f1c5c): Extracted conversation search logic to utils/conversationHelpers.ts, reduced n8n.ts by 69 lines
+- Architecture documentation: Created comprehensive docs/ai-chat-architecture-analysis.md mapping all data flows
+- Type safety: Added types/api.ts with TypeScript interfaces for OpenAI and n8n responses
+- Code quality: Added detailed inline comments to services/openai.ts, services/aiChat.ts, services/n8n.ts
+- Utility extraction: Created pure function utilities for message status calculation and conversation search
+- Conversation search by participant name: Implemented findConversationByParticipant() in services/n8n.ts
+- Prefer 1-on-1 conversations: Search logic prioritizes 1-on-1 chats over group chats when searching by name
+- OpenAI tool updated: Now accepts optional conversationId OR participantName parameters
+- Search logic: Filters conversations by current user participation (security built-in)
+- Tool execution enhanced: Automatically searches for conversations when user mentions a name
+- User display name in n8n: summarizeConversation() now fetches and passes userName to n8n webhook
+- Summary personalization: App sends userName and participantNames to n8n, n8n uses names in summary, app replaces userName with "You" for natural conversation
+- User ID to name mapping: participantNames map sent to n8n for intelligent summarization with display names
+- Conversation names implemented: useConversations now displays participant names instead of "conversation 1, 2, 3"
+- Name formatting: Shows "John", "John & Jane", or "John, Jane & 2 more" based on participant count
+- Production webhook activated: Summarize workflow now running in production mode
+- Improved error handling: Returns helpful message when conversation not found
+- RAG integration working: Conversation summarization working end-to-end via n8n webhooks
 - OpenAI tool calling: AI detects "summary" keywords and calls n8n to summarize conversations
 - n8n webhook integration: Handles array response format, extracts summary from data[0].summary
 - Fixed CORS issues: Removed Content-Type header to avoid preflight OPTIONS requests
@@ -48,11 +65,13 @@
 - Firestore as single source of truth with native offline persistence
 
 ## Next Steps
-- Future simplification: Refactor to support multiple AI agent types (Summarize Comms, Detect Actions from Comms, Track Decisions from Comms, Scheduler Comms)
-- Investigate iPhone input area visibility issues
-- Add Platform-specific KeyboardAvoidingView handling to more components if needed
-- Robust error handling and retry logic
-- Improved offline support beyond Firestore cache
+1. Connect Summarize workflow to vector store and test in Expo Go app
+2. Implement conversation names (default to participant names) and sender names in Firestore
+3. Add metadata to vector store and filter queries by user participation
+4. Future: Multiple AI agent types (Detect Actions, Track Decisions, Scheduler)
+5. Investigate iPhone input area visibility issues
+6. Robust error handling and retry logic
+7. Improved offline support beyond Firestore cache
 
 ## Active Decisions
 - Firestore is single source of truth with native offline persistence
