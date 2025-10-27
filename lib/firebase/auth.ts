@@ -1,10 +1,32 @@
-import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, User } from 'firebase/auth';
+import { initializeAuth, getReactNativePersistence, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, User, getAuth } from 'firebase/auth';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { db } from './db';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { app } from './app';
 import { createOrFindConversation } from '@/services/chat';
 
-export const auth = getAuth(app);
+// Initialize Auth with AsyncStorage persistence for React Native
+// Use singleton pattern to avoid re-initialization
+let authInstance: ReturnType<typeof getAuth> | null = null;
+
+export const auth = (() => {
+  if (!authInstance) {
+    try {
+      // Try to initialize with AsyncStorage persistence
+      authInstance = initializeAuth(app, {
+        persistence: getReactNativePersistence(AsyncStorage)
+      });
+    } catch (error: any) {
+      // If already initialized (e.g., hot reload), get existing instance
+      if (error.code === 'auth/already-initialized') {
+        authInstance = getAuth(app);
+      } else {
+        throw error;
+      }
+    }
+  }
+  return authInstance;
+})();
 
 export const onAuth = (cb: (user: User | null) => void) => onAuthStateChanged(auth, cb);
 
