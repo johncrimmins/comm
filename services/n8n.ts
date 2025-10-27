@@ -27,8 +27,12 @@ export async function summarizeConversation(params: N8NToolParams): Promise<stri
     throw new Error('n8n webhook URL not configured. Please add EXPO_PUBLIC_N8N_WEBHOOK_URL to your environment variables.');
   }
 
+  const webhookUrl = `${N8N_WEBHOOK_URL}/summarize-conversation`;
+  console.log('[n8n] Calling webhook:', webhookUrl);
+  console.log('[n8n] Params:', params);
+
   try {
-    const response = await fetch(`${N8N_WEBHOOK_URL}/summarize-conversation`, {
+    const response = await fetch(webhookUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -36,12 +40,16 @@ export async function summarizeConversation(params: N8NToolParams): Promise<stri
       body: JSON.stringify(params),
     });
 
+    console.log('[n8n] Response status:', response.status, response.statusText);
+
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
+      console.error('[n8n] Error response:', errorData);
       throw new Error(errorData.error?.message || `n8n webhook error: ${response.status}`);
     }
 
     const data = await response.json();
+    console.log('[n8n] Success, received data:', data);
     return data.summary || 'Unable to generate summary';
   } catch (error: any) {
     console.error('[n8n] Error calling summarize workflow:', error);

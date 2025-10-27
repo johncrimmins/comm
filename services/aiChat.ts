@@ -25,9 +25,12 @@ export async function sendAIMessage(
   let conversationHistory: Array<{ role: 'user' | 'assistant'; content: string }> = [];
   
   try {
+    console.log('[AI Chat] Fetching conversation history for:', conversationId);
     const messagesRef = collection(db, 'conversations', conversationId, 'messages');
     const messagesQuery = query(messagesRef, orderBy('createdAt', 'desc'), limit(10));
     const messagesSnapshot = await getDocs(messagesQuery);
+    
+    console.log('[AI Chat] Found', messagesSnapshot.docs.length, 'messages');
     
     // Transform messages to OpenAI format, filtering to only user's conversations
     const messages = messagesSnapshot.docs
@@ -35,10 +38,14 @@ export async function sendAIMessage(
       .filter(msg => msg.senderId === senderId || msg.senderId === 'ai-assistant')
       .reverse(); // Reverse to get chronological order
     
+    console.log('[AI Chat] Filtered to', messages.length, 'messages (user + AI only)');
+    
     conversationHistory = messages.map(msg => ({
       role: msg.senderId === senderId ? 'user' : 'assistant',
       content: msg.text || ''
     }));
+    
+    console.log('[AI Chat] Conversation history prepared:', conversationHistory.length, 'messages');
   } catch (error) {
     console.error('[AI Chat] Error fetching conversation history:', error);
     // Continue without history if fetch fails
@@ -46,6 +53,13 @@ export async function sendAIMessage(
 
   // 3. Generate AI response using OpenAI with tools enabled
   try {
+    console.log('[AI Chat] Calling OpenAI with:', {
+      userMessage: userMessage.substring(0, 50) + '...',
+      conversationHistoryLength: conversationHistory.length,
+      enableTools: true,
+      conversationId: conversationId
+    });
+    
     const aiResponse = await chatWithAI({
       userMessage: userMessage,
       systemPrompt: getAISystemPrompt('default'),
@@ -54,6 +68,8 @@ export async function sendAIMessage(
       currentConversationId: conversationId,
       userId: senderId,
     });
+    
+    console.log('[AI Chat] Received AI response:', aiResponse.substring(0, 100) + '...');
 
     // 4. Store AI response as a message from the AI assistant
     await sendMessage(conversationId, aiResponse, 'ai-assistant');

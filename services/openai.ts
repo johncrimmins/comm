@@ -173,18 +173,33 @@ export async function chatWithAI(options: ChatOptions): Promise<string> {
     const data = await response.json();
     const message = data.choices?.[0]?.message;
 
+    console.log('[OpenAI] Initial response:', {
+      hasToolCalls: !!message.tool_calls,
+      toolCallsCount: message.tool_calls?.length || 0,
+      content: message.content
+    });
+
     // Check if OpenAI wants to call a tool
     if (message.tool_calls && message.tool_calls.length > 0) {
+      console.log('[OpenAI] Tool calls detected:', message.tool_calls);
+      
       // Execute tool calls
       const toolResults = await Promise.all(
         message.tool_calls.map(async (toolCall: any) => {
+          console.log('[OpenAI] Executing tool call:', toolCall.function.name);
+          
           if (toolCall.function.name === 'summarize_conversation') {
             const params = JSON.parse(toolCall.function.arguments);
+            console.log('[OpenAI] summarize_conversation params:', params);
+            
             // Call n8n webhook to get summary
             const summary = await summarizeConversation({
               conversationId: params.conversationId,
               userId: options.userId || ''
             });
+            
+            console.log('[OpenAI] Received summary from n8n, length:', summary.length);
+            
             return {
               tool_call_id: toolCall.id,
               role: 'tool',
@@ -227,6 +242,8 @@ export async function chatWithAI(options: ChatOptions): Promise<string> {
       const finalData = await finalResponse.json();
       const finalMessage = finalData.choices?.[0]?.message?.content?.trim();
 
+      console.log('[OpenAI] Final response after tool execution:', finalMessage?.substring(0, 100) + '...');
+
       if (!finalMessage) {
         throw new Error('No response returned from OpenAI');
       }
@@ -235,6 +252,7 @@ export async function chatWithAI(options: ChatOptions): Promise<string> {
     }
 
     // No tool calls, return direct response
+    console.log('[OpenAI] No tool calls, returning direct response');
     const aiResponse = message.content?.trim();
 
     if (!aiResponse) {
