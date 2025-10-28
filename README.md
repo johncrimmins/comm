@@ -1,6 +1,6 @@
 # Comm
 
-Build a modern, cross‑platform messaging app with real‑time sync, offline persistence, group chats, and AI features — in minutes with Expo Go.
+Comm is a, cross‑platform messaging app with real‑time sync, offline persistence, group chats, and AI features. You can deploy it in minutes with Expo Go.
 
 ## Why Comm
 
@@ -48,11 +48,11 @@ Build a modern, cross‑platform messaging app with real‑time sync, offline pe
 - A Firebase project (Firestore, Auth, and Storage enabled)
 - An OpenAI API key (for AI features and transformations)
 - An n8n instance/webhook URL (for RAG tool calls) — optional, only needed for AI summaries/actions/decisions
-- iOS: Xcode + iOS Simulator (macOS)
-- Android: Android Studio + emulator (or a physical device)
-- Device: Expo Go installed from the App Store/Play Store
+- iOS: Expo Go
+- Android: Expo Go
+- Any Device: Expo Go installed from the App Store/Play Store
 
-If you don't have OpenAI/n8n configured yet, you can still run the app and use core messaging. Avoid the long‑press "transformations" and the AI conversation until keys are added.
+If you don't have OpenAI configured yet, you can still run the app and use core messaging. Avoid the long‑press "transformations" and the AI conversation until keys are added.
 
 ## Features
 
